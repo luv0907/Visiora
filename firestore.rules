@@ -1,0 +1,53 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper functions ─────────────────────────────────────────────────────
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Validate that all incoming fields are within the allowed set
+    function onlyFields(allowed) {
+      return request.resource.data.keys().hasOnly(allowed);
+    }
+
+    // ── User profiles ────────────────────────────────────────────────────────
+    // Users can only read/write their own profile.
+    // v1: No teacher role — classCode is a plain string field only.
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+      allow create: if isOwner(uid)
+        && onlyFields(['uid', 'classCode', 'mastery', 'createdAt']);
+      allow update: if isOwner(uid)
+        && onlyFields(['classCode', 'mastery']);
+      allow delete: if false; // No self-delete in v1
+
+      // Quiz history sub-collection
+      match /quiz_history/{docId} {
+        allow read: if isOwner(uid);
+        allow create: if isOwner(uid)
+          && onlyFields(['scene', 'score', 'time_spent_mins', 'timestamp']);
+        allow update, delete: if false; // Immutable quiz records
+      }
+    }
+
+    // ── System / token budget ────────────────────────────────────────────────
+    // Only the backend service account may write to the daily budget counters.
+    // No client should ever have write access to this path.
+    match /system/{document=**} {
+      allow read: if false;   // Backend only via Admin SDK
+      allow write: if false;  // Backend only via Admin SDK
+    }
+
+    // ── Catch-all: deny everything else ─────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
