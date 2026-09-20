@@ -78,6 +78,7 @@ export default function OnboardingScreen() {
   const [loading, setLoading] = useState(false)
   const [step, setStep] = useState('auth') // 'auth' | 'classCode'
   const [classCode, setClassCode] = useState('')
+  const [domainCopied, setDomainCopied] = useState(false)
 
   // Route upon successful authentication
   useEffect(() => {
@@ -441,41 +442,89 @@ export default function OnboardingScreen() {
                       background: 'rgba(239, 68, 68, 0.08)',
                       border: '1px solid rgba(239, 68, 68, 0.3)',
                       color: '#B91C1C',
-                      padding: '12px 14px',
+                      padding: '14px 16px',
                       fontSize: 12.5,
                       marginBottom: 20,
-                      lineHeight: 1.4,
+                      lineHeight: 1.5,
                       display: 'flex',
                       alignItems: 'flex-start',
-                      gap: 8
+                      gap: 10
                     }}
                   >
-                    <AlertCircle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
-                    <div>
-                      <div>{authError}</div>
-                      <div style={{ marginTop: 6 }}>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (isDedicatedAdmin) {
-                              enableDevAdmin()
-                            } else {
-                              handleInstantScholar('Research Scholar')
-                            }
-                          }}
-                          style={{
-                            background: '#002B66',
-                            color: '#FFFFFF',
-                            border: 'none',
-                            padding: '4px 10px',
-                            fontSize: 11.5,
-                            fontWeight: 700,
-                            cursor: 'pointer'
-                          }}
-                        >
-                          ✦ Click Here for Instant {isDedicatedAdmin ? 'Admin' : 'Scholar'} Access
-                        </button>
-                      </div>
+                    <AlertCircle size={18} style={{ flexShrink: 0, marginTop: 2 }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 600 }}>{authError}</div>
+                      {authError.includes('Domain unauthorized') || authError.includes('authorization') || authError.includes('unauthorized-domain') ? (
+                        <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (typeof window !== 'undefined') {
+                                navigator.clipboard.writeText(window.location.hostname)
+                                setDomainCopied(true)
+                                setTimeout(() => setDomainCopied(false), 2500)
+                              }
+                            }}
+                            style={{
+                              background: '#FFFFFF',
+                              color: '#002B66',
+                              border: '1px solid #CBD5E1',
+                              padding: '5px 12px',
+                              fontSize: 11.5,
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            {domainCopied ? '✓ Copied Domain!' : `📋 Copy "${typeof window !== 'undefined' ? window.location.hostname : ''}"`}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (isDedicatedAdmin) {
+                                enableDevAdmin()
+                              } else {
+                                handleInstantScholar('Research Scholar')
+                              }
+                            }}
+                            style={{
+                              background: '#002B66',
+                              color: '#FFFFFF',
+                              border: 'none',
+                              padding: '5px 12px',
+                              fontSize: 11.5,
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            ✦ Enter via Instant {isDedicatedAdmin ? 'Admin' : 'Scholar'} Access
+                          </button>
+                        </div>
+                      ) : (
+                        <div style={{ marginTop: 8 }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (isDedicatedAdmin) {
+                                enableDevAdmin()
+                              } else {
+                                handleInstantScholar('Research Scholar')
+                              }
+                            }}
+                            style={{
+                              background: '#002B66',
+                              color: '#FFFFFF',
+                              border: 'none',
+                              padding: '4px 10px',
+                              fontSize: 11.5,
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            ✦ Click Here for Instant {isDedicatedAdmin ? 'Admin' : 'Scholar'} Access
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
