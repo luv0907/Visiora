@@ -10,117 +10,130 @@ import {
 } from 'firebase/auth'
 import { auth, googleProvider } from '../lib/firebase'
 import { loginWithFirebase, logout as apiLogout } from '../api/client'
+import { useProgressStore } from './useProgressStore'
 
 /**
- * Maps a Firebase user to a local user object so the app works
- * even when the backend is unreachable.
+ * Maps a Firebase user to a local user object with Google profile avatar.
  */
 function firebaseUserToLocal(firebaseUser) {
   return {
     uid: firebaseUser.uid,
     email: firebaseUser.email,
-    displayName: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
-    photoURL: firebaseUser.photoURL,
+    displayName: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Scholar',
+    photoURL: firebaseUser.photoURL || null,
     emailVerified: firebaseUser.emailVerified,
+    provider: firebaseUser.providerData?.[0]?.providerId || 'google.com'
   }
 }
 
 export const useAuthStore = create((set, get) => ({
   user: null,
   isAuthenticated: false,
-  isJustSignedIn: false, // true only during the session where login occurred (to show class code step)
-  isLoading: true, // start loading to check redirect result
+  isJustSignedIn: false,
+  isLoading: true,
   error: null,
-  backendConnected: null, // null = unknown, true/false
+  backendConnected: null,
 
   /**
-   * Sync Firebase user to backend. If backend is down, fall back to Firebase user data.
-   * This ensures auth NEVER fails just because the backend is unreachable.
+   * Handle Firebase user state changes.
+   * Authenticates the user immediately so there is zero delay for the user,
+   * then updates daily activity streak and performs background sync.
    */
   _handleFirebaseUser: async (firebaseUser, isFreshLogin = false) => {
     if (!firebaseUser) {
       set({ user: null, isAuthenticated: false, isJustSignedIn: false, isLoading: false })
       return
     }
+
+    const localUser = firebaseUserToLocal(firebaseUser)
+
+    // 1. Immediately authenticate in frontend
+    set({
+      user: localUser,
+      isAuthenticated: true,
+      isJustSignedIn: isFreshLogin,
+      error: null,
+      isLoading: false,
+    })
+
+    // 2. Trigger real daily streak calculation
+    try {
+      useProgressStore.getState().recordDailyActivity()
+    } catch (e) {}
+
+    // 3. Track user login in admin store (audit log)
+    try {
+      const { useAdminStore } = await import('./useAdminStore')
+      useAdminStore.getState().trackUserLogin({
+        uid: localUser.uid,
+        email: localUser.email,
+        displayName: localUser.displayName,
+        photoURL: localUser.photoURL,
+        provider: localUser.provider
+      })
+    } catch (e) {}
+
+    // 4. Background best-effort sync with backend API (non-blocking)
     try {
       const idToken = await firebaseUser.getIdToken()
       const res = await loginWithFirebase(idToken)
-      set({
-        user: res,
-        isAuthenticated: true,
-        isJustSignedIn: isFreshLogin,
-        error: null,
-        backendConnected: true,
-      })
-    } catch (error) {
-      // Backend is down — still allow login using Firebase user data
-      console.warn('Backend auth sync failed (backend may be offline), using Firebase user data:', error.message)
-      set({
-        user: firebaseUserToLocal(firebaseUser),
-        isAuthenticated: true,
-        isJustSignedIn: isFreshLogin,
-        error: null,
-        backendConnected: false,
-      })
-    } finally {
-      try {
-        const { useAdminStore } = await import('./useAdminStore')
-        useAdminStore.getState().trackUserLogin({
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          displayName: firebaseUser.displayName,
-          photoURL: firebaseUser.photoURL,
-          provider: firebaseUser.providerData?.[0]?.providerId || 'google.com'
-        })
-      } catch (e) {}
-      set({ isLoading: false })
+      if (res && typeof res === 'object') {
+        set(state => ({
+          user: {
+            ...state.user,
+            ...res,
+            // Ensure Google photoURL is NEVER overwritten by backend
+            photoURL: localUser.photoURL || res.photoURL
+          },
+          backendConnected: true
+        }))
+      }
+    } catch (err) {
+      // Backend not running or unreachable — completely normal in frontend-only / serverless setups
+      set({ backendConnected: false })
     }
   },
 
   init: () => {
     set({ isLoading: true })
     
-    // 1. Check for redirect result first (mobile Google sign-in return)
+    // 1. Check for redirect result (mobile Google sign-in return)
     getRedirectResult(auth)
       .then(async (credential) => {
-        if (credential) {
-          // Fresh login from redirect
+        if (credential?.user) {
           await get()._handleFirebaseUser(credential.user, true)
         }
       })
       .catch(err => {
-        set({ error: err.message, isLoading: false })
+        console.warn('Redirect auth result info:', err.message)
       })
 
-    // 2. Listen to ongoing changes (persisted sessions)
+    // 2. Check for stored scholar session
+    const storedScholar = localStorage.getItem('visiora_scholar_user')
+    if (storedScholar) {
+      try {
+        const parsed = JSON.parse(storedScholar)
+        set({
+          user: parsed,
+          isAuthenticated: true,
+          isJustSignedIn: false,
+          isLoading: false,
+          error: null
+        })
+        try {
+          useProgressStore.getState().recordDailyActivity()
+        } catch (e) {}
+      } catch (e) {}
+    }
+
+    // 3. Listen to Firebase auth changes
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      // Only run if not already authenticated by the redirect result above
-      if (firebaseUser && !get().isAuthenticated) {
-        // Not a fresh login, just restoring an existing session
+      if (firebaseUser) {
         await get()._handleFirebaseUser(firebaseUser, false)
-      } else if (!firebaseUser) {
-        // If Firebase says no user, check if we have a persisted dev bypass token
-        const devToken = localStorage.getItem('dev_token_bypass')
-        if (devToken && import.meta.env.VITE_ENVIRONMENT === 'development') {
-          try {
-            const res = await loginWithFirebase(devToken)
-            set({ user: res, isAuthenticated: true, isJustSignedIn: false, isLoading: false, error: null, backendConnected: true })
-            return
-          } catch (e) {
-            // Backend offline in dev — use a mock dev user
-            console.warn('Dev token backend sync failed, using mock dev user')
-            set({
-              user: { uid: 'dev_user', email: 'dev@visiora.local', displayName: 'Dev User', photoURL: null },
-              isAuthenticated: true,
-              isJustSignedIn: false,
-              isLoading: false,
-              error: null,
-              backendConnected: false,
-            })
-            return
-          }
-        }
+      } else if (!localStorage.getItem('visiora_scholar_user')) {
         set({ user: null, isAuthenticated: false, isJustSignedIn: false, isLoading: false })
+      } else {
+        set({ isLoading: false })
       }
     })
     
@@ -133,11 +146,12 @@ export const useAuthStore = create((set, get) => ({
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
       await get()._handleFirebaseUser(userCredential.user, true)
     } catch (err) {
-      const errorMessage = err.code === 'auth/operation-not-allowed' 
-        ? 'Email/Password authentication is not enabled in your Firebase Console.' 
-        : err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential'
-        ? 'Invalid email or password.'
-        : err.message
+      let errorMessage = err.message
+      if (err.code === 'auth/operation-not-allowed') {
+        errorMessage = 'Email/password is currently restricted. Please use Continue with Google or Scholar Access.'
+      } else if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+        errorMessage = 'Invalid email or password. You can also sign in with Google or Scholar Access.'
+      }
       set({ error: errorMessage, isLoading: false })
       throw err
     }
@@ -149,13 +163,14 @@ export const useAuthStore = create((set, get) => ({
       const userCredential = await createUserWithEmailAndPassword(auth, email, password)
       await get()._handleFirebaseUser(userCredential.user, true)
     } catch (err) {
-      const errorMessage = err.code === 'auth/operation-not-allowed' 
-        ? 'Email/Password authentication is not enabled in your Firebase Console.' 
-        : err.code === 'auth/email-already-in-use'
-        ? 'An account with this email already exists.'
-        : err.code === 'auth/weak-password'
-        ? 'Password should be at least 6 characters.'
-        : err.message
+      let errorMessage = err.message
+      if (err.code === 'auth/operation-not-allowed') {
+        errorMessage = 'Email/password registration is restricted. Please use Continue with Google or Scholar Access.'
+      } else if (err.code === 'auth/email-already-in-use') {
+        errorMessage = 'An account with this email already exists. Please sign in.'
+      } else if (err.code === 'auth/weak-password') {
+        errorMessage = 'Password must be at least 6 characters.'
+      }
       set({ error: errorMessage, isLoading: false })
       throw err
     }
@@ -164,52 +179,84 @@ export const useAuthStore = create((set, get) => ({
   signInWithGoogle: async () => {
     set({ isLoading: true, error: null })
     try {
-      // Use redirect on mobile web, popup on desktop
-      const isMobile = window.innerWidth <= 768 || /Mobi|Android/i.test(navigator.userAgent)
-      if (isMobile) {
-        await signInWithRedirect(auth, googleProvider)
-      } else {
-        const userCredential = await signInWithPopup(auth, googleProvider)
+      // Configure prompt for account selection
+      googleProvider.setCustomParameters({ prompt: 'select_account' })
+      const userCredential = await signInWithPopup(auth, googleProvider)
+      if (userCredential?.user) {
         await get()._handleFirebaseUser(userCredential.user, true)
       }
     } catch (err) {
-      set({ error: err.message, isLoading: false })
+      console.warn('Google Popup sign-in error:', err)
+      // If popup was blocked or mobile, try redirect fallback
+      if (err.code === 'auth/popup-blocked' || err.code === 'auth/cancelled-popup-request') {
+        try {
+          await signInWithRedirect(auth, googleProvider)
+          return
+        } catch (redirectErr) {
+          set({ error: redirectErr.message, isLoading: false })
+          throw redirectErr
+        }
+      }
+      
+      let msg = err.message
+      if (err.code === 'auth/unauthorized-domain') {
+        msg = 'This domain is awaiting Firebase OAuth authorization. You can click "Instant Scholar Access" to enter immediately!'
+      } else if (err.code === 'auth/popup-closed-by-user') {
+        msg = 'Google Sign-In was cancelled.'
+      }
+      set({ error: msg, isLoading: false })
       throw err
     }
   },
 
-  signInDev: async () => {
+  // Instant Scholar Access (Guest / Demo mode with full persistence)
+  signInAsScholar: (customName = 'Physics Scholar', customEmail = 'scholar@visiora.edu') => {
     set({ isLoading: true, error: null })
-    try {
-      localStorage.setItem('dev_token_bypass', 'dev_token_bypass')
-      try {
-        const res = await loginWithFirebase('dev_token_bypass')
-        set({ user: res, isAuthenticated: true, isJustSignedIn: true, error: null, isLoading: false, backendConnected: true })
-      } catch (backendErr) {
-        // Backend offline — use mock dev user
-        console.warn('Dev mode: backend offline, using mock user')
-        set({
-          user: { uid: 'dev_user', email: 'dev@visiora.local', displayName: 'Dev User', photoURL: null },
-          isAuthenticated: true,
-          isJustSignedIn: true,
-          error: null,
-          isLoading: false,
-          backendConnected: false,
-        })
-      }
-    } catch (error) {
-      console.error('Mock auth sync failed:', error)
-      localStorage.removeItem('dev_token_bypass')
-      set({ error: error.message, isLoading: false })
+    const scholarUser = {
+      uid: `scholar_${Date.now()}`,
+      email: customEmail,
+      displayName: customName,
+      photoURL: null,
+      provider: 'scholar.visiora'
     }
+
+    localStorage.setItem('visiora_scholar_user', JSON.stringify(scholarUser))
+    set({
+      user: scholarUser,
+      isAuthenticated: true,
+      isJustSignedIn: true,
+      isLoading: false,
+      error: null
+    })
+
+    try {
+      useProgressStore.getState().recordDailyActivity()
+    } catch (e) {}
+
+    try {
+      import('./useAdminStore').then(m => {
+        m.useAdminStore.getState().trackUserLogin({
+          uid: scholarUser.uid,
+          email: scholarUser.email,
+          displayName: scholarUser.displayName,
+          photoURL: null,
+          provider: 'Scholar Access'
+        })
+      })
+    } catch (e) {}
+  },
+
+  signInDev: async () => {
+    get().signInAsScholar('Research Fellow', 'fellow@visiora.edu')
   },
 
   logout: async () => {
     set({ isLoading: true })
     try {
+      localStorage.removeItem('visiora_scholar_user')
       localStorage.removeItem('dev_token_bypass')
-      await signOut(auth)
-      await apiLogout().catch(() => {}) // best-effort
+      await signOut(auth).catch(() => {})
+      await apiLogout().catch(() => {})
       set({ user: null, isAuthenticated: false, isJustSignedIn: false, error: null, backendConnected: null })
     } finally {
       set({ isLoading: false })
@@ -217,6 +264,5 @@ export const useAuthStore = create((set, get) => ({
   },
   
   clearError: () => set({ error: null }),
-  
   clearJustSignedIn: () => set({ isJustSignedIn: false })
 }))

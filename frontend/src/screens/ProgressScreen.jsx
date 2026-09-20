@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom'
 import { useProgressStore } from '../store/useProgressStore'
 import { SCENE_META } from '../config/physics'
 import { useMediaQuery } from '../hooks/useMediaQuery'
+import { useAuthStore } from '../store/useAuthStore'
 import { Target, Award, Flame, BookOpen, Clock, Zap, Atom, Star, Compass, User, CheckCircle2 } from 'lucide-react'
 import LabIcon from '../components/common/LabIcon'
 
@@ -79,6 +80,7 @@ function MasteryBar({ score, animate }) {
 export default function ProgressScreen() {
   const navigate = useNavigate()
   const isDesktop = useMediaQuery('(min-width: 1024px)')
+  const user = useAuthStore(state => state.user)
   const { profile: progressPayload, fetchProfile, updateProfile, isLoading, error } = useProgressStore()
 
   const [isEditing, setIsEditing] = useState(false)
@@ -94,12 +96,12 @@ export default function ProgressScreen() {
     if (progressPayload && !isEditing) {
       const p = progressPayload?.profile || progressPayload
       setEditForm({
-        name:   p?.name   || '',
-        grade:  p?.grade  || '6',
+        name:   p?.name   || user?.displayName || '',
+        grade:  p?.grade  || '11',
         avatar: p?.avatar || '🚀',
       })
     }
-  }, [progressPayload, isEditing])
+  }, [progressPayload, isEditing, user])
 
   useEffect(() => {
     const t = setTimeout(() => setBarsVisible(true), 300)
@@ -135,10 +137,10 @@ export default function ProgressScreen() {
   const mastery = progressPayload?.mastery || rawProfile?.mastery || {}
   const recentSessions = progressPayload?.recentSessions || []
 
-  const name   = rawProfile?.name   || 'Explorer'
+  const name   = rawProfile?.name   || user?.displayName || 'Explorer'
   const avatar = rawProfile?.avatar || '🚀'
-  const grade  = rawProfile?.grade  || ''
-  const streak = rawProfile?.streak || 0
+  const grade  = rawProfile?.grade  || '11'
+  const streak = rawProfile?.streak ?? 1
   const badges = rawProfile?.badges || []
 
   const avgMastery = Object.values(mastery).reduce((a, b) => a + (b?.score || 0), 0) / (Object.keys(mastery).length || 1)
@@ -159,11 +161,16 @@ export default function ProgressScreen() {
             </div>
             <div style={{
               width: 48, height: 48, borderRadius: '50%',
+              overflow: 'hidden',
               background: 'var(--cream-100)', border: '1.5px solid var(--gold-500)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', 
               color: 'var(--obsidian-900)', fontWeight: 800, fontSize: 15,
             }}>
-              {avatar && avatar.length <= 3 ? avatar : 'PH'}
+              {user?.photoURL ? (
+                <img src={user.photoURL} alt={name} referrerPolicy="no-referrer" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <span>{avatar && avatar.length <= 3 ? avatar : (name ? name.slice(0, 2).toUpperCase() : 'PH')}</span>
+              )}
             </div>
           </div>
         )}

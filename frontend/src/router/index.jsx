@@ -14,12 +14,14 @@ import QuizScreen from '../screens/QuizScreen'
 import AdminScreen from '../screens/AdminScreen'
 import VirtualLabScreen from '../screens/VirtualLabScreen'
 import ProfileScreen from '../screens/ProfileScreen'
+import DynamicLabScreen from '../screens/DynamicLabScreen'
+import AITutorScreen from '../screens/AITutorScreen'
 
 function ProtectedRoute() {
   const isAuthenticated = useAuthStore(state => state.isAuthenticated)
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   const location = useLocation()
-  const isSim = location.pathname.startsWith('/sim') || location.pathname.startsWith('/virtual-lab')
+  const isSim = location.pathname.startsWith('/sim') || location.pathname.startsWith('/virtual-lab') || location.pathname.startsWith('/lab')
 
   if (!isAuthenticated) {
     return <Navigate to="/onboarding" replace />
@@ -40,24 +42,37 @@ function ProtectedRoute() {
   )
 }
 
-const router = createBrowserRouter([
-  { path: '/onboarding', element: <OnboardingScreen /> },
-  { path: '/admin', element: <AdminScreen /> },
-  {
-    element: <ProtectedRoute />,
-    children: [
-      { path: '/',                  element: <HomeScreen /> },
-      { path: '/sim',               element: <SimulatorScreen /> },
-      { path: '/sim-2d',            element: <Simulator2DScreen /> },
-      { path: '/sim-2d/:labId',     element: <Simulator2DScreen /> },
-      { path: '/progress',          element: <ProgressScreen /> },
-      { path: '/quiz/:conceptId',   element: <QuizScreen /> },
-      { path: '/virtual-lab',       element: <VirtualLabScreen /> },
-      { path: '/profile',           element: <ProfileScreen /> },
-    ]
-  },
-  { path: '*', element: <Navigate to="/" replace /> }
-])
+const isDedicatedAdmin = import.meta.env.VITE_APP_TARGET === 'admin'
+
+const router = createBrowserRouter(
+  isDedicatedAdmin
+    ? [
+        { path: '/', element: <AdminScreen /> },
+        { path: '/admin', element: <AdminScreen /> },
+        { path: '*', element: <Navigate to="/" replace /> }
+      ]
+    : [
+        { path: '/onboarding', element: <OnboardingScreen /> },
+        {
+          element: <ProtectedRoute />,
+          children: [
+            { path: '/',                  element: <HomeScreen /> },
+            { path: '/sim',               element: <SimulatorScreen /> },
+            { path: '/sim-2d',            element: <Simulator2DScreen /> },
+            { path: '/sim-2d/:labId',     element: <DynamicLabScreen /> },
+            { path: '/lab',               element: <DynamicLabScreen /> },
+            { path: '/lab/:labId',        element: <DynamicLabScreen /> },
+            { path: '/ai-tutor',          element: <AITutorScreen /> },
+            { path: '/progress',          element: <ProgressScreen /> },
+            { path: '/quiz/:conceptId',   element: <QuizScreen /> },
+            { path: '/virtual-lab',       element: <VirtualLabScreen /> },
+            { path: '/profile',           element: <ProfileScreen /> },
+          ]
+        },
+        { path: '/admin', element: <Navigate to="/" replace /> },
+        { path: '*', element: <Navigate to="/" replace /> }
+      ]
+)
 
 export function AppRouter() {
   return <RouterProvider router={router} />

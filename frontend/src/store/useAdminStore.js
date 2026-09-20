@@ -5,61 +5,209 @@ import { signInWithPopup, signOut } from 'firebase/auth'
 const DEFAULT_BANNER = '/images/physics_doodle_banner_16x9.jpg'
 const DEFAULT_SHOWCASE = '/images/physics_doodle_portrait.jpg'
 
-const DEFAULT_2D_VISUALIZATIONS = [
+export const DEFAULT_EXPERIMENTS = [
+  {
+    id: 'ohmslaw',
+    type: '3d',
+    title: "Ohm's Law Virtual Lab",
+    subtitle: 'Interactive 3D laboratory bench with analog meters, rheostat & V-I graph',
+    category: 'Electromagnetism',
+    formula: 'V = I · R',
+    targetUrl: '/virtual-lab/index.html',
+    imageUrl: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
+    badge: 'Unity 3D Lab',
+    icon: 'ohmslaw',
+    embedMode: 'embed',
+    isActive: true,
+    isFeatured: true,
+    order: 1,
+    clicks: 340,
+    authorTeam: 'Visiora Virtual Labs Core',
+    gradeLevel: 'Class 8-10',
+    createdAt: '2026-09-10T10:00:00Z'
+  },
+  {
+    id: 'projectile',
+    type: '3d',
+    title: 'Projectile Motion Simulator',
+    subtitle: 'Parabolic trajectories, air drag, launch angles, and velocity vector components',
+    category: 'Kinematics & Dynamics',
+    formula: 'R = (v₀² sin 2θ)/g',
+    targetUrl: '/sim?lab=projectile',
+    imageUrl: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=800&q=80',
+    badge: '3D Physics Engine',
+    icon: 'projectile',
+    embedMode: 'embed',
+    isActive: true,
+    isFeatured: true,
+    order: 2,
+    clicks: 285,
+    authorTeam: 'Dynamics Lab Alpha',
+    gradeLevel: 'Class 9-12',
+    createdAt: '2026-09-10T11:00:00Z'
+  },
+  {
+    id: 'gravity',
+    type: '3d',
+    title: 'Free Fall & Gravitational Orbits',
+    subtitle: 'Mass-independent acceleration and Keplerian gravitational orbital mechanics',
+    category: 'Gravitation & Astrophysics',
+    formula: 'y(t) = h₀ - ½gt²',
+    targetUrl: '/sim?lab=gravity',
+    imageUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=800&q=80',
+    badge: 'Galileo Lab',
+    icon: 'gravity',
+    embedMode: 'embed',
+    isActive: true,
+    isFeatured: false,
+    order: 3,
+    clicks: 195,
+    authorTeam: 'Astrophysics Group',
+    gradeLevel: 'Class 9-12',
+    createdAt: '2026-09-10T11:30:00Z'
+  },
+  {
+    id: 'pendulum',
+    type: '3d',
+    title: 'Pendulum Mechanics & Chaos',
+    subtitle: 'Harmonic oscillation, phase space trajectories, and double pendulum chaos',
+    category: 'Harmonics & Waves',
+    formula: 'T = 2π√(L/g)',
+    targetUrl: '/sim?lab=pendulum',
+    imageUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80',
+    badge: 'Harmonics 3D',
+    icon: 'pendulum',
+    embedMode: 'embed',
+    isActive: true,
+    isFeatured: false,
+    order: 4,
+    clicks: 160,
+    authorTeam: 'Oscillations Team',
+    gradeLevel: 'Class 10-12',
+    createdAt: '2026-09-10T12:00:00Z'
+  },
+  {
+    id: 'buoyancy',
+    type: '3d',
+    title: 'Fluid Buoyancy & Density',
+    subtitle: 'Fluid displacement, density thresholds, and Archimedes upward buoyant force',
+    category: 'Fluid Mechanics',
+    formula: 'F_b = ρ_f · V_sub · g',
+    targetUrl: '/sim?lab=buoyancy',
+    imageUrl: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=800&q=80',
+    badge: 'Archimedes Lab',
+    icon: 'buoyancy',
+    embedMode: 'embed',
+    isActive: true,
+    isFeatured: false,
+    order: 5,
+    clicks: 140,
+    authorTeam: 'Fluid Dynamics Lab',
+    gradeLevel: 'Class 9-11',
+    createdAt: '2026-09-10T12:30:00Z'
+  },
+  {
+    id: 'collision',
+    type: '3d',
+    title: 'Elastic & Inelastic Collisions',
+    subtitle: 'Conservation of linear momentum and kinetic energy exchange across velocities',
+    category: 'Mechanics & Momentum',
+    formula: 'p = m₁v₁ + m₂v₂',
+    targetUrl: '/sim?lab=collision',
+    imageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80',
+    badge: 'Conservation Law',
+    icon: 'collision',
+    embedMode: 'embed',
+    isActive: true,
+    isFeatured: false,
+    order: 6,
+    clicks: 115,
+    authorTeam: 'Classical Mechanics Unit',
+    gradeLevel: 'Class 11-12',
+    createdAt: '2026-09-10T13:00:00Z'
+  },
   {
     id: 'vis-energy-forms',
+    type: '2d',
     title: 'Energy Forms & Changes: Thermal Physics & Systems',
     subtitle: 'Experiment with heat conduction, thermal equilibrium, floating energy packets, and multi-stage power generation',
     category: 'Thermodynamics',
+    formula: 'Q = mcΔT',
     targetUrl: 'https://phet.colorado.edu/sims/html/energy-forms-and-changes/latest/energy-forms-and-changes_en.html',
     internalPath: '/sim-2d?lab=energy-forms-and-changes',
     imageUrl: '/images/energy_forms_changes_banner.jpg',
     badge: 'Featured 2D Lab',
+    icon: 'flame',
+    embedMode: 'embed',
     isActive: true,
-    order: 1,
+    isFeatured: true,
+    order: 7,
     clicks: 215,
+    authorTeam: 'PhET & Visiora Atelier',
+    gradeLevel: 'Class 8-12',
     createdAt: '2026-09-11T09:00:00Z'
   },
   {
     id: 'vis-phet-circuits',
+    type: '2d',
     title: "Circuit Construction Kit: DC & Ohm's Law",
     subtitle: 'Interactive schematic builder for resistors, batteries, capacitors and voltage analysis',
     category: 'Electromagnetism',
+    formula: 'V = I · R',
     targetUrl: 'https://phet.colorado.edu/sims/html/circuit-construction-kit-dc/latest/circuit-construction-kit-dc_all.html',
     internalPath: '/sim-2d?lab=circuit-construction-kit-dc',
     imageUrl: 'https://images.unsplash.com/photo-1517420704952-d9f39e95b43e?auto=format&fit=crop&w=800&q=80',
     badge: 'PhET Simulation',
+    icon: 'zap',
+    embedMode: 'embed',
     isActive: true,
-    order: 2,
+    isFeatured: false,
+    order: 8,
     clicks: 142,
+    authorTeam: 'Circuits Studio',
+    gradeLevel: 'Class 8-10',
     createdAt: '2026-09-10T12:00:00Z'
   },
   {
     id: 'vis-wave-string',
+    type: '2d',
     title: 'Wave Interference & Standing Harmonics',
     subtitle: 'Explore frequency, amplitude, damping and boundary reflection in 2D mechanical strings',
     category: 'Wave Mechanics',
+    formula: 'v = f · λ',
     targetUrl: 'https://phet.colorado.edu/sims/html/wave-on-a-string/latest/wave-on-a-string_all.html',
     internalPath: '/sim-2d?lab=wave-on-a-string',
     imageUrl: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=800&q=80',
     badge: 'Interactive 2D',
+    icon: 'activity',
+    embedMode: 'embed',
     isActive: true,
-    order: 3,
+    isFeatured: false,
+    order: 9,
     clicks: 98,
+    authorTeam: 'Acoustics & Waves',
+    gradeLevel: 'Class 9-12',
     createdAt: '2026-09-10T14:30:00Z'
   },
   {
     id: 'vis-optics-ray',
+    type: '2d',
     title: "Geometric Optics & Snell's Refraction",
     subtitle: 'Precision ray tracing through convex lenses, concave mirrors and refractive prisms',
     category: 'Optics & Light',
+    formula: 'n₁ sin θ₁ = n₂ sin θ₂',
     targetUrl: 'https://phet.colorado.edu/sims/html/geometric-optics/latest/geometric-optics_all.html',
     internalPath: '/sim-2d?lab=geometric-optics',
     imageUrl: 'https://images.unsplash.com/photo-1507668077129-56e32842fceb?auto=format&fit=crop&w=800&q=80',
     badge: 'Optics Lab',
+    icon: 'eye',
+    embedMode: 'embed',
     isActive: true,
-    order: 4,
+    isFeatured: false,
+    order: 10,
     clicks: 76,
+    authorTeam: 'Photonics Team',
+    gradeLevel: 'Class 10-12',
     createdAt: '2026-09-11T08:15:00Z'
   }
 ]
@@ -132,18 +280,46 @@ export const useAdminStore = create((set, get) => ({
     }
   })(),
 
-  // 2D Visualizations State
-  visualizations: (() => {
+  // Unified Experiments State (Both 3D and 2D)
+  experiments: (() => {
     try {
-      const stored = localStorage.getItem('visiora_2d_sims')
-      if (!stored) return DEFAULT_2D_VISUALIZATIONS
+      const stored = localStorage.getItem('visiora_experiments')
+      if (!stored) return DEFAULT_EXPERIMENTS
       const parsed = JSON.parse(stored)
-      // Ensure DEFAULT items like energy forms are merged if missing or updated
       const existingIds = new Set(parsed.map(p => p.id))
-      const missing = DEFAULT_2D_VISUALIZATIONS.filter(d => !existingIds.has(d.id))
+      const missing = DEFAULT_EXPERIMENTS.filter(d => !existingIds.has(d.id))
       return [...missing, ...parsed]
     } catch {
-      return DEFAULT_2D_VISUALIZATIONS
+      return DEFAULT_EXPERIMENTS
+    }
+  })(),
+
+  // Computed helper selectors
+  get3DExperiments: (activeOnly = false) => {
+    const list = (get().experiments || []).filter(e => e.type === '3d')
+    return activeOnly ? list.filter(e => e.isActive !== false) : list
+  },
+
+  get2DExperiments: (activeOnly = false) => {
+    const list = (get().experiments || []).filter(e => e.type === '2d')
+    return activeOnly ? list.filter(e => e.isActive !== false) : list
+  },
+
+  getExperimentById: (id) => {
+    return (get().experiments || []).find(e => e.id === id) || null
+  },
+
+  // Backward compatibility alias for 2D visualizations
+  visualizations: (() => {
+    try {
+      const stored = localStorage.getItem('visiora_experiments')
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        return parsed.filter(p => p.type === '2d')
+      }
+      return DEFAULT_EXPERIMENTS.filter(d => d.type === '2d')
+    } catch {
+      return DEFAULT_EXPERIMENTS.filter(d => d.type === '2d')
     }
   })(),
 
@@ -258,13 +434,27 @@ export const useAdminStore = create((set, get) => ({
         }
       }
 
-      // Fetch 2D Visualizations
-      const resVis = await fetch('/api/v1/admin/visualizations').catch(() => null)
-      if (resVis && resVis.ok) {
-        const vis = await resVis.json()
-        if (Array.isArray(vis) && vis.length > 0) {
-          set({ visualizations: vis })
-          localStorage.setItem('visiora_2d_sims', JSON.stringify(vis))
+      // Fetch Experiments (Unified 2D & 3D)
+      const resExp = await fetch('/api/v1/admin/experiments').catch(() => null)
+      if (resExp && resExp.ok) {
+        const exps = await resExp.json()
+        if (Array.isArray(exps) && exps.length > 0) {
+          set({
+            experiments: exps,
+            visualizations: exps.filter(e => e.type === '2d')
+          })
+          localStorage.setItem('visiora_experiments', JSON.stringify(exps))
+          localStorage.setItem('visiora_2d_sims', JSON.stringify(exps.filter(e => e.type === '2d')))
+        }
+      } else {
+        // Fallback: fetch legacy 2D visualizations
+        const resVis = await fetch('/api/v1/admin/visualizations').catch(() => null)
+        if (resVis && resVis.ok) {
+          const vis = await resVis.json()
+          if (Array.isArray(vis) && vis.length > 0) {
+            set({ visualizations: vis })
+            localStorage.setItem('visiora_2d_sims', JSON.stringify(vis))
+          }
         }
       }
 
@@ -324,27 +514,44 @@ export const useAdminStore = create((set, get) => ({
     } catch (e) {}
   },
 
-  // ── 4. 2D Visualizations CRUD Operations ──
-  addVisualization: async (item) => {
+  // ── 4. Unified Experiments CRUD Operations (3D and 2D) ──
+  addExperiment: async (item) => {
+    const is3D = (item.type || '3d').toLowerCase() === '3d'
+    const newId = `exp-${is3D ? '3d' : '2d'}-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`
+    const defaultImg = is3D
+      ? 'https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=800&q=80'
+      : '/images/energy_forms_changes_banner.jpg'
+
     const newItem = {
-      id: `vis-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      id: item.id || newId,
+      type: is3D ? '3d' : '2d',
       title: item.title,
       subtitle: item.subtitle || '',
-      category: item.category || 'General Physics',
+      category: item.category || (is3D ? 'Mechanics & Kinematics' : 'General Physics'),
+      formula: item.formula || '',
       targetUrl: item.targetUrl,
-      imageUrl: item.imageUrl || 'https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=800&q=80',
-      badge: item.badge || 'Interactive 2D',
+      imageUrl: item.imageUrl || defaultImg,
+      badge: item.badge || (is3D ? '3D Physics Lab' : 'Interactive 2D'),
+      icon: item.icon || (is3D ? 'atom' : 'activity'),
+      embedMode: item.embedMode || 'embed',
       isActive: item.isActive !== false,
-      order: item.order || (get().visualizations.length + 1),
+      isFeatured: Boolean(item.isFeatured),
+      order: item.order || (get().experiments.length + 1),
+      authorTeam: item.authorTeam || 'Visiora Atelier Core',
+      gradeLevel: item.gradeLevel || 'Class 8-12',
       clicks: 0,
       createdAt: new Date().toISOString()
     }
 
-    const updated = [...get().visualizations, newItem]
-    set({ visualizations: updated })
+    const updated = [...get().experiments, newItem]
+    set({
+      experiments: updated,
+      visualizations: updated.filter(e => e.type === '2d')
+    })
     try {
-      localStorage.setItem('visiora_2d_sims', JSON.stringify(updated))
-      await fetch('/api/v1/admin/visualizations', {
+      localStorage.setItem('visiora_experiments', JSON.stringify(updated))
+      localStorage.setItem('visiora_2d_sims', JSON.stringify(updated.filter(e => e.type === '2d')))
+      await fetch('/api/v1/admin/experiments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newItem)
@@ -353,12 +560,16 @@ export const useAdminStore = create((set, get) => ({
     return newItem
   },
 
-  updateVisualization: async (id, changes) => {
-    const updated = get().visualizations.map(v => (v.id === id ? { ...v, ...changes } : v))
-    set({ visualizations: updated })
+  updateExperiment: async (id, changes) => {
+    const updated = get().experiments.map(e => (e.id === id ? { ...e, ...changes } : e))
+    set({
+      experiments: updated,
+      visualizations: updated.filter(e => e.type === '2d')
+    })
     try {
-      localStorage.setItem('visiora_2d_sims', JSON.stringify(updated))
-      await fetch(`/api/v1/admin/visualizations/${id}`, {
+      localStorage.setItem('visiora_experiments', JSON.stringify(updated))
+      localStorage.setItem('visiora_2d_sims', JSON.stringify(updated.filter(e => e.type === '2d')))
+      await fetch(`/api/v1/admin/experiments/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(changes)
@@ -366,28 +577,57 @@ export const useAdminStore = create((set, get) => ({
     } catch (e) {}
   },
 
-  deleteVisualization: async (id) => {
-    const updated = get().visualizations.filter(v => v.id !== id)
-    set({ visualizations: updated })
+  deleteExperiment: async (id) => {
+    const updated = get().experiments.filter(e => e.id !== id)
+    set({
+      experiments: updated,
+      visualizations: updated.filter(e => e.type === '2d')
+    })
     try {
-      localStorage.setItem('visiora_2d_sims', JSON.stringify(updated))
-      await fetch(`/api/v1/admin/visualizations/${id}`, { method: 'DELETE' })
+      localStorage.setItem('visiora_experiments', JSON.stringify(updated))
+      localStorage.setItem('visiora_2d_sims', JSON.stringify(updated.filter(e => e.type === '2d')))
+      await fetch(`/api/v1/admin/experiments/${id}`, { method: 'DELETE' })
     } catch (e) {}
+  },
+
+  toggleExperimentActive: async (id) => {
+    const target = get().experiments.find(e => e.id === id)
+    if (!target) return
+    await get().updateExperiment(id, { isActive: !target.isActive })
+  },
+
+  trackExperimentClick: (id) => {
+    const updated = get().experiments.map(e => (e.id === id ? { ...e, clicks: (e.clicks || 0) + 1 } : e))
+    set({
+      experiments: updated,
+      visualizations: updated.filter(e => e.type === '2d')
+    })
+    try {
+      localStorage.setItem('visiora_experiments', JSON.stringify(updated))
+      localStorage.setItem('visiora_2d_sims', JSON.stringify(updated.filter(e => e.type === '2d')))
+      fetch(`/api/v1/admin/experiments/${id}/click`, { method: 'POST' }).catch(() => {})
+    } catch (e) {}
+  },
+
+  // ── Backward-compatible 2D Visualizations CRUD wrappers ──
+  addVisualization: async (item) => {
+    return await get().addExperiment({ ...item, type: '2d' })
+  },
+
+  updateVisualization: async (id, changes) => {
+    return await get().updateExperiment(id, changes)
+  },
+
+  deleteVisualization: async (id) => {
+    return await get().deleteExperiment(id)
   },
 
   toggleVisualizationActive: async (id) => {
-    const target = get().visualizations.find(v => v.id === id)
-    if (!target) return
-    await get().updateVisualization(id, { isActive: !target.isActive })
+    return await get().toggleExperimentActive(id)
   },
 
   trackVisualizationClick: (id) => {
-    const updated = get().visualizations.map(v => (v.id === id ? { ...v, clicks: (v.clicks || 0) + 1 } : v))
-    set({ visualizations: updated })
-    try {
-      localStorage.setItem('visiora_2d_sims', JSON.stringify(updated))
-      fetch(`/api/v1/admin/visualizations/${id}/click`, { method: 'POST' }).catch(() => {})
-    } catch (e) {}
+    return get().trackExperimentClick(id)
   },
 
   // ── 5. User Login Tracking ──

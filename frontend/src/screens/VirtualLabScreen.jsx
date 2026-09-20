@@ -1,90 +1,34 @@
 /**
  * VISIORA — VirtualLabScreen.jsx
  * 
- * Embeds the Unity WebGL Virtual Lab inside the existing React app.
- * This is a NEW file — it does NOT replace or modify any existing screen.
- * 
- * Architecture:
- *   - React app renders an iframe pointing at the Unity WebGL build
- *   - Auth token is passed to Unity via postMessage / URL param
- *   - Unity communicates back via window.unityInstance.SendMessage
- * 
- * INTEGRATION REQUIREMENTS (minimal):
- *   1. This file (new)
- *   2. Add route in router/index.jsx (one line addition)
- *   3. Add nav entry in HomeScreen.jsx (optional — one card addition)
- *   4. Host Unity WebGL build at /virtual-lab/ on Vercel
+ * 3D Unity Laboratory Under Active Construction Screen.
+ * Elegantly displays the engineering progress of the 3D Unity WebGL apparatus,
+ * showcasing upcoming 3D spatial simulations and directing users to 2D laboratories
+ * and the AI Visual Tutor.
  */
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuthStore } from '../store/useAuthStore'
-import { ArrowLeft, Maximize2, Minimize2, Loader, AlertCircle } from 'lucide-react'
+import {
+  ArrowLeft,
+  Wrench,
+  Sparkles,
+  Zap,
+  Orbit,
+  Crosshair,
+  Layers,
+  Bot,
+  ExternalLink,
+  ChevronRight,
+  Maximize2,
+  Minimize2,
+  Cpu,
+  Clock
+} from 'lucide-react'
 
 export default function VirtualLabScreen() {
   const navigate = useNavigate()
-  const user = useAuthStore(state => state.user)
-  const iframeRef = useRef(null)
-
-  const [isLoading, setIsLoading] = useState(true)
   const [isFullscreen, setIsFullscreen] = useState(false)
-  const [loadError, setLoadError] = useState(false)
-
-  // Recursion guard: never render VirtualLabScreen inside an iframe
-  if (typeof window !== 'undefined' && window.self !== window.top) {
-    return null
-  }
-
-  // Unity WebGL build path — relative to the deployment root
-  const UNITY_BUILD_URL = import.meta.env.VITE_UNITY_LAB_URL || '/virtual-lab/index.html'
-
-  const handleBack = () => {
-    if (window.top && window.top !== window) {
-      window.top.location.href = '/'
-    } else {
-      navigate('/')
-    }
-  }
-
-  useEffect(() => {
-    const iframe = iframeRef.current
-    if (!iframe) return
-
-    const handleLoad = () => {
-      setIsLoading(false)
-      
-      // Send auth token to Unity via postMessage
-      if (user) {
-        iframe.contentWindow?.postMessage({
-          type: 'VISORA_AUTH',
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName || user.email
-        }, '*')
-      }
-    }
-
-    const handleError = () => {
-      setLoadError(true)
-      setIsLoading(false)
-    }
-
-    const handleMessage = (e) => {
-      if (e.data?.type === 'UNITY_LAB_READY') {
-        setIsLoading(false)
-      }
-    }
-
-    iframe.addEventListener('load', handleLoad)
-    iframe.addEventListener('error', handleError)
-    window.addEventListener('message', handleMessage)
-
-    return () => {
-      iframe.removeEventListener('load', handleLoad)
-      iframe.removeEventListener('error', handleError)
-      window.removeEventListener('message', handleMessage)
-    }
-  }, [user])
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -96,227 +40,430 @@ export default function VirtualLabScreen() {
     }
   }
 
-  return (
-    <div style={{
-      width: '100vw',
-      height: '100dvh',
-      background: '#FAF8F5',
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden',
-      position: 'relative'
-    }}>
-      {/* ── Top Bar in Signature Cream & Navy Theme ── */}
-      <div style={{
-        height: 50,
-        background: '#FAF8F5',
-        borderBottom: '1px solid rgba(0, 43, 102, 0.16)',
-        boxShadow: '0 2px 8px rgba(0, 43, 102, 0.06)',
-        display: 'flex',
-        alignItems: 'center',
-        padding: '0 16px',
-        gap: 12,
-        zIndex: 10,
-        flexShrink: 0
-      }}>
-        <button
-          onClick={handleBack}
-          style={{
-            background: '#002B66',
-            border: 'none',
-            color: '#FFFFFF',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '6px 12px',
-            borderRadius: 0,
-            fontSize: 12.5,
-            fontWeight: 700,
-            transition: 'all 0.15s ease',
-            boxShadow: '0 2px 6px rgba(0, 43, 102, 0.2)'
-          }}
-          onMouseEnter={e => e.currentTarget.style.background = '#0A192F'}
-          onMouseLeave={e => e.currentTarget.style.background = '#002B66'}
-        >
-          <ArrowLeft size={15} />
-          Back to VISIORA
-        </button>
+  const UPCOMING_MODULES = [
+    {
+      id: 'ohmslaw',
+      title: "3D Ohm's Law & DC Bench",
+      desc: 'Interactive breadboard wiring, sliding contact rheostat, precision galvanometer, and Joule heating visualization.',
+      icon: Zap,
+      status: 'Final Assembly',
+      progress: '85%'
+    },
+    {
+      id: 'orbit',
+      title: '3D Gravitational Chamber',
+      desc: 'N-body planetary kinematics, spacetime curvature grid, Keplerian orbits, and gravitational slingshot mechanics.',
+      icon: Orbit,
+      status: 'Physics Calibration',
+      progress: '70%'
+    },
+    {
+      id: 'ballistics',
+      title: '3D Spatial Ballistics Range',
+      desc: 'Wind-tunnel projectile chamber with variable azimuth angles, aerodynamic drag vectors, and high-speed telemetry.',
+      icon: Crosshair,
+      status: 'Shader Modeling',
+      progress: '60%'
+    }
+  ]
 
-        <div style={{
-          flex: 1,
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100dvh',
+        width: '100vw',
+        background: '#FAF8F5',
+        overflow: 'hidden',
+        fontFamily: 'var(--font-body, Inter, sans-serif)'
+      }}
+    >
+      {/* ── Top Architectural Navigation ── */}
+      <header
+        style={{
+          height: 56,
+          background: '#FFFFFF',
+          borderBottom: '1px solid rgba(0, 43, 102, 0.12)',
           display: 'flex',
           alignItems: 'center',
-          gap: 10
-        }}>
-          <span style={{
-            fontSize: 13.5,
-            fontWeight: 800,
-            color: '#002B66',
-            letterSpacing: '0.04em',
-            fontFamily: 'var(--font-display, system-ui)'
-          }}>
-            VISIORA Virtual Lab
-          </span>
-          <span style={{
-            fontSize: 10,
-            fontWeight: 700,
-            color: '#002B66',
-            background: 'rgba(0, 43, 102, 0.08)',
-            border: '1px solid rgba(0, 43, 102, 0.16)',
-            padding: '2px 8px',
-            borderRadius: 0,
-            letterSpacing: '0.06em'
-          }}>
-            UNITY 3D ENGINE
-          </span>
-        </div>
-
-        {/* Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {!loadError && (
-            <span style={{
-              fontSize: 12,
-              fontWeight: 700,
-              color: '#002B66',
+          justifyContent: 'space-between',
+          padding: '0 24px',
+          flexShrink: 0,
+          zIndex: 20
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <button
+            onClick={() => navigate('/')}
+            style={{
+              background: '#002B66',
+              border: 'none',
+              color: '#FFFFFF',
+              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: 5
-            }}>
-              <span style={{
-                width: 7,
-                height: 7,
-                borderRadius: '50%',
-                background: isLoading ? '#D97706' : '#10B981',
-                display: 'inline-block'
-              }} />
-              {isLoading ? 'Connecting...' : 'Live Engine'}
+              gap: 6,
+              padding: '6px 12px',
+              borderRadius: 0,
+              fontSize: 12.5,
+              fontWeight: 700,
+              boxShadow: '0 2px 6px rgba(0, 43, 102, 0.18)',
+              transition: 'background 0.15s ease'
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = '#0A192F'}
+            onMouseLeave={e => e.currentTarget.style.background = '#002B66'}
+          >
+            <ArrowLeft size={15} />
+            <span>Back to VISIORA</span>
+          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span
+              style={{
+                fontSize: 14,
+                fontWeight: 800,
+                color: '#002B66',
+                letterSpacing: '0.03em',
+                fontFamily: 'var(--font-display, serif)'
+              }}
+            >
+              VISIORA 3D Virtual Lab
             </span>
-          )}
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                color: '#D97706',
+                background: '#FEF3C7',
+                border: '1px solid rgba(217, 119, 6, 0.25)',
+                padding: '2px 8px',
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase'
+              }}
+            >
+              Unity 3D Engine
+            </span>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              fontSize: 12,
+              fontWeight: 700,
+              color: '#D97706',
+              background: 'rgba(217, 119, 6, 0.08)',
+              padding: '4px 10px',
+              border: '1px solid rgba(217, 119, 6, 0.2)'
+            }}
+          >
+            <Clock size={13} />
+            <span>Under Active Development</span>
+          </span>
 
           <button
             onClick={toggleFullscreen}
             title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
             style={{
               background: '#FFFFFF',
-              border: '1px solid rgba(0, 43, 102, 0.22)',
-              borderRadius: 0,
+              border: '1px solid rgba(0, 43, 102, 0.2)',
               color: '#002B66',
               cursor: 'pointer',
               padding: '6px 10px',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.15s ease',
-              boxShadow: '0 1px 4px rgba(0, 43, 102, 0.06)'
+              justifyContent: 'center'
             }}
-            onMouseEnter={e => e.currentTarget.style.background = '#F4EFE6'}
-            onMouseLeave={e => e.currentTarget.style.background = '#FFFFFF'}
           >
             {isFullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* ── Unity WebGL Embed ── */}
-      <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-        {/* Loading state */}
-        {isLoading && !loadError && (
-          <div style={{
-            position: 'absolute', inset: 0,
-            display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center',
-            background: '#FAF8F5',
-            zIndex: 5,
-            gap: 16
-          }}>
-            <Loader size={32} color="#002B66" style={{ animation: 'spin 1s linear infinite' }} />
-            <div style={{ textAlign: 'center' }}>
-              <p style={{ color: '#0A192F', margin: 0, fontSize: 16, fontWeight: 700 }}>
-                Connecting to Virtual Laboratory Bench
-              </p>
-              <p style={{ color: '#64748B', margin: '6px 0 0', fontSize: 13 }}>
-                Initializing Ohm's Law experiment instruments...
-              </p>
-            </div>
-          </div>
-        )}
+      {/* ── Main Blueprint Content ── */}
+      <main
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: '40px 24px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative'
+        }}
+      >
+        {/* Subtle grid background */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: 'radial-gradient(rgba(0, 43, 102, 0.08) 1px, transparent 1px)',
+            backgroundSize: '24px 24px',
+            pointerEvents: 'none',
+            zIndex: 0
+          }}
+        />
 
-        {/* Error state */}
-        {loadError && (
-          <div style={{
-            position: 'absolute', inset: 0,
-            display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center',
-            background: '#FAF8F5',
-            gap: 14,
-            padding: 24,
+        <div
+          style={{
+            maxWidth: 820,
+            width: '100%',
+            position: 'relative',
+            zIndex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
             textAlign: 'center'
-          }}>
-            <AlertCircle size={40} color="#D97706" />
-            <p style={{ color: '#0A192F', margin: 0, fontSize: 16, fontWeight: 700 }}>
-              Virtual Laboratory Standby
-            </p>
-            <p style={{ color: '#4A5568', margin: 0, fontSize: 13, maxWidth: 440, lineHeight: 1.5 }}>
-              The Unity WebGL physics engine is ready to deploy. You can run the full real-time interactive physics simulations right now in the 3D Simulator.
-            </p>
+          }}
+        >
+          {/* Engineering Hologram Badge */}
+          <div
+            style={{
+              width: 72,
+              height: 72,
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #002B66 0%, #0A192F 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 8px 24px rgba(0, 43, 102, 0.25)',
+              marginBottom: 20,
+              border: '2px solid rgba(255, 255, 255, 0.2)'
+            }}
+          >
+            <Cpu size={32} color="#F59E0B" />
+          </div>
+
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              background: '#FEF3C7',
+              color: '#92400E',
+              border: '1px solid #FDE68A',
+              padding: '4px 14px',
+              fontSize: 11.5,
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+              marginBottom: 14
+            }}
+          >
+            <Wrench size={13} color="#D97706" />
+            <span>3D Interactive Engineering In Progress</span>
+          </div>
+
+          <h1
+            style={{
+              fontFamily: 'var(--font-display, serif)',
+              fontSize: 'clamp(24px, 4vw, 36px)',
+              fontWeight: 850,
+              color: '#002B66',
+              margin: '0 0 14px 0',
+              letterSpacing: '-0.01em',
+              lineHeight: 1.2
+            }}
+          >
+            3D Virtual Physics Laboratory Bench
+          </h1>
+
+          <p
+            style={{
+              fontSize: 15,
+              color: '#4A5568',
+              lineHeight: 1.65,
+              maxWidth: 640,
+              margin: '0 0 28px 0'
+            }}
+          >
+            Our physics engineering and 3D modeling team is actively building this Unity WebGL apparatus.
+            Soon, students will be able to assemble circuit components, manipulate orbital mechanics, and test
+            ballistic trajectories in a fully spatial 3D interactive laboratory environment.
+          </p>
+
+          {/* Action Callouts */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexWrap: 'wrap',
+              gap: 12,
+              marginBottom: 36
+            }}
+          >
             <button
-              onClick={() => navigate('/sim')}
+              onClick={() => navigate('/sim-2d')}
               style={{
-                marginTop: 8,
-                padding: '10px 20px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '12px 22px',
                 background: '#002B66',
                 color: '#FFFFFF',
                 border: 'none',
                 fontWeight: 700,
+                fontSize: 13.5,
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(0, 43, 102, 0.25)',
+                transition: 'all 0.15s ease'
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = '#0A192F'}
+              onMouseLeave={e => e.currentTarget.style.background = '#002B66'}
+            >
+              <Layers size={16} />
+              <span>Explore 2D Research Laboratories</span>
+            </button>
+
+            <button
+              onClick={() => navigate('/ai-tutor')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '12px 22px',
+                background: '#FFFFFF',
+                color: '#002B66',
+                border: '1.5px solid rgba(0, 43, 102, 0.25)',
+                fontWeight: 700,
+                fontSize: 13.5,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = '#F4EFE6'}
+              onMouseLeave={e => e.currentTarget.style.background = '#FFFFFF'}
+            >
+              <Bot size={16} color="#D97706" />
+              <span>Ask AI Visual Physics Tutor</span>
+            </button>
+
+            <button
+              onClick={() => navigate('/sim')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '12px 18px',
+                background: 'transparent',
+                color: '#64748B',
+                border: 'none',
+                fontWeight: 600,
                 fontSize: 13,
-                cursor: 'pointer'
+                cursor: 'pointer',
+                textDecoration: 'underline'
               }}
             >
-              Launch 3D Physics Simulator
+              <span>View 3D Canvas Simulator</span>
+              <ChevronRight size={14} />
             </button>
           </div>
-        )}
 
-        {/* Unity iframe */}
-        <iframe
-          ref={iframeRef}
-          src={UNITY_BUILD_URL}
-          style={{
-            width: '100%',
-            height: '100%',
-            border: 'none',
-            display: 'block'
-          }}
-          allow="fullscreen"
-          title="VISIORA Virtual Science Lab"
-          id="unity-virtual-lab"
-        />
-      </div>
+          {/* Upcoming 3D Apparatus Grid */}
+          <div style={{ width: '100%', textAlign: 'left' }}>
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 800,
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase',
+                color: '#64748B',
+                marginBottom: 14,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8
+              }}
+            >
+              <Sparkles size={14} color="#D97706" />
+              <span>Upcoming 3D Apparatus In Pipeline</span>
+            </div>
 
-      {/* ── Keyboard Hints ── */}
-      {!isLoading && !loadError && (
-        <div style={{
-          position: 'absolute',
-          bottom: 12,
-          right: 16,
-          display: 'flex',
-          gap: 6,
-          opacity: 0.4,
-          pointerEvents: 'none'
-        }}>
-          {['WASD Move', 'E Interact', 'Scroll Adjust', 'Tab Panel', 'Esc Menu'].map(hint => (
-            <span key={hint} style={{
-              fontSize: 10,
-              color: 'white',
-              background: 'rgba(255,255,255,0.1)',
-              padding: '3px 6px',
-              borderRadius: 4,
-              fontFamily: 'monospace'
-            }}>{hint}</span>
-          ))}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                gap: 16
+              }}
+            >
+              {UPCOMING_MODULES.map(m => {
+                const Icon = m.icon
+                return (
+                  <div
+                    key={m.id}
+                    style={{
+                      background: '#FFFFFF',
+                      border: '1px solid rgba(0, 43, 102, 0.12)',
+                      padding: 20,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 10,
+                      boxShadow: '0 2px 10px rgba(0, 43, 102, 0.04)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div
+                        style={{
+                          width: 34,
+                          height: 34,
+                          background: 'rgba(0, 43, 102, 0.06)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#002B66'
+                        }}
+                      >
+                        <Icon size={18} />
+                      </div>
+                      <span
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 700,
+                          color: '#166534',
+                          background: '#DCFCE7',
+                          padding: '2px 8px',
+                          border: '1px solid #BBF7D0'
+                        }}
+                      >
+                        {m.progress}
+                      </span>
+                    </div>
+
+                    <div>
+                      <h3 style={{ margin: '0 0 4px 0', fontSize: 14.5, fontWeight: 700, color: '#002B66' }}>
+                        {m.title}
+                      </h3>
+                      <p style={{ margin: 0, fontSize: 12, color: '#64748B', lineHeight: 1.5 }}>
+                        {m.desc}
+                      </p>
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: 'auto',
+                        paddingTop: 8,
+                        fontSize: 10.5,
+                        fontWeight: 600,
+                        color: '#D97706',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 5
+                      }}
+                    >
+                      <Clock size={11} />
+                      <span>Stage: {m.status}</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
         </div>
-      )}
+      </main>
     </div>
   )
 }

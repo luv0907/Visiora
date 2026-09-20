@@ -6,7 +6,7 @@ import structlog
 from fastapi import APIRouter, Depends, HTTPException, Request, Header
 from fastapi.responses import Response
 from pydantic import BaseModel, Field, field_validator
-from typing import Optional, TypeVar, Generic, Any
+from typing import Optional, TypeVar, Generic, Any, List, Dict
 
 DataT = TypeVar("DataT")
 
@@ -206,3 +206,28 @@ async def track_event(event: AnalyticsEvent):
     # Best-effort: log and return 202 Accepted
     log.info("analytics_event", session=event.session_id, type=event.type)
     return success({"accepted": True})
+
+
+# ══════════════════════════════════════════════════════════════════
+# AI INTERACTIVE 2D VISUAL TUTOR
+# ══════════════════════════════════════════════════════════════════
+
+class AIVisualTutorRequest(BaseModel):
+    prompt: str = Field(..., min_length=1, max_length=2000)
+    apiKey: Optional[str] = None
+    model: Optional[str] = "qwen"
+    messages: Optional[List[Dict[str, Any]]] = None
+
+
+@router.post("/ai/visual-tutor")
+async def ai_visual_tutor(request: AIVisualTutorRequest):
+    from .services.ai_visual_tutor import generate_ai_visual_tutor_response
+    result = await generate_ai_visual_tutor_response(
+        prompt=request.prompt,
+        api_key=request.apiKey,
+        model=request.model,
+        messages=request.messages
+    )
+    return success(result)
+
+

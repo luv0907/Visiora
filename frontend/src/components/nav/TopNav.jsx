@@ -154,6 +154,7 @@ const TABS = [
   { id: 'home', label: 'Home', path: '/', hasDropdown: false },
   { id: 'sim', label: '3D Simulator', path: '/sim', hasDropdown: true },
   { id: 'sim2d', label: '2D Labs', path: '/sim-2d', hasDropdown: true },
+  { id: 'aitutor', label: 'AI Visual Studio', path: '/ai-tutor', hasDropdown: false, isSpecial: true },
   { id: 'progress', label: 'Mastery', path: '/progress', hasDropdown: true },
   { id: 'quiz', label: 'Quiz', path: '/quiz/projectile', hasDropdown: true },
 ]
@@ -164,9 +165,17 @@ export default function TopNav() {
   
   const user = useAuthStore(state => state.user)
   const profile = useProgressStore(state => state.profile)
-  const visualizations = useAdminStore(state => state.visualizations)
-  const trackVisualizationClick = useAdminStore(state => state.trackVisualizationClick)
-  const active2dVisualizations = (visualizations || []).filter(v => v.isActive !== false)
+
+  const experiments = useAdminStore(state => state.experiments)
+  const get3DExperiments = useAdminStore(state => state.get3DExperiments)
+  const get2DExperiments = useAdminStore(state => state.get2DExperiments)
+  const trackExperimentClick = useAdminStore(state => state.trackExperimentClick)
+
+  const active3DExperiments = (get3DExperiments ? get3DExperiments(true) : [])
+  const display3DList = active3DExperiments.length > 0 ? active3DExperiments : SIM_VISUALIZATIONS
+
+  const active2DExperiments = (get2DExperiments ? get2DExperiments(true) : [])
+  const display2DList = active2DExperiments.length > 0 ? active2DExperiments : []
 
   const [isScrolled, setIsScrolled] = useState(false)
   const [openDropdown, setOpenDropdown] = useState(null) // 'sim' | 'progress' | 'quiz' | null
@@ -204,7 +213,7 @@ export default function TopNav() {
 
   const handleTabMouseEnter = (tab) => {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
-    if (tab.id === 'home') {
+    if (tab.id === 'home' || tab.id === 'aitutor') {
       setOpenDropdown(null)
     } else {
       setOpenDropdown(tab.id)
@@ -221,6 +230,7 @@ export default function TopNav() {
   const getActiveTab = () => {
     const path = location.pathname
     if (path === '/') return 'home'
+    if (path.startsWith('/ai-tutor')) return 'aitutor'
     if (path.startsWith('/sim-2d')) return 'sim2d'
     if (path.startsWith('/sim')) return 'sim'
     if (path.startsWith('/profile')) return 'profile'
@@ -230,7 +240,7 @@ export default function TopNav() {
   }
 
   const activeTab = getActiveTab()
-  const streak = profile?.streak || 3
+  const streak = profile?.streak ?? 1
 
   const handleTabClick = (tab) => {
     if (tab.id === 'home') {
@@ -239,6 +249,9 @@ export default function TopNav() {
       if (location.pathname === '/') {
         window.scrollTo({ top: 0, behavior: 'smooth' })
       }
+    } else if (tab.id === 'aitutor') {
+      setOpenDropdown(null)
+      navigate('/ai-tutor')
     } else if (tab.id === 'sim2d' && !openDropdown) {
       setOpenDropdown('sim2d')
     } else {
@@ -247,21 +260,32 @@ export default function TopNav() {
     }
   }
 
-  const handleLaunch2DLab = (path) => {
+  const handleLaunch2DLab = (vis) => {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
     setOpenDropdown(null)
-    navigate(path)
+    const visId = typeof vis === 'string' ? vis.replace('/sim-2d?lab=', '') : vis.id
+    if (visId === 'vis-energy-forms' || visId === 'energy-forms-and-changes') {
+      navigate('/sim-2d')
+      return
+    }
+    navigate(`/lab/${visId}`)
   }
 
-  const handleLaunchSim = (labId) => {
+  const handleLaunchSim = (sim) => {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
     setOpenDropdown(null)
-    if (labId === 'ohmslaw') {
+    const simId = typeof sim === 'string' ? sim : sim.id
+    if (simId === 'ohmslaw') {
       navigate('/virtual-lab')
       return
     }
-    useUIStore.getState().setActiveLab(labId)
-    navigate('/sim')
+    const coreLabIds = ['projectile', 'gravity', 'pendulum', 'buoyancy', 'collision']
+    if (coreLabIds.includes(simId)) {
+      useUIStore.getState().setActiveLab(simId)
+      navigate('/sim')
+      return
+    }
+    navigate(`/lab/${simId}`)
   }
 
   const handleSelectQuiz = (conceptId) => {
@@ -373,14 +397,15 @@ export default function TopNav() {
                     borderRadius: 0, // Sharp architectural edges
                     fontSize: 13,
                     fontWeight: active || isOpen ? 700 : 500,
-                    color: active || isOpen ? '#FFFFFF' : 'var(--obsidian-900)',
-                    backgroundColor: active || isOpen ? '#002B66' : 'transparent',
+                    color: active || isOpen ? '#FFFFFF' : (tab.isSpecial ? '#002B66' : 'var(--obsidian-900)'),
+                    backgroundColor: active || isOpen ? '#002B66' : (tab.isSpecial ? 'rgba(0, 43, 102, 0.08)' : 'transparent'),
+                    border: tab.isSpecial ? '1px solid rgba(0, 43, 102, 0.22)' : 'none',
                     transition: 'all var(--duration-fast)',
                     boxShadow: active || isOpen ? '0 2px 8px rgba(0, 43, 102, 0.25)' : 'none',
-                    cursor: 'pointer',
-                    border: 'none'
+                    cursor: 'pointer'
                   }}
                 >
+                  {tab.isSpecial && <Sparkles size={13} color={active || isOpen ? '#F59E0B' : '#002B66'} />}
                   <span>{tab.label}</span>
                   {tab.hasDropdown && (
                     <ChevronDown
@@ -451,16 +476,25 @@ export default function TopNav() {
                     >
                       <span>3D Physics Engines</span>
                       <span style={{ fontSize: 10, color: '#002B66', fontWeight: 700, background: 'rgba(0, 43, 102, 0.08)', padding: '2px 6px' }}>
-                        {SIM_VISUALIZATIONS.length} Real-Time Labs
+                        {display3DList.length} Real-Time Labs
                       </span>
                     </div>
 
                     {/* 3D Simulation List */}
                     <div style={{ padding: '6px' }}>
-                      {SIM_VISUALIZATIONS.map(sim => (
+                      {display3DList.map(sim => {
+                        const simLabel = sim.label || sim.title
+                        const simDesc = sim.desc || sim.subtitle || sim.formula || 'Interactive 3D Simulation'
+                        const simBadge = sim.badge || '3D Lab'
+                        const simIcon = sim.icon || 'ohmslaw'
+
+                        return (
                         <div
                           key={sim.id}
-                          onClick={() => handleLaunchSim(sim.id)}
+                          onClick={() => {
+                            trackExperimentClick(sim.id)
+                            handleLaunchSim(sim)
+                          }}
                           style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -500,12 +534,12 @@ export default function TopNav() {
                                 flexShrink: 0
                               }}
                             >
-                              <LabIcon id={sim.id} name={sim.icon} size={18} />
+                              <LabIcon id={sim.id} name={simIcon} size={18} />
                             </div>
                             <div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                 <span style={{ fontSize: 13.5, fontWeight: 700, color: '#0A192F' }}>
-                                  {sim.label}
+                                  {simLabel}
                                 </span>
                                 <span style={{ 
                                   fontSize: 9.5, 
@@ -516,18 +550,18 @@ export default function TopNav() {
                                   padding: '1px 6px',
                                   borderRadius: 0
                                 }}>
-                                  {sim.badge}
+                                  {simBadge}
                                 </span>
                               </div>
                               <div style={{ fontSize: 11, color: '#4A5568', marginTop: 2, fontWeight: 500, lineHeight: 1.25 }}>
-                                {sim.desc}
+                                {simDesc}
                               </div>
                             </div>
                           </div>
 
                           <ArrowUpRight size={15} color="#002B66" style={{ flexShrink: 0, marginLeft: 8 }} />
                         </div>
-                      ))}
+                      )})}
                     </div>
 
                     {/* Footer Shortcut to 2D Studios */}
@@ -606,14 +640,13 @@ export default function TopNav() {
 
                     {/* Labs List */}
                     <div style={{ padding: '6px' }}>
-                      {active2dVisualizations.map(vis => {
-                        const labPath = vis.internalPath || `/sim-2d?lab=${vis.id.replace('vis-', '').replace('phet-', '')}`
+                      {display2DList.map(vis => {
                         return (
                           <div
                             key={vis.id}
                             onClick={() => {
-                              trackVisualizationClick(vis.id)
-                              handleLaunch2DLab(labPath)
+                              trackExperimentClick(vis.id)
+                              handleLaunch2DLab(vis)
                             }}
                             style={{
                               display: 'flex',
@@ -971,35 +1004,8 @@ export default function TopNav() {
           })}
         </div>
 
-        {/* Right: Stats & Profile & Admin Portal */}
+        {/* Right: Stats & Profile */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button
-            onClick={() => {
-              setOpenDropdown(null)
-              navigate('/admin')
-            }}
-            title="Atelier Admin Portal (Authorized Google)"
-            className="btn-navy-primary"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '6px 14px',
-              borderRadius: 0,
-              background: '#002B66',
-              color: '#FFFFFF',
-              border: 'none',
-              fontSize: 12,
-              fontWeight: 700,
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(0, 43, 102, 0.25)',
-              transition: 'all var(--transition-fast)'
-            }}
-          >
-            <ShieldCheck size={14} />
-            <span>Admin</span>
-          </button>
-
           <div style={{ 
             display: 'flex',
             alignItems: 'center',
@@ -1020,11 +1026,12 @@ export default function TopNav() {
               setOpenDropdown(null)
               navigate('/profile')
             }}
-            title="View Physicist Profile"
+            title={user?.displayName ? `Signed in as ${user.displayName}` : "View Physicist Profile"}
             style={{
               width: 36,
               height: 36,
               borderRadius: 0,
+              overflow: 'hidden',
               background: activeTab === 'profile' ? '#0A192F' : '#002B66',
               border: '1.5px solid #002B66',
               display: 'flex',
@@ -1044,7 +1051,20 @@ export default function TopNav() {
               e.currentTarget.style.background = activeTab === 'profile' ? '#0A192F' : '#002B66'
             }}
           >
-            <User size={18} strokeWidth={2.2} />
+            {user?.photoURL ? (
+              <img
+                src={user.photoURL}
+                alt={user.displayName || 'Google Profile'}
+                referrerPolicy="no-referrer"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            ) : user?.displayName ? (
+              <span style={{ fontSize: 13, fontWeight: 800, color: '#FFFFFF' }}>
+                {user.displayName.charAt(0).toUpperCase()}
+              </span>
+            ) : (
+              <User size={18} strokeWidth={2.2} />
+            )}
           </div>
         </div>
       </div>

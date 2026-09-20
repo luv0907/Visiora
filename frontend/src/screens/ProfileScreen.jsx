@@ -150,7 +150,7 @@ export default function ProfileScreen() {
     }
   ]
 
-  const streak = profile?.streak || 5
+  const streak = profile?.streak ?? 1
   const currentAvatarInfo = AVATAR_OPTIONS.find(a => a.id === selectedAvatar) || AVATAR_OPTIONS[1]
 
   return (
@@ -195,10 +195,10 @@ export default function ProfileScreen() {
           marginBottom: 24
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-            {/* Avatar Badge with icon */}
+            {/* Avatar Badge with Google photo or icon */}
             <div style={{
-              width: 72,
-              height: 72,
+              width: 76,
+              height: 76,
               borderRadius: 8,
               backgroundColor: '#FAF8F5',
               border: '2px solid #002B66',
@@ -206,25 +206,37 @@ export default function ProfileScreen() {
               alignItems: 'center',
               justifyContent: 'center',
               color: '#002B66',
-              boxShadow: '0 4px 12px rgba(0, 43, 102, 0.1)',
+              boxShadow: '0 4px 14px rgba(0, 43, 102, 0.12)',
               position: 'relative',
-              flexShrink: 0
+              flexShrink: 0,
+              overflow: 'hidden'
             }}>
-              <LabIcon id={currentAvatarInfo.icon} size={36} />
-              <div style={{
-                position: 'absolute',
-                bottom: -6,
-                right: -6,
-                backgroundColor: '#002B66',
-                color: '#FFFFFF',
-                borderRadius: 4,
-                padding: '2px 5px',
-                fontSize: 10,
-                fontWeight: 800,
-                letterSpacing: '0.05em'
-              }}>
-                {currentAvatarInfo.initials}
-              </div>
+              {user?.photoURL ? (
+                <img
+                  src={user.photoURL}
+                  alt={displayName || 'Google Profile'}
+                  referrerPolicy="no-referrer"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
+                <>
+                  <LabIcon id={currentAvatarInfo.icon} size={36} />
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 2,
+                    right: 2,
+                    backgroundColor: '#002B66',
+                    color: '#FFFFFF',
+                    borderRadius: 4,
+                    padding: '2px 5px',
+                    fontSize: 10,
+                    fontWeight: 800,
+                    letterSpacing: '0.05em'
+                  }}>
+                    {currentAvatarInfo.initials}
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Scholar Identity info */}

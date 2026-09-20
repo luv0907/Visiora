@@ -51,7 +51,12 @@ class Settings(BaseSettings):
     JWT_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
 
     model_config = ConfigDict(
-        env_file=".env",
+        env_file=[
+            ".env",
+            "backend/.env",
+            os.path.join(os.path.dirname(__file__), "..", ".env"),
+            os.path.join(os.path.dirname(__file__), "..", "..", ".env")
+        ],
         env_file_encoding="utf-8",
         case_sensitive=True,
     )

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAdminStore } from '../store/useAdminStore'
-import { useAuthStore } from '../store/useAuthStore'
 import {
   ShieldCheck,
   Lock,
@@ -12,18 +11,11 @@ import {
   Image as ImageIcon,
   Users,
   Layers,
-  Sparkles,
-  CheckCircle,
-  XCircle,
   Upload,
   RefreshCw,
   Search,
-  ArrowUpRight,
   LogOut,
-  ChevronRight,
-  SlidersHorizontal,
   Flame,
-  Award,
   Globe
 } from 'lucide-react'
 
@@ -42,29 +34,43 @@ export default function AdminScreen() {
     setBannerImage,
     setShowcaseImage,
     resetHomeImages,
-    visualizations,
-    addVisualization,
-    updateVisualization,
-    deleteVisualization,
-    toggleVisualizationActive,
+    experiments,
+    addExperiment,
+    updateExperiment,
+    deleteExperiment,
+    toggleExperimentActive,
     usersList,
     fetchAdminData
   } = useAdminStore()
 
-  const [activeTab, setActiveTab] = useState('visualizations') // 'visualizations' | 'images' | 'users'
+  const [activeTab, setActiveTab] = useState('experiments') // 'experiments' | 'images' | 'users'
+  const [filterType, setFilterType] = useState('all') // 'all' | '3d' | '2d' | 'active'
+  const [searchQuery, setSearchQuery] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
   const [userSearch, setUserSearch] = useState('')
   const [statusMessage, setStatusMessage] = useState('')
 
-  // Form state for 2D Visualizations modal
+  // Sandbox Test Modal State
+  const [sandboxModalOpen, setSandboxModalOpen] = useState(false)
+  const [sandboxUrl, setSandboxUrl] = useState('')
+  const [sandboxTitle, setSandboxTitle] = useState('')
+
+  // Form state for Experiments modal (Both 2D & 3D)
+  const [formType, setFormType] = useState('3d') // '3d' | '2d'
   const [formTitle, setFormTitle] = useState('')
   const [formSubtitle, setFormSubtitle] = useState('')
-  const [formCategory, setFormCategory] = useState('Kinematics & Dynamics')
+  const [formCategory, setFormCategory] = useState('Mechanics & Kinematics')
+  const [formFormula, setFormFormula] = useState('')
   const [formTargetUrl, setFormTargetUrl] = useState('')
   const [formImageUrl, setFormImageUrl] = useState('')
-  const [formBadge, setFormBadge] = useState('Interactive 2D')
+  const [formBadge, setFormBadge] = useState('3D Physics Lab')
+  const [formIcon, setFormIcon] = useState('atom')
+  const [formEmbedMode, setFormEmbedMode] = useState('embed')
+  const [formAuthorTeam, setFormAuthorTeam] = useState('Visiora Core Team')
+  const [formGradeLevel, setFormGradeLevel] = useState('Class 8-12')
   const [formIsActive, setFormIsActive] = useState(true)
+  const [formIsFeatured, setFormIsFeatured] = useState(false)
 
   // Form state for Home Images
   const [inputBanner, setInputBanner] = useState(bannerImage)
@@ -72,54 +78,6 @@ export default function AdminScreen() {
   const bannerFileRef = useRef(null)
   const showcaseFileRef = useRef(null)
   const modalFileRef = useRef(null)
-
-  const POPULAR_2D_PRESETS = [
-    {
-      title: "Energy Forms & Changes: Thermal Physics & Systems",
-      subtitle: "Experiment with heat conduction, thermal equilibrium, floating energy packets, and multi-stage power generation",
-      category: "Thermodynamics",
-      targetUrl: "https://phet.colorado.edu/sims/html/energy-forms-and-changes/latest/energy-forms-and-changes_en.html",
-      imageUrl: "/images/energy_forms_changes_banner.jpg",
-      badge: "Featured 2D Lab"
-    },
-    {
-      title: "Faraday's Electromagnetic Induction & Magnets",
-      subtitle: "Explore bar magnets, electromagnets, transformers, and magnetic flux generator coils",
-      category: "Electromagnetism",
-      targetUrl: "https://phet.colorado.edu/sims/html/faradays-law/latest/faradays-law_all.html",
-      imageUrl: "https://images.unsplash.com/photo-1507668077129-56e32842fceb?auto=format&fit=crop&w=800&q=80",
-      badge: "PhET Simulation"
-    },
-    {
-      title: "Energy Skate Park: Kinetic & Potential Conservation",
-      subtitle: "Track mechanical energy barter between kinetic, gravitational potential, and thermal friction",
-      category: "Kinematics & Dynamics",
-      targetUrl: "https://phet.colorado.edu/sims/html/energy-skate-park/latest/energy-skate-park_all.html",
-      imageUrl: "https://images.unsplash.com/photo-1517420704952-d9f39e95b43e?auto=format&fit=crop&w=800&q=80",
-      badge: "PhET Energy Lab"
-    },
-    {
-      title: "Balancing Act: Rotational Torque & Lever Mechanics",
-      subtitle: "Investigate rotational equilibrium, center of mass, and fulcrum moments of force",
-      category: "Kinematics & Dynamics",
-      targetUrl: "https://phet.colorado.edu/sims/html/balancing-act/latest/balancing-act_all.html",
-      imageUrl: "https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=800&q=80",
-      badge: "Statics & Torque"
-    }
-  ]
-
-  const handleApplyPreset = async (preset) => {
-    await addVisualization({
-      title: preset.title,
-      subtitle: preset.subtitle,
-      category: preset.category,
-      targetUrl: preset.targetUrl,
-      imageUrl: preset.imageUrl,
-      badge: preset.badge,
-      isActive: true
-    })
-    flashMessage(`✓ Added "${preset.title}" to Home Page!`)
-  }
 
   const handleModalImageUpload = (e) => {
     const file = e.target.files?.[0]
@@ -148,33 +106,56 @@ export default function AdminScreen() {
     setTimeout(() => setStatusMessage(''), 3500)
   }
 
-  // Open modal for new visualization
-  const handleOpenAdd = () => {
+  // Open modal for new experiment (3D or 2D)
+  const handleOpenAdd = (defaultType = '3d') => {
     setEditingItem(null)
+    setFormType(defaultType)
     setFormTitle('')
     setFormSubtitle('')
-    setFormCategory('Kinematics & Dynamics')
-    setFormTargetUrl('https://phet.colorado.edu/')
-    setFormImageUrl('https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=800&q=80')
-    setFormBadge('Interactive 2D')
+    setFormCategory(defaultType === '3d' ? 'Mechanics & Kinematics' : 'Electromagnetism')
+    setFormFormula('')
+    setFormTargetUrl(defaultType === '3d' ? '/sim?lab=projectile' : 'https://phet.colorado.edu/')
+    setFormImageUrl(defaultType === '3d' 
+      ? 'https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=800&q=80'
+      : '/images/energy_forms_changes_banner.jpg')
+    setFormBadge(defaultType === '3d' ? '3D Physics Lab' : 'Interactive 2D')
+    setFormIcon(defaultType === '3d' ? 'atom' : 'activity')
+    setFormEmbedMode('embed')
+    setFormAuthorTeam('Visiora Atelier Team')
+    setFormGradeLevel('Class 8-12')
     setFormIsActive(true)
+    setFormIsFeatured(false)
     setModalOpen(true)
   }
 
   // Open modal for editing
   const handleOpenEdit = (item) => {
     setEditingItem(item)
-    setFormTitle(item.title)
+    setFormType(item.type || '3d')
+    setFormTitle(item.title || '')
     setFormSubtitle(item.subtitle || '')
-    setFormCategory(item.category || 'Kinematics & Dynamics')
-    setFormTargetUrl(item.targetUrl)
+    setFormCategory(item.category || 'Physics')
+    setFormFormula(item.formula || '')
+    setFormTargetUrl(item.targetUrl || '')
     setFormImageUrl(item.imageUrl || '')
-    setFormBadge(item.badge || 'Interactive 2D')
+    setFormBadge(item.badge || (item.type === '3d' ? '3D Physics Lab' : 'Interactive 2D'))
+    setFormIcon(item.icon || 'atom')
+    setFormEmbedMode(item.embedMode || 'embed')
+    setFormAuthorTeam(item.authorTeam || 'Visiora Atelier Core')
+    setFormGradeLevel(item.gradeLevel || 'Class 8-12')
     setFormIsActive(item.isActive !== false)
+    setFormIsFeatured(Boolean(item.isFeatured))
     setModalOpen(true)
   }
 
-  // Save visualization (Create or Update)
+  // Open sandbox tester
+  const handleOpenSandbox = (url, title) => {
+    setSandboxUrl(url)
+    setSandboxTitle(title || 'Experiment Sandbox')
+    setSandboxModalOpen(true)
+  }
+
+  // Save experiment (Create or Update)
   const handleSaveVisualization = async (e) => {
     e.preventDefault()
     if (!formTitle.trim() || !formTargetUrl.trim()) {
@@ -182,28 +163,29 @@ export default function AdminScreen() {
       return
     }
 
+    const payload = {
+      type: formType,
+      title: formTitle.trim(),
+      subtitle: formSubtitle.trim(),
+      category: formCategory.trim(),
+      formula: formFormula.trim(),
+      targetUrl: formTargetUrl.trim(),
+      imageUrl: formImageUrl.trim(),
+      badge: formBadge.trim(),
+      icon: formIcon.trim(),
+      embedMode: formEmbedMode,
+      authorTeam: formAuthorTeam.trim(),
+      gradeLevel: formGradeLevel.trim(),
+      isActive: formIsActive,
+      isFeatured: formIsFeatured
+    }
+
     if (editingItem) {
-      await updateVisualization(editingItem.id, {
-        title: formTitle.trim(),
-        subtitle: formSubtitle.trim(),
-        category: formCategory.trim(),
-        targetUrl: formTargetUrl.trim(),
-        imageUrl: formImageUrl.trim(),
-        badge: formBadge.trim(),
-        isActive: formIsActive
-      })
-      flashMessage('✓ 2D Visualization updated successfully!')
+      await updateExperiment(editingItem.id, payload)
+      flashMessage(`✓ ${formType.toUpperCase()} experiment "${payload.title}" updated successfully!`)
     } else {
-      await addVisualization({
-        title: formTitle.trim(),
-        subtitle: formSubtitle.trim(),
-        category: formCategory.trim(),
-        targetUrl: formTargetUrl.trim(),
-        imageUrl: formImageUrl.trim(),
-        badge: formBadge.trim(),
-        isActive: formIsActive
-      })
-      flashMessage('✓ New 2D Visualization added to Home Page!')
+      await addExperiment(payload)
+      flashMessage(`✓ New ${formType.toUpperCase()} experiment "${payload.title}" registered & published live!`)
     }
     setModalOpen(false)
   }
@@ -249,6 +231,16 @@ export default function AdminScreen() {
       (u.role && u.role.toLowerCase().includes(q))
     )
   })
+
+  // Open live site
+  const handleViewLiveSite = () => {
+    const liveUrl = import.meta.env.VITE_MAIN_SITE_URL
+    if (liveUrl && liveUrl.startsWith('http')) {
+      window.open(liveUrl, '_blank', 'noopener,noreferrer')
+    } else {
+      navigate('/')
+    }
+  }
 
   // ─────────────────────────────────────────────────────────────────────
   // 1. GATED LOGIN VIEW (When not authenticated as Admin)
@@ -300,31 +292,27 @@ export default function AdminScreen() {
 
           <div
             style={{
-              display: 'inline-flex',
+              width: 56,
+              height: 56,
+              margin: '0 auto 20px auto',
+              background: '#002B66',
+              borderRadius: 0,
+              display: 'flex',
               alignItems: 'center',
-              gap: 6,
-              padding: '3px 10px',
-              background: 'rgba(0, 43, 102, 0.08)',
-              color: '#002B66',
-              fontSize: 11,
-              fontWeight: 800,
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              marginBottom: 12
+              justifyContent: 'center',
+              color: '#FFFFFF'
             }}
           >
-            <ShieldCheck size={14} />
-            Restricted Admin Console
+            <ShieldCheck size={28} />
           </div>
 
           <h1
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: 26,
+              fontSize: 22,
               fontWeight: 700,
               color: 'var(--obsidian-950)',
-              margin: '0 0 8px 0',
-              letterSpacing: '-0.02em'
+              margin: '0 0 8px 0'
             }}
           >
             VISIORA Administration
@@ -332,85 +320,79 @@ export default function AdminScreen() {
 
           <p
             style={{
-              fontSize: 14,
+              fontSize: 13.5,
               color: 'var(--color-text-muted)',
-              lineHeight: 1.6,
+              lineHeight: 1.5,
               margin: '0 0 28px 0'
             }}
           >
-            Sign in with an <strong>authorized Google Account</strong> to manage 2D visual laboratories,
-            home page hero images, and user login activity.
+            Sign in with an authorized Google account to configure curriculum parameters, manage 2D &amp; 3D simulations, and inspect user activity.
           </p>
 
           {authError && (
             <div
               style={{
-                padding: '12px 16px',
-                background: '#FDF2F0',
-                border: '1px solid rgba(194, 59, 48, 0.3)',
-                color: '#C23B30',
+                background: 'rgba(239, 68, 68, 0.08)',
+                border: '1px solid rgba(239, 68, 68, 0.25)',
+                color: '#DC2626',
+                padding: '10px 14px',
                 fontSize: 13,
-                fontWeight: 600,
-                textAlign: 'left',
                 marginBottom: 20,
-                lineHeight: 1.4
+                textAlign: 'left'
               }}
             >
               {authError}
             </div>
           )}
 
-          {/* Primary Authorized Google Login Button */}
-          <button
-            onClick={loginWithGoogle}
-            disabled={isAuthLoading}
-            className="btn-navy-primary"
-            style={{
-              width: '100%',
-              padding: '13px 20px',
-              borderRadius: 0,
-              background: '#002B66',
-              color: '#FFFFFF',
-              fontSize: 14.5,
-              fontWeight: 700,
-              border: 'none',
-              cursor: isAuthLoading ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 10,
-              boxShadow: '0 4px 14px rgba(0, 43, 102, 0.35)',
-              marginBottom: 14
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05" />
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335" />
-            </svg>
-            {isAuthLoading ? 'Verifying Google Account...' : 'Sign in with Authorized Google'}
-          </button>
-
-          {/* Quick Dev/Demo Admin Access Button */}
-          <div
-            style={{
-              paddingTop: 16,
-              borderTop: '1px solid var(--color-border-subtle)',
-              marginTop: 16,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 8
-            }}
-          >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <button
-              onClick={() => enableDevAdmin('bouroju@gmail.com')}
+              onClick={loginWithGoogle}
+              disabled={isAuthLoading}
+              className="btn-navy-primary"
               style={{
-                background: 'transparent',
-                border: '1px dashed #002B66',
+                width: '100%',
+                padding: '12px 18px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 10,
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: isAuthLoading ? 'not-allowed' : 'pointer',
+                opacity: isAuthLoading ? 0.7 : 1
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="currentColor"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="currentColor"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                />
+                <path
+                  fill="currentColor"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                />
+              </svg>
+              <span>{isAuthLoading ? 'Authenticating...' : 'Sign in with Google'}</span>
+            </button>
+
+            <button
+              onClick={enableDevAdmin}
+              style={{
+                width: '100%',
+                padding: '9px 14px',
+                background: 'rgba(0, 43, 102, 0.05)',
+                border: '1px solid rgba(0, 43, 102, 0.2)',
                 color: '#002B66',
-                padding: '9px 16px',
-                fontSize: 13,
+                fontSize: 12.5,
                 fontWeight: 600,
                 cursor: 'pointer',
                 display: 'flex',
@@ -424,7 +406,14 @@ export default function AdminScreen() {
             </button>
 
             <button
-              onClick={() => navigate('/')}
+              onClick={() => {
+                const liveUrl = import.meta.env.VITE_MAIN_SITE_URL
+                if (liveUrl && liveUrl.startsWith('http')) {
+                  window.location.href = liveUrl
+                } else {
+                  navigate('/')
+                }
+              }}
               style={{
                 background: 'none',
                 border: 'none',
@@ -435,7 +424,7 @@ export default function AdminScreen() {
                 padding: '6px'
               }}
             >
-              &larr; Return to Home Page
+              &larr; Return to Live Site
             </button>
           </div>
         </div>
@@ -537,7 +526,7 @@ export default function AdminScreen() {
           </div>
 
           <button
-            onClick={() => navigate('/')}
+            onClick={handleViewLiveSite}
             style={{
               background: 'rgba(255, 255, 255, 0.15)',
               color: '#FFFFFF',
@@ -588,9 +577,9 @@ export default function AdminScreen() {
         }}
       >
         {[
-          { id: 'visualizations', label: '2D Visualizations (CRUD)', icon: Layers, count: visualizations.length },
-          { id: 'images', label: 'Home Page Images Customizer', icon: ImageIcon },
-          { id: 'users', label: 'User Logins & Activity Intelligence', icon: Users, count: usersList.length }
+          { id: 'experiments', label: '2D & 3D Simulations Catalog', icon: Layers, count: (experiments || []).length },
+          { id: 'images', label: 'Home Page Visuals Customizer', icon: ImageIcon },
+          { id: 'users', label: 'User Directory & Activity', icon: Users, count: (usersList || []).length }
         ].map((tab) => {
           const Icon = tab.icon
           const isActive = activeTab === tab.id
@@ -637,106 +626,158 @@ export default function AdminScreen() {
       <main style={{ flex: 1, padding: '32px 28px 60px 28px', maxWidth: 1320, width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
 
         {/* ───────────────────────────────────────────────────────────── */}
-        {/* TAB 1: 2D VISUALIZATIONS CRUD OPERATIONS                     */}
+        {/* TAB 1: UNIFIED 2D & 3D EXPERIMENTS DEPLOYMENT HUB             */}
         {/* ───────────────────────────────────────────────────────────── */}
-        {activeTab === 'visualizations' && (
+        {activeTab === 'experiments' && (
           <div>
             <div
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: 24
+                alignItems: 'flex-start',
+                marginBottom: 24,
+                flexWrap: 'wrap',
+                gap: 16
               }}
             >
               <div>
-                <h2
-                  style={{
-                    fontFamily: 'var(--font-display)',
-                    fontSize: 22,
-                    fontWeight: 700,
-                    color: 'var(--obsidian-950)',
-                    margin: '0 0 4px 0'
-                  }}
-                >
-                  2D Interactive Physics Laboratories
-                </h2>
-                <p style={{ margin: 0, fontSize: 13, color: 'var(--color-text-muted)' }}>
-                  Add, update, or remove 2D simulations. When visitors click the card on the home page,
-                  they are automatically redirected to the destination URL.
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <h2
+                    style={{
+                      fontFamily: 'var(--font-display)',
+                      fontSize: 22,
+                      fontWeight: 800,
+                      color: '#002B66',
+                      margin: 0
+                    }}
+                  >
+                    Dynamic 2D &amp; 3D Experiment Hub
+                  </h2>
+                  <span
+                    style={{
+                      fontSize: 10.5,
+                      fontWeight: 700,
+                      color: '#002B66',
+                      background: 'rgba(0, 43, 102, 0.08)',
+                      padding: '2px 8px',
+                      border: '1px solid rgba(0, 43, 102, 0.16)'
+                    }}
+                  >
+                    LIVE SITE-WIDE SYNC
+                  </span>
+                </div>
+                <p style={{ margin: 0, fontSize: 13, color: '#64748B', maxWidth: 740, lineHeight: 1.5 }}>
+                  Empower your distributed team to deploy 2D and 3D science simulations online. Enter the deployed project URL,
+                  topic, formulas, photos, and team details. All entries instantly reflect in TopNav, Home Cards, and Interactive Viewers.
                 </p>
               </div>
 
-              <button
-                onClick={handleOpenAdd}
-                className="btn-navy-primary"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '10px 20px',
-                  background: '#002B66',
-                  color: '#FFFFFF',
-                  fontWeight: 700,
-                  fontSize: 13.5,
-                  cursor: 'pointer',
-                  border: 'none',
-                  boxShadow: '0 4px 14px rgba(0, 43, 102, 0.3)'
-                }}
-              >
-                <Plus size={16} />
-                <span>Add 2D Visualization</span>
-              </button>
-            </div>
-
-            {/* Quick 1-Click PhET Presets Toolbar */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: 10,
-              padding: '12px 18px',
-              background: '#FAF6EE',
-              border: '1px solid rgba(203, 163, 88, 0.4)',
-              borderLeft: '4px solid #002B66',
-              marginBottom: 24
-            }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: '#002B66', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                ⚡ Quick Presets:
-              </span>
-              {POPULAR_2D_PRESETS.map((preset, idx) => (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <button
-                  key={idx}
-                  onClick={() => handleApplyPreset(preset)}
+                  onClick={() => handleOpenAdd('3d')}
                   style={{
-                    padding: '5px 12px',
-                    fontSize: 11.5,
-                    fontWeight: 600,
-                    background: '#FFFFFF',
-                    border: '1px solid rgba(0, 43, 102, 0.25)',
-                    color: '#002B66',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
+                    display: 'flex',
                     alignItems: 'center',
-                    gap: 5,
-                    transition: 'all 0.15s ease'
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.background = '#002B66'
-                    e.currentTarget.style.color = '#FFFFFF'
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.background = '#FFFFFF'
-                    e.currentTarget.style.color = '#002B66'
+                    gap: 8,
+                    padding: '10px 18px',
+                    background: '#002B66',
+                    color: '#FFFFFF',
+                    fontWeight: 700,
+                    fontSize: 13,
+                    cursor: 'pointer',
+                    border: 'none',
+                    boxShadow: '0 4px 14px rgba(0, 43, 102, 0.25)'
                   }}
                 >
-                  <Plus size={12} />
-                  <span>{preset.title.split(':')[0]}</span>
+                  <Plus size={15} />
+                  <span>+ Add 3D Engine</span>
                 </button>
-              ))}
+
+                <button
+                  onClick={() => handleOpenAdd('2d')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '10px 18px',
+                    background: '#FFFFFF',
+                    color: '#002B66',
+                    border: '1px solid rgba(0, 43, 102, 0.25)',
+                    fontWeight: 700,
+                    fontSize: 13,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(18, 14, 11, 0.04)'
+                  }}
+                >
+                  <Plus size={15} />
+                  <span>+ Add 2D Studio</span>
+                </button>
+              </div>
             </div>
 
-            {/* List of 2D Visualizations */}
+            {/* Filter & Search Bar */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: 12,
+                padding: '12px 18px',
+                background: '#FFFFFF',
+                border: '1px solid rgba(0, 43, 102, 0.14)',
+                marginBottom: 20
+              }}
+            >
+              {/* Type Filter Buttons */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                {[
+                  { id: 'all', label: `All Experiments (${(experiments || []).length})` },
+                  { id: '3d', label: `3D Engines (${(experiments || []).filter(e => e.type === '3d').length})` },
+                  { id: '2d', label: `2D Studios (${(experiments || []).filter(e => e.type === '2d').length})` },
+                  { id: 'active', label: `Active (${(experiments || []).filter(e => e.isActive !== false).length})` }
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setFilterType(tab.id)}
+                    style={{
+                      padding: '5px 12px',
+                      fontSize: 12,
+                      fontWeight: filterType === tab.id ? 700 : 600,
+                      background: filterType === tab.id ? '#002B66' : '#FAF8F5',
+                      color: filterType === tab.id ? '#FFFFFF' : '#002B66',
+                      border: filterType === tab.id ? '1px solid #002B66' : '1px solid rgba(0, 43, 102, 0.15)',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Real-time Search */}
+              <div style={{ position: 'relative', minWidth: 260 }}>
+                <Search size={14} color="#64748B" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }} />
+                <input
+                  type="text"
+                  placeholder="Filter by topic, formula, title..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '6px 10px 6px 32px',
+                    fontSize: 12.5,
+                    border: '1px solid rgba(0, 43, 102, 0.2)',
+                    background: '#FAF8F5',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* List of Experiments */}
             <div
               style={{
                 display: 'grid',
@@ -744,33 +785,48 @@ export default function AdminScreen() {
                 gap: 20
               }}
             >
-              {visualizations.map((item) => (
+              {(experiments || [])
+                .filter(item => {
+                  if (filterType === '3d' && item.type !== '3d') return false
+                  if (filterType === '2d' && item.type !== '2d') return false
+                  if (filterType === 'active' && item.isActive === false) return false
+                  if (searchQuery.trim()) {
+                    const q = searchQuery.toLowerCase().trim()
+                    const matchTitle = (item.title || '').toLowerCase().includes(q)
+                    const matchCategory = (item.category || '').toLowerCase().includes(q)
+                    const matchFormula = (item.formula || '').toLowerCase().includes(q)
+                    const matchAuthor = (item.authorTeam || '').toLowerCase().includes(q)
+                    const matchBadge = (item.badge || '').toLowerCase().includes(q)
+                    return matchTitle || matchCategory || matchFormula || matchAuthor || matchBadge
+                  }
+                  return true
+                })
+                .map((item) => (
                 <div
                   key={item.id}
                   style={{
                     background: '#FFFFFF',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: 0,
-                    overflow: 'hidden',
+                    border: '1px solid rgba(0, 43, 102, 0.14)',
+                    boxShadow: '0 2px 10px rgba(0, 43, 102, 0.04)',
                     display: 'flex',
                     flexDirection: 'column',
-                    boxShadow: '0 2px 10px rgba(18, 14, 11, 0.04)',
-                    transition: 'box-shadow 0.2s ease',
-                    opacity: item.isActive ? 1 : 0.65
+                    opacity: item.isActive !== false ? 1 : 0.65,
+                    transition: 'all 0.2s ease',
+                    position: 'relative'
                   }}
                 >
-                  {/* Card Image Box with clickable destination cue */}
+                  {/* Card Image Box */}
                   <div
                     style={{
-                      height: 180,
+                      height: 175,
                       width: '100%',
                       position: 'relative',
-                      background: '#1A1614',
+                      background: '#FAF8F5',
                       overflow: 'hidden'
                     }}
                   >
                     <img
-                      src={item.imageUrl}
+                      src={item.imageUrl || 'https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=800&q=80'}
                       alt={item.title}
                       style={{
                         width: '100%',
@@ -778,12 +834,11 @@ export default function AdminScreen() {
                         objectFit: 'cover'
                       }}
                       onError={(e) => {
-                        e.target.src =
-                          'https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=800&q=80'
+                        e.target.src = 'https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=800&q=80'
                       }}
                     />
 
-                    {/* Top Status & Category Badges */}
+                    {/* Top Status & Type Badges */}
                     <div
                       style={{
                         position: 'absolute',
@@ -797,23 +852,26 @@ export default function AdminScreen() {
                     >
                       <span
                         style={{
-                          background: item.isActive ? '#002B66' : '#6A5F54',
+                          background: item.type === '3d' ? '#002B66' : '#D97706',
                           color: '#FFFFFF',
-                          fontSize: 10.5,
-                          fontWeight: 700,
+                          fontSize: 10,
+                          fontWeight: 800,
                           padding: '3px 8px',
-                          textTransform: 'uppercase'
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.04em'
                         }}
                       >
-                        {item.isActive ? 'Active on Home' : 'Hidden'}
+                        {item.type === '3d' ? '3D ENGINE' : '2D STUDIO'}
                       </span>
 
                       <span
-                        className="badge-gold"
                         style={{
                           fontSize: 10.5,
                           fontWeight: 700,
-                          background: 'rgba(255, 255, 255, 0.92)'
+                          background: 'rgba(255, 255, 255, 0.95)',
+                          color: '#002B66',
+                          border: '1px solid rgba(0, 43, 102, 0.2)',
+                          padding: '2px 8px'
                         }}
                       >
                         {item.badge}
@@ -826,12 +884,12 @@ export default function AdminScreen() {
                         position: 'absolute',
                         bottom: 8,
                         left: 10,
-                        background: 'rgba(0, 0, 0, 0.75)',
-                        color: '#BFDBFE',
-                        fontSize: 11,
+                        background: 'rgba(10, 25, 47, 0.85)',
+                        color: '#FFFFFF',
+                        fontSize: 10.5,
                         padding: '2px 8px',
                         fontWeight: 600,
-                        fontFamily: 'var(--font-mono)'
+                        fontFamily: 'monospace'
                       }}
                     >
                       {item.clicks || 0} clicks
@@ -840,26 +898,42 @@ export default function AdminScreen() {
 
                   {/* Body Info */}
                   <div style={{ padding: 18, flex: 1, display: 'flex', flexDirection: 'column' }}>
-                    <div
-                      style={{
-                        fontSize: 11,
-                        color: 'var(--gold-700)',
-                        fontWeight: 800,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
-                        marginBottom: 4
-                      }}
-                    >
-                      {item.category}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                      <span
+                        style={{
+                          fontSize: 11,
+                          color: '#002B66',
+                          fontWeight: 800,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.04em'
+                        }}
+                      >
+                        {item.category}
+                      </span>
+                      {item.formula && (
+                        <span
+                          style={{
+                            fontSize: 11,
+                            fontFamily: 'monospace',
+                            fontWeight: 700,
+                            color: '#002B66',
+                            background: '#FAF8F5',
+                            border: '1px solid rgba(0, 43, 102, 0.16)',
+                            padding: '1px 6px'
+                          }}
+                        >
+                          {item.formula}
+                        </span>
+                      )}
                     </div>
 
                     <h3
                       style={{
-                        margin: '0 0 6px 0',
+                        margin: '0 0 4px 0',
                         fontSize: 16,
                         fontFamily: 'var(--font-display)',
                         fontWeight: 700,
-                        color: 'var(--obsidian-950)',
+                        color: '#0A192F',
                         lineHeight: 1.3
                       }}
                     >
@@ -868,33 +942,39 @@ export default function AdminScreen() {
 
                     <p
                       style={{
-                        margin: '0 0 16px 0',
+                        margin: '0 0 12px 0',
                         fontSize: 12.5,
-                        color: 'var(--color-text-muted)',
-                        lineHeight: 1.5,
+                        color: '#64748B',
+                        lineHeight: 1.45,
                         flex: 1
                       }}
                     >
-                      {item.subtitle}
+                      {item.subtitle || 'Custom online deployed physics experiment'}
                     </p>
 
-                    {/* Target URL banner */}
+                    {/* Author & Grade Level */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, color: '#475569', marginBottom: 12 }}>
+                      <span>Team: <strong style={{ color: '#002B66' }}>{item.authorTeam || 'Visiora Core'}</strong></span>
+                      <span>Target: <strong style={{ color: '#002B66' }}>{item.gradeLevel || 'Class 8-12'}</strong></span>
+                    </div>
+
+                    {/* Target URL Banner */}
                     <div
                       style={{
                         padding: '6px 10px',
-                        background: 'var(--cream-100)',
-                        border: '1px solid var(--color-border-subtle)',
+                        background: '#FAF8F5',
+                        border: '1px solid rgba(0, 43, 102, 0.12)',
                         fontSize: 11,
-                        fontFamily: 'var(--font-mono)',
+                        fontFamily: 'monospace',
                         color: '#002B66',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
-                        marginBottom: 16
+                        marginBottom: 14
                       }}
                       title={item.targetUrl}
                     >
-                      {item.targetUrl}
+                      URL: {item.targetUrl}
                     </div>
 
                     {/* Action Bar */}
@@ -904,52 +984,54 @@ export default function AdminScreen() {
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         paddingTop: 12,
-                        borderTop: '1px solid var(--color-border-subtle)'
+                        borderTop: '1px solid rgba(0, 43, 102, 0.1)'
                       }}
                     >
-                      <a
-                        href={item.targetUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      {/* Test Sandbox Button */}
+                      <button
+                        onClick={() => handleOpenSandbox(item.targetUrl, item.title)}
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: 4,
-                          fontSize: 12.5,
+                          gap: 5,
+                          fontSize: 12,
                           fontWeight: 700,
                           color: '#002B66',
-                          textDecoration: 'none'
+                          background: 'rgba(0, 43, 102, 0.06)',
+                          border: '1px solid rgba(0, 43, 102, 0.18)',
+                          padding: '5px 10px',
+                          cursor: 'pointer'
                         }}
                       >
-                        <span>Test Redirect</span>
-                        <ArrowUpRight size={14} />
-                      </a>
+                        <ExternalLink size={13} />
+                        <span>Test Sandbox</span>
+                      </button>
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <button
-                          onClick={() => toggleVisualizationActive(item.id)}
+                          onClick={() => toggleExperimentActive(item.id)}
                           title={item.isActive ? 'Hide from home' : 'Show on home'}
                           style={{
                             padding: '5px 10px',
-                            background: item.isActive ? 'rgba(0, 43, 102, 0.08)' : 'var(--cream-200)',
-                            color: item.isActive ? '#002B66' : 'var(--color-text-muted)',
-                            border: 'none',
+                            background: item.isActive ? '#002B66' : '#FAF8F5',
+                            color: item.isActive ? '#FFFFFF' : '#64748B',
+                            border: '1px solid rgba(0, 43, 102, 0.2)',
                             fontSize: 11.5,
                             fontWeight: 700,
                             cursor: 'pointer'
                           }}
                         >
-                          {item.isActive ? 'Disable' : 'Enable'}
+                          {item.isActive ? 'Active' : 'Draft'}
                         </button>
 
                         <button
                           onClick={() => handleOpenEdit(item)}
-                          title="Edit visualization"
+                          title="Edit experiment"
                           style={{
                             padding: '6px 8px',
-                            background: 'transparent',
-                            border: '1px solid var(--color-border)',
-                            color: 'var(--obsidian-900)',
+                            background: '#FFFFFF',
+                            border: '1px solid rgba(0, 43, 102, 0.2)',
+                            color: '#002B66',
                             cursor: 'pointer'
                           }}
                         >
@@ -958,17 +1040,17 @@ export default function AdminScreen() {
 
                         <button
                           onClick={() => {
-                            if (confirm(`Delete "${item.title}"?`)) {
-                              deleteVisualization(item.id)
-                              flashMessage('✓ 2D Visualization deleted.')
+                            if (confirm(`Delete experiment "${item.title}"?`)) {
+                              deleteExperiment(item.id)
+                              flashMessage(`✓ Experiment "${item.title}" deleted.`)
                             }
                           }}
                           title="Delete"
                           style={{
                             padding: '6px 8px',
-                            background: 'transparent',
+                            background: '#FFFFFF',
                             border: '1px solid rgba(194, 59, 48, 0.3)',
-                            color: '#C23B30',
+                            color: '#DC2626',
                             cursor: 'pointer'
                           }}
                         >
@@ -1473,15 +1555,15 @@ export default function AdminScreen() {
       </main>
 
       {/* ───────────────────────────────────────────────────────────── */}
-      {/* MODAL: ADD / EDIT 2D VISUALIZATION                            */}
+      {/* MODAL: ADD / EDIT EXPERIMENT (2D & 3D DEPLOYMENT)              */}
       {/* ───────────────────────────────────────────────────────────── */}
       {modalOpen && (
         <div
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(14, 12, 11, 0.65)',
-            backdropFilter: 'blur(6px)',
+            background: 'rgba(10, 25, 47, 0.7)',
+            backdropFilter: 'blur(8px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -1493,117 +1575,207 @@ export default function AdminScreen() {
             style={{
               background: '#FFFFFF',
               width: '100%',
-              maxWidth: 540,
-              border: '1px solid var(--color-border)',
-              borderTop: '4px solid #002B66',
-              boxShadow: '0 24px 60px rgba(0, 0, 0, 0.3)',
+              maxWidth: 620,
+              border: '1px solid rgba(0, 43, 102, 0.25)',
+              borderTop: '5px solid #002B66',
+              boxShadow: '0 24px 60px rgba(0, 0, 0, 0.35)',
               padding: '28px 32px',
               boxSizing: 'border-box',
-              maxHeight: '90vh',
+              maxHeight: '92vh',
               overflowY: 'auto'
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-              <h3
-                style={{
-                  margin: 0,
-                  fontFamily: 'var(--font-display)',
-                  fontSize: 18,
-                  fontWeight: 700,
-                  color: 'var(--obsidian-950)'
-                }}
-              >
-                {editingItem ? 'Edit 2D Visualization' : 'Add New 2D Visualization'}
-              </h3>
+              <div>
+                <h3
+                  style={{
+                    margin: 0,
+                    fontFamily: 'var(--font-display)',
+                    fontSize: 18,
+                    fontWeight: 800,
+                    color: '#002B66'
+                  }}
+                >
+                  {editingItem ? `Edit ${formType.toUpperCase()} Experiment` : `Register New ${formType.toUpperCase()} Experiment`}
+                </h3>
+                <span style={{ fontSize: 11.5, color: '#64748B' }}>
+                  Deploy your team's online simulation directly into VISIORA
+                </span>
+              </div>
               <button
                 onClick={() => setModalOpen(false)}
-                style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--color-text-muted)' }}
+                style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: '#64748B' }}
               >
                 &times;
               </button>
             </div>
 
             <form onSubmit={handleSaveVisualization} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {/* Type Switcher: 3D Engine vs 2D Studio */}
               <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, marginBottom: 4 }}>
-                  Laboratory Title *
+                <label style={{ display: 'block', fontSize: 11.5, fontWeight: 800, color: '#002B66', textTransform: 'uppercase', marginBottom: 6 }}>
+                  Simulation Architecture Type *
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormType('3d')
+                      if (!formBadge || formBadge === 'Interactive 2D') setFormBadge('3D Physics Lab')
+                    }}
+                    style={{
+                      padding: '10px 14px',
+                      background: formType === '3d' ? '#002B66' : '#FAF8F5',
+                      color: formType === '3d' ? '#FFFFFF' : '#002B66',
+                      border: formType === '3d' ? '1px solid #002B66' : '1px solid rgba(0, 43, 102, 0.2)',
+                      fontWeight: 700,
+                      fontSize: 12.5,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 6,
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <span>✦ 3D Physics Engine (WebGL / Unity)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormType('2d')
+                      if (!formBadge || formBadge === '3D Physics Lab') setFormBadge('Interactive 2D')
+                    }}
+                    style={{
+                      padding: '10px 14px',
+                      background: formType === '2d' ? '#D97706' : '#FAF8F5',
+                      color: formType === '2d' ? '#FFFFFF' : '#002B66',
+                      border: formType === '2d' ? '1px solid #D97706' : '1px solid rgba(0, 43, 102, 0.2)',
+                      fontWeight: 700,
+                      fontSize: 12.5,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 6,
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <span>⚡ 2D Interactive Studio (HTML5 / PhET)</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Title */}
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#0A192F', marginBottom: 4 }}>
+                  Experiment Title *
                 </label>
                 <input
                   type="text"
                   required
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
-                  placeholder="e.g. Electric Field Mapping & Coulomb Law"
-                  style={{ width: '100%', padding: '9px 12px', fontSize: 13, border: '1px solid var(--color-border)', boxSizing: 'border-box' }}
+                  placeholder="e.g. Wave Optics & Double Slit Interference"
+                  style={{ width: '100%', padding: '9px 12px', fontSize: 13, border: '1px solid rgba(0, 43, 102, 0.22)', boxSizing: 'border-box' }}
                 />
               </div>
 
+              {/* Category & Governing Formula */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#0A192F', marginBottom: 4 }}>
+                    Scientific Topic / Domain *
+                  </label>
+                  <select
+                    value={formCategory}
+                    onChange={(e) => setFormCategory(e.target.value)}
+                    style={{ width: '100%', padding: '9px 12px', fontSize: 13, border: '1px solid rgba(0, 43, 102, 0.22)', background: '#FFFFFF' }}
+                  >
+                    <option value="Mechanics & Kinematics">Mechanics &amp; Kinematics</option>
+                    <option value="Electromagnetism">Electromagnetism</option>
+                    <option value="Wave Mechanics">Wave Mechanics</option>
+                    <option value="Optics & Light">Optics &amp; Light</option>
+                    <option value="Thermodynamics">Thermodynamics</option>
+                    <option value="Gravitation & Astrophysics">Gravitation &amp; Astrophysics</option>
+                    <option value="Fluid Mechanics">Fluid Mechanics</option>
+                    <option value="Quantum & Modern">Quantum &amp; Modern</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#0A192F', marginBottom: 4 }}>
+                    Governing Law / Formula
+                  </label>
+                  <input
+                    type="text"
+                    value={formFormula}
+                    onChange={(e) => setFormFormula(e.target.value)}
+                    placeholder="e.g. λ = d·sin θ / m"
+                    style={{ width: '100%', padding: '9px 12px', fontSize: 13, border: '1px solid rgba(0, 43, 102, 0.22)', fontFamily: 'monospace', boxSizing: 'border-box' }}
+                  />
+                </div>
+              </div>
+
+              {/* Subtitle */}
               <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, marginBottom: 4 }}>
-                  Subtitle / Scientific Concept
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#0A192F', marginBottom: 4 }}>
+                  Subtitle / Scientific Concept Summary
                 </label>
                 <input
                   type="text"
                   value={formSubtitle}
                   onChange={(e) => setFormSubtitle(e.target.value)}
-                  placeholder="e.g. Point charges, potential gradients, and electric vector flux"
-                  style={{ width: '100%', padding: '9px 12px', fontSize: 13, border: '1px solid var(--color-border)', boxSizing: 'border-box' }}
+                  placeholder="e.g. Coherent wave superposition, fringe width calculation, and phase difference"
+                  style={{ width: '100%', padding: '9px 12px', fontSize: 13, border: '1px solid rgba(0, 43, 102, 0.22)', boxSizing: 'border-box' }}
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, marginBottom: 4 }}>
-                    Category
-                  </label>
-                  <select
-                    value={formCategory}
-                    onChange={(e) => setFormCategory(e.target.value)}
-                    style={{ width: '100%', padding: '9px 12px', fontSize: 13, border: '1px solid var(--color-border)', background: '#FFFFFF' }}
-                  >
-                    <option value="Electromagnetism">Electromagnetism</option>
-                    <option value="Wave Mechanics">Wave Mechanics</option>
-                    <option value="Optics & Light">Optics &amp; Light</option>
-                    <option value="Thermodynamics">Thermodynamics</option>
-                    <option value="Quantum & Modern">Quantum &amp; Modern</option>
-                    <option value="Kinematics & Dynamics">Kinematics &amp; Dynamics</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, marginBottom: 4 }}>
-                    Badge Tag
-                  </label>
-                  <input
-                    type="text"
-                    value={formBadge}
-                    onChange={(e) => setFormBadge(e.target.value)}
-                    placeholder="e.g. PhET Simulation"
-                    style={{ width: '100%', padding: '9px 12px', fontSize: 13, border: '1px solid var(--color-border)', boxSizing: 'border-box' }}
-                  />
-                </div>
-              </div>
-
+              {/* Deployed Project URL with Sandbox Test Button */}
               <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, marginBottom: 4 }}>
-                  Target Redirect URL (Where clicking leads) *
-                </label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: '#0A192F' }}>
+                    Deployed Project URL (Team's Online Host) *
+                  </label>
+                  {formTargetUrl && (
+                    <button
+                      type="button"
+                      onClick={() => handleOpenSandbox(formTargetUrl, formTitle || 'New Simulation')}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#002B66',
+                        fontSize: 11.5,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4
+                      }}
+                    >
+                      <span>⚡ Test URL Sandbox</span>
+                      <ExternalLink size={12} />
+                    </button>
+                  )}
+                </div>
                 <input
                   type="url"
                   required
                   value={formTargetUrl}
                   onChange={(e) => setFormTargetUrl(e.target.value)}
-                  placeholder="https://phet.colorado.edu/sims/... or https://..."
-                  style={{ width: '100%', padding: '9px 12px', fontSize: 13, border: '1px solid var(--color-border)', boxSizing: 'border-box' }}
+                  placeholder="https://your-team.vercel.app/lab/ or https://phet.colorado.edu/..."
+                  style={{ width: '100%', padding: '9px 12px', fontSize: 13, border: '1px solid rgba(0, 43, 102, 0.22)', boxSizing: 'border-box' }}
                 />
-                <span style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
-                  When a student clicks the card on the home page, they will open this website.
+                <span style={{ fontSize: 11, color: '#64748B' }}>
+                  Students clicking this lab on the website will interact with this deployed simulation.
                 </span>
               </div>
 
+              {/* Photos / Custom Preview Image URL or File Upload */}
               <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, marginBottom: 4 }}>
-                  Custom Preview Image URL or File Upload
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#0A192F', marginBottom: 4 }}>
+                  Experiment Photo / Thumbnail Image URL
                 </label>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <input
@@ -1611,7 +1783,7 @@ export default function AdminScreen() {
                     value={formImageUrl}
                     onChange={(e) => setFormImageUrl(e.target.value)}
                     placeholder="https://images.unsplash.com/... or /images/..."
-                    style={{ flex: 1, padding: '9px 12px', fontSize: 13, border: '1px solid var(--color-border)', boxSizing: 'border-box' }}
+                    style={{ flex: 1, padding: '9px 12px', fontSize: 13, border: '1px solid rgba(0, 43, 102, 0.22)', boxSizing: 'border-box' }}
                   />
                   <input
                     type="file"
@@ -1628,16 +1800,17 @@ export default function AdminScreen() {
                       alignItems: 'center',
                       gap: 6,
                       padding: '8px 14px',
-                      background: '#FAF5EC',
-                      border: '1px solid var(--color-border)',
+                      background: '#FAF8F5',
+                      border: '1px solid rgba(0, 43, 102, 0.2)',
                       fontSize: 12,
-                      fontWeight: 600,
+                      fontWeight: 700,
+                      color: '#002B66',
                       cursor: 'pointer',
                       whiteSpace: 'nowrap'
                     }}
                   >
                     <Upload size={13} />
-                    <span>Upload File</span>
+                    <span>Upload Image</span>
                   </button>
                 </div>
 
@@ -1647,48 +1820,216 @@ export default function AdminScreen() {
                     <img
                       src={formImageUrl}
                       alt="Thumbnail Preview"
-                      style={{ width: 80, height: 48, objectFit: 'cover', border: '1px solid var(--color-border)' }}
+                      style={{ width: 90, height: 50, objectFit: 'cover', border: '1px solid rgba(0, 43, 102, 0.2)' }}
                       onError={(e) => { e.target.style.display = 'none' }}
                     />
-                    <span style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
-                      Preview loaded
+                    <span style={{ fontSize: 11, color: '#64748B' }}>
+                      Thumbnail visual verified
                     </span>
                   </div>
                 )}
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+              {/* Author Team & Grade Level & Badge */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#0A192F', marginBottom: 4 }}>
+                    Author Team
+                  </label>
+                  <input
+                    type="text"
+                    value={formAuthorTeam}
+                    onChange={(e) => setFormAuthorTeam(e.target.value)}
+                    placeholder="e.g. Alpha 3D Lab"
+                    style={{ width: '100%', padding: '8px 10px', fontSize: 12.5, border: '1px solid rgba(0, 43, 102, 0.22)', boxSizing: 'border-box' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#0A192F', marginBottom: 4 }}>
+                    Target Grade
+                  </label>
+                  <input
+                    type="text"
+                    value={formGradeLevel}
+                    onChange={(e) => setFormGradeLevel(e.target.value)}
+                    placeholder="e.g. Class 8-10"
+                    style={{ width: '100%', padding: '8px 10px', fontSize: 12.5, border: '1px solid rgba(0, 43, 102, 0.22)', boxSizing: 'border-box' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#0A192F', marginBottom: 4 }}>
+                    Badge Tag
+                  </label>
+                  <input
+                    type="text"
+                    value={formBadge}
+                    onChange={(e) => setFormBadge(e.target.value)}
+                    placeholder="e.g. Unity 3D Lab"
+                    style={{ width: '100%', padding: '8px 10px', fontSize: 12.5, border: '1px solid rgba(0, 43, 102, 0.22)', boxSizing: 'border-box' }}
+                  />
+                </div>
+              </div>
+
+              {/* Active / Publish Checkbox */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
                 <input
                   type="checkbox"
                   id="activeToggle"
                   checked={formIsActive}
                   onChange={(e) => setFormIsActive(e.target.checked)}
+                  style={{ width: 16, height: 16, accentColor: '#002B66', cursor: 'pointer' }}
                 />
-                <label htmlFor="activeToggle" style={{ fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-                  Publish and show on Home Page immediately
+                <label htmlFor="activeToggle" style={{ fontSize: 13, fontWeight: 700, color: '#002B66', cursor: 'pointer' }}>
+                  Publish live and display immediately across the entire website
                 </label>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 16 }}>
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 14 }}>
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  style={{ padding: '9px 16px', background: 'transparent', border: '1px solid var(--color-border)', fontSize: 13, cursor: 'pointer' }}
+                  style={{
+                    padding: '9px 16px',
+                    background: 'transparent',
+                    border: '1px solid rgba(0, 43, 102, 0.2)',
+                    fontSize: 13,
+                    color: '#64748B',
+                    cursor: 'pointer'
+                  }}
                 >
                   Cancel
                 </button>
+
                 <button
                   type="submit"
-                  className="btn-navy-primary"
-                  style={{ padding: '9px 20px', background: '#002B66', color: '#FFFFFF', border: 'none', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
+                  style={{
+                    padding: '10px 22px',
+                    background: '#002B66',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    fontWeight: 800,
+                    fontSize: 13,
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 14px rgba(0, 43, 102, 0.25)'
+                  }}
                 >
-                  {editingItem ? 'Save Changes' : 'Create 2D Visualization'}
+                  {editingItem ? 'Save & Update Experiment' : 'Publish Experiment Live'}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      {/* ───────────────────────────────────────────────────────────── */}
+      {/* MODAL: LIVE SANDBOX URL TESTER                                */}
+      {/* ───────────────────────────────────────────────────────────── */}
+      {sandboxModalOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(10, 25, 47, 0.8)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2000,
+            padding: 24
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: 1080,
+              height: '85vh',
+              background: '#FAF8F5',
+              border: '1px solid rgba(0, 43, 102, 0.25)',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 24px 60px rgba(0, 0, 0, 0.5)',
+              overflow: 'hidden'
+            }}
+          >
+            {/* Sandbox Header */}
+            <div
+              style={{
+                height: 48,
+                background: '#FAF8F5',
+                borderBottom: '1px solid rgba(0, 43, 102, 0.16)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '0 16px',
+                flexShrink: 0
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 11, fontWeight: 800, background: '#002B66', color: '#FFFFFF', padding: '2px 8px' }}>
+                  SANDBOX TESTER
+                </span>
+                <strong style={{ fontSize: 13.5, color: '#002B66' }}>{sandboxTitle}</strong>
+                <span style={{ fontSize: 11, color: '#64748B', fontFamily: 'monospace' }}>({sandboxUrl})</span>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <a
+                  href={sandboxUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    fontSize: 12,
+                    color: '#002B66',
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    padding: '4px 8px',
+                    border: '1px solid rgba(0, 43, 102, 0.2)',
+                    background: '#FFFFFF',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4
+                  }}
+                >
+                  <span>Open in Tab</span>
+                  <ExternalLink size={12} />
+                </a>
+
+                <button
+                  onClick={() => setSandboxModalOpen(false)}
+                  style={{
+                    background: '#FFFFFF',
+                    border: '1px solid rgba(0, 43, 102, 0.2)',
+                    fontSize: 16,
+                    cursor: 'pointer',
+                    width: 28,
+                    height: 28,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#002B66'
+                  }}
+                >
+                  &times;
+                </button>
+              </div>
+            </div>
+
+            {/* Sandbox Iframe */}
+            <div style={{ flex: 1, position: 'relative', background: '#FFFFFF' }}>
+              <iframe
+                src={sandboxUrl}
+                title="Sandbox Preview"
+                style={{ width: '100%', height: '100%', border: 'none' }}
+                allow="fullscreen; accelerometer; gyroscope; autoplay; clipboard-write; encrypted-media; picture-in-picture"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
+

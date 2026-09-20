@@ -34,6 +34,7 @@ export default function HomeScreen() {
   const [hovered2dCard, setHovered2dCard] = useState(null)
   const [topicSearchQuery, setTopicSearchQuery] = useState('')
 
+  const experiments = useAdminStore(state => state.experiments)
   const visualizations = useAdminStore(state => state.visualizations)
   const trackVisualizationClick = useAdminStore(state => state.trackVisualizationClick)
   const [currentDateTime, setCurrentDateTime] = useState({
@@ -63,21 +64,41 @@ export default function HomeScreen() {
   const displayName = progressPayload?.profile?.name || user?.displayName || 'Physicist'
   const mastery = progressPayload?.mastery || {}
   const labs = Object.values(SCENE_META)
+
+  // Dynamically merge custom 3D labs added by admin
+  const custom3DLabs = useMemo(() => {
+    const coreLabIds = new Set(['projectile', 'gravity', 'pendulum', 'buoyancy', 'collision', 'ohmslaw'])
+    return (experiments || [])
+      .filter(e => e.type === '3d' && !coreLabIds.has(e.id) && e.isActive !== false)
+      .map(e => ({
+        id: e.id,
+        label: e.title,
+        badge: e.badge || '3D Lab',
+        description: e.subtitle || e.category,
+        formula: e.formula || '',
+        isCustom: true
+      }))
+  }, [experiments])
+
+  const all3DLabs = useMemo(() => {
+    return [...labs, ...custom3DLabs]
+  }, [labs, custom3DLabs])
+
   const avgMastery = Math.round(
-    labs.reduce((acc, lab) => acc + (mastery[lab.id]?.score || 0), 0) / (labs.length || 1)
+    all3DLabs.reduce((acc, lab) => acc + (mastery[lab.id]?.score || 0), 0) / (all3DLabs.length || 1)
   )
 
   const filteredLabs = useMemo(() => {
     const q = topicSearchQuery.trim().toLowerCase()
-    if (!q) return labs
-    return labs.filter(lab => {
-      const matchLabel = lab.label.toLowerCase().includes(q)
-      const matchBadge = lab.badge.toLowerCase().includes(q)
-      const matchDesc = lab.description.toLowerCase().includes(q)
+    if (!q) return all3DLabs
+    return all3DLabs.filter(lab => {
+      const matchLabel = (lab.label || '').toLowerCase().includes(q)
+      const matchBadge = (lab.badge || '').toLowerCase().includes(q)
+      const matchDesc = (lab.description || '').toLowerCase().includes(q)
       const matchFormula = (lab.formula || '').toLowerCase().includes(q)
       return matchLabel || matchBadge || matchDesc || matchFormula
     })
-  }, [labs, topicSearchQuery])
+  }, [all3DLabs, topicSearchQuery])
 
   const active2dVisualizations = useMemo(() => {
     return (visualizations || []).filter(v => v.isActive !== false)
@@ -104,8 +125,13 @@ export default function HomeScreen() {
   }, [topicSearchQuery])
 
   const handleLaunchLab = (labId) => {
-    useUIStore.getState().setActiveLab(labId)
-    navigate('/sim')
+    const coreLabIds = ['projectile', 'gravity', 'pendulum', 'buoyancy', 'collision']
+    if (coreLabIds.includes(labId)) {
+      useUIStore.getState().setActiveLab(labId)
+      navigate('/sim')
+    } else {
+      navigate(`/lab/${labId}`)
+    }
   }
 
   return (
@@ -199,6 +225,55 @@ export default function HomeScreen() {
             }}>
               {greeting}, <span style={{ color: 'var(--gold-600)' }}>{displayName}</span>.
             </h1>
+
+            {/* Quick Hero Action CTAs */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 4 }}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  navigate('/sim')
+                }}
+                style={{
+                  padding: '9px 18px',
+                  background: '#002B66',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  fontWeight: 700,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  boxShadow: '0 2px 8px rgba(0, 43, 102, 0.25)'
+                }}
+              >
+                <Play size={14} />
+                <span>Launch 3D Simulator</span>
+              </button>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  navigate('/ai-tutor')
+                }}
+                style={{
+                  padding: '9px 16px',
+                  background: '#FFFFFF',
+                  color: '#002B66',
+                  border: '1px solid rgba(0, 43, 102, 0.25)',
+                  fontWeight: 700,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  boxShadow: '0 2px 6px rgba(18, 14, 11, 0.05)'
+                }}
+              >
+                <Sparkles size={14} color="#D97706" />
+                <span>Ask AI &amp; Generate 2D Visual</span>
+              </button>
+            </div>
           </div>
 
           {/* High-Tech Physics Telemetry & Animated Projectile Trajectory Preview */}
@@ -566,31 +641,6 @@ export default function HomeScreen() {
               }}>
                 Complementing our real-time 3D computational engines with premier two-dimensional interactive simulations from PhET Interactive Simulations, GeoGebra, and university research ateliers. Click any simulation image box or launch button to jump directly into the live interactive laboratory.
               </p>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <button
-                onClick={() => navigate('/admin')}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '8px 16px',
-                  borderRadius: 0,
-                  background: 'rgba(0, 43, 102, 0.08)',
-                  color: '#002B66',
-                  border: '1px solid rgba(0, 43, 102, 0.25)',
-                  fontSize: 12.5,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  transition: 'all var(--transition-fast)'
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(0, 43, 102, 0.14)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'rgba(0, 43, 102, 0.08)'}
-              >
-                <ShieldCheck size={14} />
-                <span>Manage 2D Labs in Admin</span>
-              </button>
             </div>
           </div>
 

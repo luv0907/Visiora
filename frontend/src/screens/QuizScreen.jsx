@@ -9,8 +9,6 @@ import { fetchQuiz, submitAnswer } from '../api/client'
 import { useProgressStore } from '../store/useProgressStore'
 import { SCENE_META } from '../config/physics'
 import { useMediaQuery } from '../hooks/useMediaQuery'
-import TutorPanel from '../components/tutor/TutorPanel'
-import { ErrorBoundary } from '../components/ui/ErrorBoundary'
 import { Award, Target, CheckCircle2 } from 'lucide-react'
 
 export default function QuizScreen() {
@@ -241,9 +239,9 @@ export default function QuizScreen() {
     <div style={{ backgroundColor: 'var(--color-bg)', minHeight: '100dvh', display: 'flex', flexDirection: 'column', paddingBottom: 'calc(var(--bottom-nav-height) + var(--space-4))' }}>
       <div style={isDesktop ? {
         display: 'grid',
-        gridTemplateColumns: '240px 1fr 280px',
+        gridTemplateColumns: '260px 1fr',
         gap: 'var(--space-6)',
-        maxWidth: 1280,
+        maxWidth: 1040,
         margin: '0 auto',
         width: '100%',
         flex: 1,
@@ -275,7 +273,7 @@ export default function QuizScreen() {
             {/* Context/Hints if needed */}
             <div style={{ marginTop: 'auto', padding: 'var(--space-4)', background: 'var(--navy-50)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--navy-100)' }}>
               <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
-                Stuck on a question? You can ask the AI Tutor for a hint without losing your streak.
+                Answer each question carefully based on fundamental physics laws to build your concept mastery and maintain your streak.
               </p>
             </div>
           </div>
@@ -446,15 +444,6 @@ export default function QuizScreen() {
         )}
 
         </div>
-
-        {/* ── Right Rail (Desktop) ── */}
-        {isDesktop && (
-          <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', height: '80vh', position: 'sticky', top: 'var(--space-5)' }}>
-            <ErrorBoundary section="quiz-tutor" minHeight="150px">
-              <TutorPanel />
-            </ErrorBoundary>
-          </div>
-        )}
 
       </div>
     </div>
