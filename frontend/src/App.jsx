@@ -4,8 +4,10 @@ import { ErrorBoundary } from './components/ui/ErrorBoundary'
 import ToastContainer from './components/ui/Toast'
 import { useAuthStore } from './store/useAuthStore'
 import { useProgressStore } from './store/useProgressStore'
+import { useLenisScroll } from './hooks/useLenisScroll'
 
 export default function App() {
+  useLenisScroll()
   const init = useAuthStore(state => state.init)
   const isLoading = useAuthStore(state => state.isLoading)
   const isAuthenticated = useAuthStore(state => state.isAuthenticated)

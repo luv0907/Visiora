@@ -17,13 +17,15 @@ ALL_BADGE_IDS = [
     "concept_mastered_pendulum",
     "concept_mastered_collision",
     "concept_mastered_angular",
+    "concept_mastered_wave",
+    "concept_mastered_buoyancy",
     "all_rounder",
 ]
 
 VALID_GRADES   = {"6", "7", "8", "9", "10", "11", "12"}
 VALID_AVATARS  = {"🦊", "🐧", "🐬", "🦄", "🚀", "⭐", "🌙", "🔭", "🧲", "🌊"}
 
-CONCEPT_IDS = ["gravity", "projectile", "pendulum", "collision", "angular"]
+CONCEPT_IDS = ["gravity", "projectile", "pendulum", "collision", "angular", "wave", "buoyancy", "create"]
 
 
 def get_db():

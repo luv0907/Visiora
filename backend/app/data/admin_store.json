@@ -1,0 +1,105 @@
+{
+  "config": {
+    "bannerImage": "/images/physics_doodle_banner_16x9.jpg",
+    "showcaseImage": "/images/physics_doodle_portrait.jpg",
+    "authorizedGoogleEmails": [
+      "admin@visiora.edu",
+      "director@visiora.org",
+      "bouroju@gmail.com",
+      "admin@atelier.visiora"
+    ],
+    "allowAnyGoogleLoginInDev": true,
+    "lastUpdated": "2026-09-11T10:00:00Z"
+  },
+  "visualizations2D": [
+    {
+      "id": "vis-phet-circuits",
+      "title": "Circuit Construction Kit: DC & Ohm's Law",
+      "subtitle": "Interactive schematic builder for resistors, batteries, capacitors and voltage analysis",
+      "category": "Electromagnetism",
+      "targetUrl": "https://phet.colorado.edu/sims/html/circuit-construction-kit-dc/latest/circuit-construction-kit-dc_all.html",
+      "imageUrl": "https://images.unsplash.com/photo-1517420704952-d9f39e95b43e?auto=format&fit=crop&w=800&q=80",
+      "badge": "PhET Simulation",
+      "isActive": true,
+      "order": 1,
+      "clicks": 142,
+      "createdAt": "2026-09-10T12:00:00Z"
+    },
+    {
+      "id": "vis-wave-string",
+      "title": "Wave Interference & Standing Harmonics",
+      "subtitle": "Explore frequency, amplitude, damping and boundary reflection in 2D mechanical strings",
+      "category": "Wave Mechanics",
+      "targetUrl": "https://phet.colorado.edu/sims/html/wave-on-a-string/latest/wave-on-a-string_all.html",
+      "imageUrl": "https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=800&q=80",
+      "badge": "Interactive 2D",
+      "isActive": true,
+      "order": 2,
+      "clicks": 98,
+      "createdAt": "2026-09-10T14:30:00Z"
+    },
+    {
+      "id": "vis-optics-ray",
+      "title": "Geometric Optics & Snell's Refraction",
+      "subtitle": "Precision ray tracing through convex lenses, concave mirrors and refractive prisms",
+      "category": "Optics & Light",
+      "targetUrl": "https://phet.colorado.edu/sims/html/geometric-optics/latest/geometric-optics_all.html",
+      "imageUrl": "https://images.unsplash.com/photo-1507668077129-56e32842fceb?auto=format&fit=crop&w=800&q=80",
+      "badge": "Optics Lab",
+      "isActive": true,
+      "order": 3,
+      "clicks": 76,
+      "createdAt": "2026-09-11T08:15:00Z"
+    }
+  ],
+  "userLogins": [
+    {
+      "uid": "usr_atelier_founder",
+      "email": "director@visiora.org",
+      "displayName": "Visiora Director",
+      "provider": "google.com",
+      "photoURL": null,
+      "lastLogin": "2026-09-11T09:45:00Z",
+      "createdAt": "2026-09-01T08:00:00Z",
+      "role": "Admin",
+      "streak": 11,
+      "mastery": 94
+    },
+    {
+      "uid": "usr_dev_bouroju",
+      "email": "bouroju@gmail.com",
+      "displayName": "Lead Physicist",
+      "provider": "google.com",
+      "photoURL": null,
+      "lastLogin": "2026-09-11T10:15:00Z",
+      "createdAt": "2026-09-02T10:30:00Z",
+      "role": "Admin",
+      "streak": 9,
+      "mastery": 88
+    },
+    {
+      "uid": "usr_student_elena",
+      "email": "elena.curie@cambridge.ac.uk",
+      "displayName": "Elena Curie",
+      "provider": "google.com",
+      "photoURL": null,
+      "lastLogin": "2026-09-11T08:20:00Z",
+      "createdAt": "2026-09-05T14:15:00Z",
+      "role": "Student",
+      "streak": 5,
+      "mastery": 72
+    },
+    {
+      "uid": "usr_student_marcus",
+      "email": "marcus.feynman@mit.edu",
+      "displayName": "Marcus Feynman",
+      "provider": "password",
+      "photoURL": null,
+      "lastLogin": "2026-09-10T18:30:00Z",
+      "createdAt": "2026-09-06T11:00:00Z",
+      "role": "Student",
+      "streak": 3,
+      "mastery": 64
+    }
+  ]
+}

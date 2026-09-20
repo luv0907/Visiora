@@ -1,496 +1,904 @@
-/**
- * VISIORA — HomeScreen
- * Mobile-first home dashboard. Cream + Teal palette.
- * Shows greeting, streak, continue card, topic grid.
- */
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { 
+  Sparkles, 
+  ArrowUpRight, 
+  Play, 
+  BookOpen, 
+  Compass, 
+  ChevronRight, 
+  TrendingUp, 
+  Layers, 
+  CheckCircle2,
+  Globe,
+  ExternalLink,
+  ShieldCheck
+} from 'lucide-react'
 import { useProgressStore } from '../store/useProgressStore'
 import { useUIStore } from '../store/useUIStore'
 import { useAuthStore } from '../store/useAuthStore'
+import { useAdminStore } from '../store/useAdminStore'
 import { SCENE_META } from '../config/physics'
-import { useMediaQuery } from '../hooks/useMediaQuery'
-
-const BADGE_DEFS = [
-  { id: 'first_session',               label: 'First Step',     icon: '🚀' },
-  { id: 'five_day_streak',             label: 'Unstoppable',    icon: '🔥' },
-  { id: 'concept_mastered_gravity',    label: 'Gravity Master', icon: '🍎' },
-  { id: 'concept_mastered_projectile', label: 'Artillery',      icon: '☄️' },
-  { id: 'concept_mastered_pendulum',   label: 'Timekeeper',     icon: '⏱️' },
-  { id: 'concept_mastered_collision',  label: 'Impact',         icon: '💥' },
-  { id: 'concept_mastered_angular',    label: 'Spin Doctor',    icon: '🌪️' },
-  { id: 'all_rounder',                 label: 'All Rounder',    icon: '⭐' },
-]
-
-const BADGE_NAMES = {
-  first_session:               'First Session',
-  five_day_streak:             '5-Day Streak',
-  concept_mastered_gravity:    'Mastered: Free Fall',
-  concept_mastered_projectile: 'Mastered: Projectiles',
-  concept_mastered_pendulum:   'Mastered: Pendulum',
-  concept_mastered_collision:  'Mastered: Collisions',
-  concept_mastered_angular:    'Mastered: Angular',
-  all_rounder:                 'All-Rounder',
-}
-
-const AVATARS = {
-  '🚀': '#EAF4F3',
-  '⚡': '#FEF3E2',
-  '🌊': '#EAF4F3',
-  '🔬': '#F0EBF8',
-  '🎯': '#FDEDEB',
-}
-
-// ── Skeleton ──────────────────────────────────────────────────────
-function HomeScreenSkeleton() {
-  return (
-    <div style={{
-      maxWidth: 480,
-      margin: '0 auto',
-      padding: 'var(--space-4)',
-      paddingBottom: 'calc(var(--bottom-nav-height) + var(--space-4))',
-    }}>
-      {[80, 140, 180, 100, 100].map((h, i) => (
-        <div key={i} className="shimmer" style={{ height: h, marginBottom: 'var(--space-4)', borderRadius: 'var(--radius-lg)' }} />
-      ))}
-    </div>
-  )
-}
-
-// ── Mastery Bar ───────────────────────────────────────────────────
-function MasteryBar({ score }) {
-  const pct = Math.min(100, Math.max(0, Math.round(score || 0)))
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-      <div style={{
-        flex: 1,
-        height: 6,
-        borderRadius: 'var(--radius-full)',
-        background: 'var(--navy-100)',
-        overflow: 'hidden',
-      }}>
-        <div style={{
-          height: '100%',
-          width: `${pct}%`,
-          borderRadius: 'var(--radius-full)',
-          background: pct >= 80
-            ? 'var(--color-primary)'
-            : pct >= 40
-            ? 'var(--navy-300)'
-            : 'var(--navy-200)',
-          transition: 'width 0.8s var(--ease-decelerate)',
-        }} />
-      </div>
-      <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', minWidth: 28, textAlign: 'right' }}>
-        {pct}%
-      </span>
-    </div>
-  )
-}
+import LabIcon from '../components/common/LabIcon'
+import PeriodicParallaxSection from '../components/home/PeriodicParallaxSection'
+import KinematicsLivePreview from '../components/home/KinematicsLivePreview'
+import TopicSearchBar from '../components/home/TopicSearchBar'
 
 export default function HomeScreen() {
   const navigate = useNavigate()
-  const isDesktop = useMediaQuery('(min-width: 1024px)')
   const progressPayload = useProgressStore(state => state.profile)
-  const isLoading = useProgressStore(state => state.isLoading)
-  const error = useProgressStore(state => state.error)
-  const fetchProfile = useProgressStore(state => state.fetchProfile)
-  const addToast = useUIStore(state => state.addToast)
   const user = useAuthStore(state => state.user)
 
-  const [greeting, setGreeting] = useState('Good morning')
+  const [greeting, setGreeting] = useState('Welcome')
+  const [hoveredCard, setHoveredCard] = useState(null)
+  const [hovered2dCard, setHovered2dCard] = useState(null)
+  const [topicSearchQuery, setTopicSearchQuery] = useState('')
 
-  useEffect(() => {
-    const hour = new Date().getHours()
-    if (hour < 12) setGreeting('Good morning')
-    else if (hour < 17) setGreeting('Good afternoon')
-    else setGreeting('Good evening')
-  }, [])
-
-  // Badge toast on new badges
-  useEffect(() => {
-    if (!progressPayload?.profile?.badges) return
-    const earnedBadges = progressPayload.profile.badges
-    let seenStr = localStorage.getItem('seen_badges')
-    let seenBadges = seenStr ? JSON.parse(seenStr) : []
-    let newFound = false
-    earnedBadges.forEach(badge => {
-      if (!seenBadges.includes(badge)) {
-        addToast(`🏆 Badge earned: ${BADGE_NAMES[badge] || badge}`, 'success')
-        seenBadges.push(badge)
-        newFound = true
-      }
-    })
-    if (newFound) localStorage.setItem('seen_badges', JSON.stringify(seenBadges))
-  }, [progressPayload, addToast])
-
-  // ── Error state
-  if (error && !progressPayload) {
-    return (
-      <div style={{
-        minHeight: '100dvh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 'var(--space-6)',
-        backgroundColor: 'var(--color-bg)',
-        gap: 'var(--space-4)',
-      }}>
-        <div style={{
-          width: 64, height: 64,
-          borderRadius: '50%',
-          background: 'var(--color-error-bg)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 28,
-        }}>⚠️</div>
-        <p style={{ color: 'var(--color-text-muted)', textAlign: 'center', fontSize: 'var(--text-sm)' }}>{error}</p>
-        <button
-          onClick={() => fetchProfile()}
-          style={{
-            padding: 'var(--space-3) var(--space-8)',
-            backgroundColor: 'var(--color-primary)',
-            color: 'white',
-            borderRadius: 'var(--radius-full)',
-            fontWeight: 'var(--weight-bold)',
-            fontSize: 'var(--text-base)',
-            boxShadow: 'var(--shadow-navy)',
-          }}
-        >
-          Retry
-        </button>
-      </div>
-    )
-  }
-
-  if (!progressPayload || isLoading) return <HomeScreenSkeleton />
-
-  const { profile, mastery, recentSessions } = progressPayload
-
-  // Continue card
-  const lastSession = recentSessions?.[0]
-  const continueConceptId = lastSession?.conceptId || 'gravity'
-  const continueMeta = SCENE_META[continueConceptId] || SCENE_META['gravity']
-
-  // Suggested (lowest mastery < 80%)
-  let suggestedId = null
-  let lowestScore = 100
-  Object.keys(mastery || {}).forEach(id => {
-    const score = mastery[id]?.score || 0
-    if (score < 80 && score < lowestScore) {
-      lowestScore = score
-      suggestedId = id
-    }
+  const visualizations = useAdminStore(state => state.visualizations)
+  const trackVisualizationClick = useAdminStore(state => state.trackVisualizationClick)
+  const [currentDateTime, setCurrentDateTime] = useState({
+    time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+    date: new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
   })
 
-  const displayName = profile?.name || user?.displayName || 'Explorer'
-  const avatar = profile?.avatar || '🚀'
-  const streak = profile?.streak || 0
-  const badges = profile?.badges || []
-  const avgMastery = Object.values(mastery || {}).reduce((a, b) => a + (b?.score || 0), 0) / (Object.keys(mastery || {}).length || 1)
+  useEffect(() => {
+    const updateDateTime = () => {
+      const now = new Date()
+      const hour = now.getHours()
+      if (hour < 12) setGreeting('Good morning')
+      else if (hour < 17) setGreeting('Good afternoon')
+      else setGreeting('Good evening')
+
+      setCurrentDateTime({
+        time: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        date: now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
+      })
+    }
+
+    updateDateTime()
+    const timer = setInterval(updateDateTime, 1000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const displayName = progressPayload?.profile?.name || user?.displayName || 'Physicist'
+  const mastery = progressPayload?.mastery || {}
+  const labs = Object.values(SCENE_META)
+  const avgMastery = Math.round(
+    labs.reduce((acc, lab) => acc + (mastery[lab.id]?.score || 0), 0) / (labs.length || 1)
+  )
+
+  const filteredLabs = useMemo(() => {
+    const q = topicSearchQuery.trim().toLowerCase()
+    if (!q) return labs
+    return labs.filter(lab => {
+      const matchLabel = lab.label.toLowerCase().includes(q)
+      const matchBadge = lab.badge.toLowerCase().includes(q)
+      const matchDesc = lab.description.toLowerCase().includes(q)
+      const matchFormula = (lab.formula || '').toLowerCase().includes(q)
+      return matchLabel || matchBadge || matchDesc || matchFormula
+    })
+  }, [labs, topicSearchQuery])
+
+  const active2dVisualizations = useMemo(() => {
+    return (visualizations || []).filter(v => v.isActive !== false)
+  }, [visualizations])
+
+  const filtered2dVisualizations = useMemo(() => {
+    const q = topicSearchQuery.trim().toLowerCase()
+    if (!q) return active2dVisualizations
+    return active2dVisualizations.filter(v => {
+      const matchTitle = (v.title || '').toLowerCase().includes(q)
+      const matchSubtitle = (v.subtitle || '').toLowerCase().includes(q)
+      const matchCat = (v.category || '').toLowerCase().includes(q)
+      const matchBadge = (v.badge || '').toLowerCase().includes(q)
+      return matchTitle || matchSubtitle || matchCat || matchBadge
+    })
+  }, [active2dVisualizations, topicSearchQuery])
+
+  const showVirtualLabCard = useMemo(() => {
+    if (!topicSearchQuery) return true
+    const q = topicSearchQuery.trim().toLowerCase()
+    return 'ohms law'.includes(q) || 'ohm'.includes(q) || 'electricity'.includes(q) || 
+           'circuit'.includes(q) || 'resistor'.includes(q) || 'virtual lab'.includes(q) ||
+           'unity'.includes(q) || 'voltage'.includes(q) || 'current'.includes(q) || 'resistance'.includes(q)
+  }, [topicSearchQuery])
+
+  const handleLaunchLab = (labId) => {
+    useUIStore.getState().setActiveLab(labId)
+    navigate('/sim')
+  }
 
   return (
     <div style={{
-      backgroundColor: 'var(--color-bg)',
       minHeight: '100dvh',
-      paddingBottom: 'calc(var(--bottom-nav-height) + var(--space-4) + env(safe-area-inset-bottom, 0px))',
+      background: 'radial-gradient(ellipse at 50% 0%, #FFFDF9 0%, #F6F1E7 60%, #ECE4D6 100%)',
+      color: 'var(--color-text)',
+      padding: '0 0 80px 0',
+      position: 'relative',
+      overflowX: 'hidden'
     }}>
-      <div className="screen-container">
+      {/* ── 1. FULL-WIDTH PANORAMIC KINEMATICS HERO SHOWCASE AT TOP ──────── */}
+      <section
+        onClick={() => handleLaunchLab('projectile')}
+        onMouseEnter={() => setHoveredCard('hero')}
+        onMouseLeave={() => setHoveredCard(null)}
+        style={{
+          width: '100%',
+          position: 'relative',
+          backgroundColor: '#FAF5EC',
+          backgroundImage: `linear-gradient(180deg, rgba(250, 245, 236, 0.35) 0%, rgba(250, 245, 236, 0.15) 100%), url('/images/minimal_bilateral_banner.jpg')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          borderBottom: '1px solid rgba(203, 163, 88, 0.35)',
+          boxShadow: '0 12px 32px rgba(18, 14, 11, 0.08)',
+          padding: '24px 0 24px 0',
+          cursor: 'pointer',
+          overflow: 'hidden',
+          transition: 'box-shadow var(--transition-smooth)'
+        }}
+      >
+        {/* Subtle Ambient Radial Highlight */}
+        <div style={{
+          position: 'absolute',
+          top: -80,
+          right: '15%',
+          width: 500,
+          height: 500,
+          background: 'radial-gradient(circle, rgba(203, 163, 88, 0.15) 0%, transparent 70%)',
+          borderRadius: '50%',
+          filter: 'blur(60px)',
+          pointerEvents: 'none'
+        }} />
 
-        {/* ── Mobile Header ── */}
-        {!isDesktop && (
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            paddingTop: 'calc(var(--space-4) + env(safe-area-inset-top, 0px))',
-            marginBottom: 'var(--space-5)',
-          }}>
-            <div>
-              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', fontWeight: 'var(--weight-medium)' }}>
-                {greeting} 👋
-              </p>
-              <h1 style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--weight-extrabold)', marginTop: 2 }}>
-                {displayName}
-              </h1>
-            </div>
+        {/* Content Centered in Wide Atelier Container */}
+        <div
+          style={{
+            maxWidth: 1380,
+            margin: '0 auto',
+            padding: '0 36px',
+            boxSizing: 'border-box',
+            position: 'relative',
+            zIndex: 2,
+            display: 'grid',
+            gridTemplateColumns: '1.35fr 1fr',
+            gap: 40,
+            alignItems: 'center'
+          }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center' }}>
+            {/* Live Time & Date Atelier Pill */}
             <div style={{
-              width: 48, height: 48,
-              borderRadius: '50%',
-              background: 'var(--navy-50)',
-              border: '2.5px solid var(--navy-200)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 24,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '5px 14px',
+              borderRadius: 'var(--radius-full)',
+              background: 'rgba(255, 255, 255, 0.72)',
+              border: '1px solid rgba(203, 163, 88, 0.35)',
+              boxShadow: '0 2px 8px rgba(18, 14, 11, 0.04)',
+              backdropFilter: 'blur(8px)',
+              marginBottom: 10
             }}>
-              {avatar}
+              <span className="mono" style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--gold-700)', letterSpacing: '0.02em' }}>
+                {currentDateTime.time}
+              </span>
+              <span style={{ color: 'rgba(74, 63, 53, 0.4)', fontSize: 11 }}>•</span>
+              <span style={{ fontSize: 12.5, color: '#4A3F35', fontWeight: 600 }}>
+                {currentDateTime.date}
+              </span>
+            </div>
+
+            <h1 style={{
+              margin: '0 0 18px 0',
+              fontSize: 'clamp(2rem, 2.8vw, 2.6rem)',
+              fontFamily: 'var(--font-display)',
+              fontWeight: 800,
+              color: 'var(--obsidian-950)',
+              letterSpacing: '-0.035em',
+              lineHeight: 1.15
+            }}>
+              {greeting}, <span style={{ color: 'var(--gold-600)' }}>{displayName}</span>.
+            </h1>
+          </div>
+
+          {/* High-Tech Physics Telemetry & Animated Projectile Trajectory Preview */}
+          <KinematicsLivePreview />
+        </div>
+      </section>
+
+      {/* ── 2. PAGE CONTENT CONTAINER ────────────────────────────────────── */}
+      <div style={{ maxWidth: 1240, margin: '0 auto', padding: '40px 24px 48px 24px', boxSizing: 'border-box' }}>
+        
+
+
+        {/* ── 3D LABS TOPICS & SEARCH (LEFT-ALIGNED SEARCH BAR) ──────────────── */}
+        <div id="topics-section" style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 16
+        }}>
+          <TopicSearchBar
+            searchQuery={topicSearchQuery}
+            onSearchChange={setTopicSearchQuery}
+            onSelectLab={handleLaunchLab}
+          />
+
+          {topicSearchQuery && (
+            <div style={{ marginBottom: 24, fontSize: 13, color: 'var(--color-text-muted)', fontWeight: 500 }}>
+              Showing <strong>{filteredLabs.length}</strong> of {labs.length} laboratories
+            </div>
+          )}
+        </div>
+
+        {/* ── FEATURED UNITY 3D VIRTUAL SCIENCE LAB ───────────────────────── */}
+        {showVirtualLabCard && (
+          <div
+            onClick={() => navigate('/virtual-lab')}
+            onMouseEnter={() => setHoveredCard('ohmslaw-virtual')}
+            onMouseLeave={() => setHoveredCard(null)}
+            style={{
+              marginBottom: 28,
+              padding: '28px 32px',
+              borderRadius: 16,
+              background: 'linear-gradient(135deg, #0A1128 0%, #101F42 50%, #1A2B56 100%)',
+              border: '1px solid rgba(59, 130, 246, 0.3)',
+              boxShadow: hoveredCard === 'ohmslaw-virtual'
+                ? '0 20px 40px -15px rgba(10, 25, 60, 0.4), 0 0 24px rgba(59, 130, 246, 0.25)'
+                : '0 10px 30px -10px rgba(10, 25, 60, 0.25)',
+              cursor: 'pointer',
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: 24,
+              transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+              transform: hoveredCard === 'ohmslaw-virtual' ? 'translateY(-3px)' : 'none',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+          >
+            {/* Ambient blue glow accent */}
+            <div style={{
+              position: 'absolute',
+              top: -80,
+              right: -80,
+              width: 260,
+              height: 260,
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(59, 130, 246, 0.25) 0%, transparent 70%)',
+              pointerEvents: 'none'
+            }} />
+
+            <div style={{ flex: '1 1 500px', zIndex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                <span style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  padding: '4px 10px',
+                  borderRadius: 6,
+                  background: 'rgba(59, 130, 246, 0.2)',
+                  color: '#60A5FA',
+                  border: '1px solid rgba(59, 130, 246, 0.35)'
+                }}>
+                  ✦ Unity 3D Virtual Science Lab
+                </span>
+                <span style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: 'rgba(255, 255, 255, 0.6)',
+                  fontFamily: 'monospace'
+                }}>
+                  Class 8 & 9 Standard Curriculum
+                </span>
+              </div>
+
+              <h2 style={{
+                margin: '0 0 8px 0',
+                fontSize: 'clamp(1.3rem, 2vw, 1.6rem)',
+                fontFamily: 'var(--font-display)',
+                fontWeight: 700,
+                color: '#FFFFFF',
+                letterSpacing: '-0.02em',
+                lineHeight: 1.25
+              }}>
+                Ohm's Law: Verification & Resistance Analysis
+              </h2>
+
+              <p style={{
+                margin: 0,
+                fontSize: 14,
+                color: 'rgba(255, 255, 255, 0.7)',
+                lineHeight: 1.55,
+                maxWidth: 680
+              }}>
+                Step into an interactive 3D physics laboratory workbench. Operate real-time analog ammeters and voltmeters, slide the rheostat, close the key switch, and verify V = I · R on a dynamic holographic V-I graph.
+              </p>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14 }}>
+                {['Analog Needle Meters', 'Smooth Rheostat Slider', 'Real-time V-I Plot', 'First-Person 3D Lab', 'Formula: V = I · R'].map((f) => (
+                  <span key={f} style={{
+                    fontSize: 11.5,
+                    color: 'rgba(255, 255, 255, 0.85)',
+                    background: 'rgba(255, 255, 255, 0.08)',
+                    padding: '3px 9px',
+                    borderRadius: 5,
+                    border: '1px solid rgba(255, 255, 255, 0.1)'
+                  }}>
+                    {f}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, zIndex: 1 }}>
+              <button
+                style={{
+                  background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+                  color: '#FFFFFF',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  padding: '12px 22px',
+                  borderRadius: 10,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  boxShadow: '0 4px 14px rgba(37, 99, 235, 0.35)',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <span>Enter 3D Lab</span>
+                <ArrowUpRight size={17} />
+              </button>
             </div>
           </div>
         )}
 
-        <div className={isDesktop ? "desktop-two-col" : ""}>
-          {/* ── Main/Left Column ── */}
-          <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-            
-            {/* ── Desktop Header ── */}
-            {isDesktop && (
-              <div style={{ marginBottom: 'var(--space-6)' }}>
-                <p style={{ fontSize: 'var(--text-base)', color: 'var(--color-text-muted)', fontWeight: 'var(--weight-semibold)' }}>
-                  {greeting} 👋
-                </p>
-                <h1 style={{ fontSize: 'var(--text-3xl)', fontWeight: 'var(--weight-extrabold)', marginTop: 2 }}>
-                  {displayName}
-                </h1>
-              </div>
-            )}
+        {/* ── 3D LABS COLLECTION GRID ──────────────────────────────────────── */}
 
-            {/* ── Continue Card ── */}
-        <div
-          onClick={() => navigate('/sim')}
-          style={{
-            backgroundColor: 'var(--color-primary)',
-            borderRadius: 'var(--radius-xl)',
-            padding: 'var(--space-5)',
-            marginBottom: 'var(--space-5)',
-            cursor: 'pointer',
-            boxShadow: 'var(--shadow-navy)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: 'var(--space-4)',
-            position: 'relative',
-            overflow: 'hidden',
-            WebkitTapHighlightColor: 'transparent',
-          }}
-        >
-          {/* Decorative blob */}
+        {filteredLabs.length > 0 ? (
           <div style={{
-            position: 'absolute', top: -20, right: -20,
-            width: 100, height: 100,
-            borderRadius: '50%',
-            background: 'rgba(255,255,255,0.10)',
-          }} />
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <p style={{ fontSize: 'var(--text-xs)', color: 'rgba(255,255,255,0.75)', fontWeight: 'var(--weight-semibold)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Continue Learning
-            </p>
-            <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--weight-extrabold)', color: 'white', marginBottom: 'var(--space-1)' }}>
-              {continueMeta.icon} {continueMeta.label}
-            </h2>
-            <p style={{ fontSize: 'var(--text-xs)', color: 'rgba(255,255,255,0.7)' }}>
-              {continueMeta.description}
-            </p>
-          </div>
-          <div style={{
-            flexShrink: 0,
-            width: 44, height: 44,
-            borderRadius: '50%',
-            background: 'rgba(255,255,255,0.2)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 20,
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+            gap: 20
           }}>
-            ▶
-          </div>
-        </div>
+            {filteredLabs.map((meta, i) => {
+            const isHovered = hoveredCard === meta.id
+            const currentScore = mastery[meta.id]?.score || 0
 
-        {/* ── Topics Grid ── */}
-        <h2 className="section-header" style={{ marginTop: 'var(--space-5)' }}>
-          Suggested Topics
-        </h2>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: isDesktop ? '1fr 1fr 1fr' : '1fr 1fr',
-          gap: 'var(--space-3)',
-          marginBottom: 'var(--space-6)',
-        }}>
-          {Object.values(SCENE_META).map(({ id, label, icon, description }) => {
-            const score = mastery?.[id]?.score || 0
-            const pct = Math.min(100, Math.max(0, Math.round(score)))
-            const isSuggested = id === suggestedId
             return (
               <div
-                key={id}
-                className="card interactive"
-                onClick={() => navigate('/sim')}
+                key={meta.id}
+                onClick={() => handleLaunchLab(meta.id)}
+                onMouseEnter={() => setHoveredCard(meta.id)}
+                onMouseLeave={() => setHoveredCard(null)}
+                className="card-editorial"
                 style={{
-                  border: isSuggested ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
-                  boxShadow: isSuggested ? 'var(--shadow-navy)' : 'var(--shadow-xs)',
+                  padding: '24px 24px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 16,
                   position: 'relative',
-                  marginBottom: 0,
+                  overflow: 'hidden'
                 }}
               >
-                {isSuggested && (
-                  <span style={{
-                    position: 'absolute', top: 8, right: 8,
-                    fontSize: '9px',
-                    fontWeight: 'var(--weight-bold)',
-                    background: 'var(--color-primary)',
-                    color: 'white',
-                    padding: '2px 6px',
-                    borderRadius: 'var(--radius-full)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.04em',
+                {/* Top Badge & Vector Icon */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 'var(--radius-md)',
+                    background: isHovered ? 'var(--obsidian-900)' : 'var(--cream-100)',
+                    border: `1px solid ${isHovered ? 'var(--obsidian-900)' : 'var(--color-border)'}`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: isHovered ? 'var(--gold-400)' : 'var(--obsidian-900)',
+                    boxShadow: 'var(--shadow-xs)',
+                    transition: 'all var(--transition-fast)'
                   }}>
-                    Try Next
-                  </span>
-                )}
-                <div style={{ fontSize: 28, marginBottom: 'var(--space-2)' }}>{icon}</div>
-                <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-bold)', marginBottom: 4, color: 'var(--color-text)' }}>
-                  {label}
+                    <LabIcon id={meta.id} size={24} strokeWidth={2} />
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+                    <span className="badge-gold">
+                      {meta.badge}
+                    </span>
+                    <span className="mono" style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
+                      3D LAB
+                    </span>
+                  </div>
                 </div>
-                <MasteryBar score={score} />
+
+                {/* Title & Description */}
+                <div>
+                  <h3 style={{
+                    margin: 0,
+                    fontSize: 18,
+                    fontFamily: 'var(--font-display)',
+                    fontWeight: 700,
+                    color: 'var(--obsidian-950)',
+                    letterSpacing: '-0.02em'
+                  }}>
+                    {meta.label} Lab
+                  </h3>
+                  <p style={{
+                    margin: '6px 0 0 0',
+                    fontSize: 13,
+                    color: 'var(--color-text-muted)',
+                    lineHeight: 1.55
+                  }}>
+                    {meta.description}
+                  </p>
+                </div>
+
+                {/* Mathematical Formula Pill */}
+                {meta.formula && (
+                  <div className="mono" style={{
+                    padding: '6px 12px',
+                    borderRadius: 'var(--radius-sm)',
+                    background: 'var(--cream-100)',
+                    border: '1px solid var(--color-border-subtle)',
+                    fontSize: 12,
+                    color: 'var(--obsidian-800)',
+                    fontWeight: 600
+                  }}>
+                    {meta.formula}
+                  </div>
+                )}
+
+                {/* Bottom Mastery & Launch Action */}
+                <div style={{
+                  marginTop: 'auto',
+                  paddingTop: 14,
+                  borderTop: '1px solid var(--color-border)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <div>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-faint)' }}>Mastery</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
+                      <div style={{ width: 70, height: 4, background: 'var(--cream-200)', borderRadius: 2, overflow: 'hidden' }}>
+                        <div style={{ width: `${currentScore}%`, height: '100%', background: 'var(--gold-500)' }} />
+                      </div>
+                      <span className="mono" style={{ fontSize: 12, fontWeight: 700, color: 'var(--obsidian-800)' }}>
+                        {currentScore}%
+                      </span>
+                    </div>
+                  </div>
+
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: isHovered ? 'var(--gold-600)' : 'var(--obsidian-900)',
+                    transition: 'color var(--transition-fast)'
+                  }}>
+                    Enter Lab
+                    <ArrowUpRight size={16} />
+                  </div>
+                </div>
               </div>
             )
           })}
         </div>
-
-        {/* ── Mobile Stats Row ── */}
-        {!isDesktop && (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr 1fr',
-            gap: 'var(--space-3)',
-            marginBottom: 'var(--space-5)',
-          }}>
-            {[
-              { label: 'Streak', value: `${streak}🔥`, sub: 'days' },
-              { label: 'Mastery', value: `${Math.min(100, Math.max(0, Math.round(avgMastery)))}%`, sub: 'overall' },
-              { label: 'Badges', value: `${badges.length}🏆`, sub: 'earned' },
-            ].map(stat => (
-              <div key={stat.label} className="card" style={{
-                padding: 'var(--space-3) var(--space-3)',
-                textAlign: 'center',
-                marginBottom: 0,
-              }}>
-                <div style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--weight-extrabold)', color: 'var(--color-primary)', lineHeight: 1.2 }}>
-                  {stat.value}
-                </div>
-                <div style={{ fontSize: '10px', color: 'var(--color-text-muted)', marginTop: 2 }}>
-                  {stat.sub}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
+      ) : (
+        <div style={{
+          padding: '48px 24px',
+          textAlign: 'center',
+          background: 'var(--color-surface)',
+          border: '1px solid var(--color-border)',
+          marginBottom: 32,
+          borderRadius: 0
+        }}>
+          <p style={{ margin: '0 0 12px 0', fontSize: 16, fontWeight: 700, color: 'var(--obsidian-900)' }}>
+            No 3D laboratory matched &ldquo;{topicSearchQuery}&rdquo;
+          </p>
+          <button
+            onClick={() => setTopicSearchQuery('')}
+            className="btn-navy-primary"
+            style={{
+              padding: '8px 20px',
+              background: '#002B66',
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: 0,
+              fontWeight: 600,
+              fontSize: 13,
+              cursor: 'pointer'
+            }}
+          >
+            Show All Laboratories
+          </button>
         </div>
+      )}
 
-        {/* ── Right Column (Desktop) ── */}
-        {isDesktop && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)', marginTop: '24px' }}>
-            
-            {/* Desktop Stats Card */}
-            <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', padding: 'var(--space-5)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', fontWeight: 'var(--weight-semibold)' }}>Overall Mastery</span>
-                <span style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--weight-extrabold)', color: 'var(--color-primary)' }}>
-                  {Math.min(100, Math.max(0, Math.round(avgMastery)))}%
-                </span>
+        {/* ── 2D INTERACTIVE LABORATORIES (ADMIN-MANAGED WITH INSTANT REDIRECTION) ── */}
+        <div id="2d-labs" style={{ marginTop: 64, marginBottom: 20 }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-end',
+            marginBottom: 26,
+            flexWrap: 'wrap',
+            gap: 16
+          }}>
+            <div>
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                fontSize: 11,
+                fontWeight: 800,
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                color: 'var(--gold-700)',
+                marginBottom: 6
+              }}>
+                <Globe size={13} color="var(--gold-600)" />
+                Curated External Network &bull; Interactive 2D
               </div>
-              <div style={{ height: 1, background: 'var(--color-border)' }} />
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', fontWeight: 'var(--weight-semibold)' }}>Day Streak</span>
-                <span style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--weight-extrabold)', color: 'var(--color-primary)' }}>
-                  {streak}🔥
-                </span>
-              </div>
-              <div style={{ height: 1, background: 'var(--color-border)' }} />
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', fontWeight: 'var(--weight-semibold)' }}>Badges Earned</span>
-                <span style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--weight-extrabold)', color: 'var(--color-primary)' }}>
-                  {badges.length}🏆
-                </span>
-              </div>
+              <h2 style={{
+                margin: 0,
+                fontSize: 26,
+                fontFamily: 'var(--font-display)',
+                fontWeight: 700,
+                color: 'var(--obsidian-950)',
+                letterSpacing: '-0.025em'
+              }}>
+                Curated 2D Interactive Laboratories
+              </h2>
+              <p style={{
+                margin: '6px 0 0 0',
+                fontSize: 14,
+                color: 'var(--color-text-muted)',
+                maxWidth: 680,
+                lineHeight: 1.55
+              }}>
+                Complementing our real-time 3D computational engines with premier two-dimensional interactive simulations from PhET Interactive Simulations, GeoGebra, and university research ateliers. Click any simulation image box or launch button to jump directly into the live interactive laboratory.
+              </p>
             </div>
 
-            {/* Desktop Recent Sessions */}
-            {recentSessions?.length > 0 && (
-              <div className="card" style={{ padding: 'var(--space-5)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)' }}>
-                  <h3 className="section-header" style={{ marginBottom: 0 }}>Recent Activity</h3>
-                  <button onClick={() => navigate('/progress')} style={{ fontSize: 'var(--text-xs)', color: 'var(--color-primary)', fontWeight: 'var(--weight-bold)' }}>
-                    View all →
-                  </button>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-                  {recentSessions.slice(0, 3).map((s, i) => {
-                    const meta = SCENE_META[s.conceptId]
-                    const mins = Math.round((s.durationSeconds || 0) / 60)
-                    return (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-                        <div style={{ width: 36, height: 36, borderRadius: 'var(--radius-sm)', background: 'var(--color-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>
-                          {meta?.icon || '🔬'}
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' }}>{meta?.label || 'Physics'}</div>
-                          <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{mins} min session</div>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Desktop Badge Teaser */}
-            {badges?.length > 0 && (
-              <div className="card" style={{ padding: 'var(--space-5)' }}>
-                <h3 className="section-header">Latest Badges</h3>
-                <div style={{ display: 'flex', gap: 'var(--space-3)', overflowX: 'auto', paddingBottom: 4 }}>
-                  {badges.slice(0, 4).map(badgeId => {
-                    const b = BADGE_DEFS.find(def => def.id === badgeId)
-                    if (!b) return null
-                    return (
-                      <div key={badgeId} title={b.label} style={{
-                        width: 48, height: 48, borderRadius: '50%',
-                        background: 'var(--navy-50)', border: '2px solid var(--navy-200)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 24, flexShrink: 0
-                      }}>
-                        {b.icon}
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <button
+                onClick={() => navigate('/admin')}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '8px 16px',
+                  borderRadius: 0,
+                  background: 'rgba(0, 43, 102, 0.08)',
+                  color: '#002B66',
+                  border: '1px solid rgba(0, 43, 102, 0.25)',
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  transition: 'all var(--transition-fast)'
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(0, 43, 102, 0.14)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(0, 43, 102, 0.08)'}
+              >
+                <ShieldCheck size={14} />
+                <span>Manage 2D Labs in Admin</span>
+              </button>
+            </div>
           </div>
-        )}
-        </div>
 
-        {/* ── Quick Quiz ── */}
-        <h2 className="section-header">
-          Test Your Knowledge
-        </h2>
-        <div style={{ display: 'flex', gap: 'var(--space-2)', overflowX: 'auto', paddingBottom: 'var(--space-2)', scrollbarWidth: 'none' }}>
-          {Object.values(SCENE_META).map(({ id, label, icon }) => (
-            <button
-              key={id}
-              onClick={() => navigate(`/quiz/${id}`)}
+          {filtered2dVisualizations.length > 0 ? (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+              gap: 24
+            }}>
+              {filtered2dVisualizations.map((vis) => {
+                const isHovered = hovered2dCard === vis.id
+                const labPath = vis.internalPath || `/sim-2d?lab=${vis.id.replace('vis-', '').replace('phet-', '')}`
+                return (
+                  <div
+                    key={vis.id}
+                    onMouseEnter={() => setHovered2dCard(vis.id)}
+                    onMouseLeave={() => setHovered2dCard(null)}
+                    onClick={() => {
+                      trackVisualizationClick(vis.id)
+                      navigate(labPath)
+                    }}
+                    style={{
+                      background: '#FFFFFF',
+                      border: isHovered ? '1px solid #002B66' : '1px solid var(--color-border)',
+                      borderRadius: 0, // Strict sharp corners
+                      boxShadow: isHovered
+                        ? '0 16px 36px rgba(0, 43, 102, 0.14)'
+                        : '0 4px 16px rgba(18, 14, 11, 0.05)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      cursor: 'pointer',
+                      overflow: 'hidden',
+                      transform: isHovered ? 'translateY(-3px)' : 'none',
+                      transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
+                    }}
+                  >
+                    {/* ── IMAGE BOX CONTAINER ── */}
+                    <div
+                      title={`Click to launch ${vis.title} in VISIORA 2D Studio`}
+                      style={{
+                        position: 'relative',
+                        width: '100%',
+                        height: 205,
+                        background: '#FAF4E8',
+                        overflow: 'hidden',
+                        cursor: 'pointer',
+                        borderRadius: 0
+                      }}
+                    >
+                      <img
+                        src={vis.imageUrl || 'https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=800&q=80'}
+                        alt={vis.title}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          transform: isHovered ? 'scale(1.06)' : 'scale(1)',
+                          transition: 'transform 0.4s ease'
+                        }}
+                      />
+
+                      {/* Subtle Dark Gradient Overlay for Readability */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          background: 'linear-gradient(180deg, rgba(14, 12, 11, 0.45) 0%, transparent 40%, rgba(14, 12, 11, 0.6) 100%)',
+                          pointerEvents: 'none'
+                        }}
+                      />
+
+                      {/* Top Left: Category Badge */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: 12,
+                          left: 12,
+                          zIndex: 2,
+                          background: 'rgba(14, 12, 11, 0.85)',
+                          color: '#FFF9F0',
+                          padding: '4px 10px',
+                          fontSize: 10,
+                          fontWeight: 700,
+                          letterSpacing: '0.06em',
+                          textTransform: 'uppercase',
+                          borderRadius: 0,
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.3)'
+                        }}
+                      >
+                        {vis.category || '2D Simulation'}
+                      </div>
+
+                      {/* Top Right: Custom Badge */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: 12,
+                          right: 12,
+                          zIndex: 2
+                        }}
+                      >
+                        <span
+                          className="badge-gold"
+                          style={{
+                            borderRadius: 0,
+                            padding: '4px 10px',
+                            fontSize: 10.5,
+                            fontWeight: 700,
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
+                          }}
+                        >
+                          {vis.badge || 'Interactive 2D'}
+                        </span>
+                      </div>
+
+                      {/* Floating Hover Cue inside Image Box */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          bottom: 12,
+                          right: 12,
+                          zIndex: 2,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          padding: '6px 14px',
+                          background: isHovered ? '#002B66' : 'rgba(0, 43, 102, 0.85)',
+                          color: '#FFFFFF',
+                          fontSize: 11.5,
+                          fontWeight: 700,
+                          borderRadius: 0,
+                          boxShadow: '0 4px 12px rgba(0, 43, 102, 0.4)',
+                          transform: isHovered ? 'scale(1.03)' : 'scale(1)',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        <span>Launch 2D Studio</span>
+                        <ArrowUpRight size={13} />
+                      </div>
+                    </div>
+
+                    {/* Content Section */}
+                    <div style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', flex: 1, gap: 12 }}>
+                      <div>
+                        <h3
+                          style={{
+                            margin: 0,
+                            fontSize: 17,
+                            fontFamily: 'var(--font-display)',
+                            fontWeight: 700,
+                            color: 'var(--obsidian-950)',
+                            letterSpacing: '-0.02em',
+                            lineHeight: 1.35
+                          }}
+                        >
+                          {vis.title}
+                        </h3>
+                        {vis.subtitle && (
+                          <p
+                            style={{
+                              margin: '8px 0 0 0',
+                              fontSize: 13,
+                              color: 'var(--color-text-muted)',
+                              lineHeight: 1.55
+                            }}
+                          >
+                            {vis.subtitle}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Footer Row */}
+                      <div
+                        style={{
+                          marginTop: 'auto',
+                          paddingTop: 14,
+                          borderTop: '1px solid var(--color-border)',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span className="mono" style={{ fontSize: 11.5, color: 'var(--color-text-faint)', fontWeight: 600 }}>
+                            {vis.clicks || 0} launches
+                          </span>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              trackVisualizationClick(vis.id)
+                              window.open(vis.targetUrl, '_blank', 'noopener,noreferrer')
+                            }}
+                            title="Open external simulation in standalone new tab"
+                            style={{
+                              background: 'transparent',
+                              border: '1px solid #D1D5DB',
+                              padding: '6px 8px',
+                              borderRadius: 0,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#4B5563'
+                            }}
+                          >
+                            <ExternalLink size={13} />
+                          </button>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              trackVisualizationClick(vis.id)
+                              navigate(labPath)
+                            }}
+                            className="btn-navy-primary"
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 6,
+                              padding: '7px 16px',
+                              background: '#002B66',
+                              color: '#FFFFFF',
+                              border: 'none',
+                              borderRadius: 0,
+                              fontSize: 12,
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              boxShadow: '0 2px 8px rgba(0, 43, 102, 0.25)',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            <span>Launch 2D Lab</span>
+                            <ArrowUpRight size={13} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <div
               style={{
-                flexShrink: 0,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 'var(--space-1)',
-                padding: 'var(--space-3) var(--space-4)',
-                borderRadius: 'var(--radius-lg)',
-                border: '1.5px solid var(--color-border)',
-                background: 'var(--color-surface)',
-                cursor: 'pointer',
-                minHeight: 'unset',
-                boxShadow: 'var(--shadow-xs)',
+                padding: '36px 24px',
+                textAlign: 'center',
+                background: '#FFFFFF',
+                border: '1px solid var(--color-border)',
+                borderRadius: 0
               }}
             >
-              <span style={{ fontSize: 22 }}>{icon}</span>
-              <span style={{ fontSize: '11px', fontWeight: 'var(--weight-semibold)', color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>
-                {label}
-              </span>
-            </button>
-          ))}
+              <p style={{ margin: '0 0 8px 0', fontSize: 15, fontWeight: 700, color: 'var(--obsidian-900)' }}>
+                No 2D simulations match &ldquo;{topicSearchQuery}&rdquo;
+              </p>
+              <p style={{ margin: 0, fontSize: 13, color: 'var(--color-text-muted)' }}>
+                Try searching for electromagnetic, wave mechanics, or ray optics concepts.
+              </p>
+            </div>
+          )}
         </div>
-
       </div>
+
+      {/* ── GSAP SCROLLTRIGGER PINNED PARALLAX SHOWCASE (INDRIYA STYLE) ── */}
+      <PeriodicParallaxSection onLaunchLab={handleLaunchLab} />
+
+
+      {/* ── FOOTER ───────────────────────────────────────────────────────── */}
+      <footer style={{
+        position: 'relative',
+        zIndex: 5,
+        marginTop: 0,
+        padding: '48px 24px 60px 24px',
+        borderTop: '1px solid var(--color-border)',
+        background: '#F7F3EB',
+        textAlign: 'center'
+      }}>
+        <div style={{ maxWidth: 1240, margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <img 
+              src="/images/visiora_lotus_logo.png" 
+              alt="VISIORA Lotus Logo" 
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: '50%',
+                objectFit: 'cover',
+                display: 'block',
+                boxShadow: '0 2px 8px rgba(18, 14, 11, 0.1)'
+              }} 
+            />
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 18, color: 'var(--obsidian-950)', letterSpacing: '0.04em' }}>
+              VISIORA
+            </span>
+          </div>
+
+          <p style={{ margin: 0, fontSize: 14, color: 'var(--color-text-muted)', maxWidth: 500 }}>
+            An atelier for physics inquiry and interactive computation. Dedicated to making physical intuition palpable through real-time 3D simulations.
+          </p>
+
+          <div style={{ fontSize: 12, color: 'var(--color-text-faint)', marginTop: 8 }}>
+            &copy; {new Date().getFullYear()} VISIORA Atelier &bull; Classical &amp; Quantum Mechanics Edition
+          </div>
+        </div>
+      </footer>
+
     </div>
   )
 }

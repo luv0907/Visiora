@@ -36,7 +36,12 @@ export const useUIStore = create((set, get) => ({
   // ── Graph tab (2D view) ──────────────────────────────────────
   activeGraphTab: 0,
 
+  // ── Active Lab (Simulation) ──────────────────────────────────
+  activeLab: 'pendulum',
+
   // ── Actions ──────────────────────────────────────────────────
+
+  setActiveLab(labId) { set({ activeLab: labId }) },
 
   addTutorMessage(sceneId, text, type = 'reactive') {
     const msg = { id: Date.now(), text, type, ts: new Date() }

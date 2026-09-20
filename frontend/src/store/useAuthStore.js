@@ -11,13 +11,32 @@ import {
 import { auth, googleProvider } from '../lib/firebase'
 import { loginWithFirebase, logout as apiLogout } from '../api/client'
 
+/**
+ * Maps a Firebase user to a local user object so the app works
+ * even when the backend is unreachable.
+ */
+function firebaseUserToLocal(firebaseUser) {
+  return {
+    uid: firebaseUser.uid,
+    email: firebaseUser.email,
+    displayName: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
+    photoURL: firebaseUser.photoURL,
+    emailVerified: firebaseUser.emailVerified,
+  }
+}
+
 export const useAuthStore = create((set, get) => ({
   user: null,
   isAuthenticated: false,
   isJustSignedIn: false, // true only during the session where login occurred (to show class code step)
   isLoading: true, // start loading to check redirect result
   error: null,
+  backendConnected: null, // null = unknown, true/false
 
+  /**
+   * Sync Firebase user to backend. If backend is down, fall back to Firebase user data.
+   * This ensures auth NEVER fails just because the backend is unreachable.
+   */
   _handleFirebaseUser: async (firebaseUser, isFreshLogin = false) => {
     if (!firebaseUser) {
       set({ user: null, isAuthenticated: false, isJustSignedIn: false, isLoading: false })
@@ -26,12 +45,34 @@ export const useAuthStore = create((set, get) => ({
     try {
       const idToken = await firebaseUser.getIdToken()
       const res = await loginWithFirebase(idToken)
-      set({ user: res, isAuthenticated: true, isJustSignedIn: isFreshLogin, error: null })
+      set({
+        user: res,
+        isAuthenticated: true,
+        isJustSignedIn: isFreshLogin,
+        error: null,
+        backendConnected: true,
+      })
     } catch (error) {
-      console.error("Backend auth sync failed:", error)
-      set({ error: error.message })
-      await signOut(auth) // force clear
+      // Backend is down — still allow login using Firebase user data
+      console.warn('Backend auth sync failed (backend may be offline), using Firebase user data:', error.message)
+      set({
+        user: firebaseUserToLocal(firebaseUser),
+        isAuthenticated: true,
+        isJustSignedIn: isFreshLogin,
+        error: null,
+        backendConnected: false,
+      })
     } finally {
+      try {
+        const { useAdminStore } = await import('./useAdminStore')
+        useAdminStore.getState().trackUserLogin({
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          photoURL: firebaseUser.photoURL,
+          provider: firebaseUser.providerData?.[0]?.providerId || 'google.com'
+        })
+      } catch (e) {}
       set({ isLoading: false })
     }
   },
@@ -63,10 +104,20 @@ export const useAuthStore = create((set, get) => ({
         if (devToken && import.meta.env.VITE_ENVIRONMENT === 'development') {
           try {
             const res = await loginWithFirebase(devToken)
-            set({ user: res, isAuthenticated: true, isJustSignedIn: false, isLoading: false, error: null })
+            set({ user: res, isAuthenticated: true, isJustSignedIn: false, isLoading: false, error: null, backendConnected: true })
             return
           } catch (e) {
-            localStorage.removeItem('dev_token_bypass')
+            // Backend offline in dev — use a mock dev user
+            console.warn('Dev token backend sync failed, using mock dev user')
+            set({
+              user: { uid: 'dev_user', email: 'dev@visiora.local', displayName: 'Dev User', photoURL: null },
+              isAuthenticated: true,
+              isJustSignedIn: false,
+              isLoading: false,
+              error: null,
+              backendConnected: false,
+            })
+            return
           }
         }
         set({ user: null, isAuthenticated: false, isJustSignedIn: false, isLoading: false })
@@ -84,6 +135,8 @@ export const useAuthStore = create((set, get) => ({
     } catch (err) {
       const errorMessage = err.code === 'auth/operation-not-allowed' 
         ? 'Email/Password authentication is not enabled in your Firebase Console.' 
+        : err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential'
+        ? 'Invalid email or password.'
         : err.message
       set({ error: errorMessage, isLoading: false })
       throw err
@@ -98,6 +151,10 @@ export const useAuthStore = create((set, get) => ({
     } catch (err) {
       const errorMessage = err.code === 'auth/operation-not-allowed' 
         ? 'Email/Password authentication is not enabled in your Firebase Console.' 
+        : err.code === 'auth/email-already-in-use'
+        ? 'An account with this email already exists.'
+        : err.code === 'auth/weak-password'
+        ? 'Password should be at least 6 characters.'
         : err.message
       set({ error: errorMessage, isLoading: false })
       throw err
@@ -125,10 +182,23 @@ export const useAuthStore = create((set, get) => ({
     set({ isLoading: true, error: null })
     try {
       localStorage.setItem('dev_token_bypass', 'dev_token_bypass')
-      const res = await loginWithFirebase("dev_token_bypass")
-      set({ user: res, isAuthenticated: true, isJustSignedIn: true, error: null })
+      try {
+        const res = await loginWithFirebase('dev_token_bypass')
+        set({ user: res, isAuthenticated: true, isJustSignedIn: true, error: null, isLoading: false, backendConnected: true })
+      } catch (backendErr) {
+        // Backend offline — use mock dev user
+        console.warn('Dev mode: backend offline, using mock user')
+        set({
+          user: { uid: 'dev_user', email: 'dev@visiora.local', displayName: 'Dev User', photoURL: null },
+          isAuthenticated: true,
+          isJustSignedIn: true,
+          error: null,
+          isLoading: false,
+          backendConnected: false,
+        })
+      }
     } catch (error) {
-      console.error("Mock auth sync failed:", error)
+      console.error('Mock auth sync failed:', error)
       localStorage.removeItem('dev_token_bypass')
       set({ error: error.message, isLoading: false })
     }
@@ -139,8 +209,8 @@ export const useAuthStore = create((set, get) => ({
     try {
       localStorage.removeItem('dev_token_bypass')
       await signOut(auth)
-      await apiLogout().catch(() => {})
-      set({ user: null, isAuthenticated: false, isJustSignedIn: false, error: null })
+      await apiLogout().catch(() => {}) // best-effort
+      set({ user: null, isAuthenticated: false, isJustSignedIn: false, error: null, backendConnected: null })
     } finally {
       set({ isLoading: false })
     }

@@ -8,20 +8,32 @@ import { useNavigate } from 'react-router-dom'
 import { useProgressStore } from '../store/useProgressStore'
 import { SCENE_META } from '../config/physics'
 import { useMediaQuery } from '../hooks/useMediaQuery'
+import { Target, Award, Flame, BookOpen, Clock, Zap, Atom, Star, Compass, User, CheckCircle2 } from 'lucide-react'
+import LabIcon from '../components/common/LabIcon'
 
 const BADGE_DEFS = [
-  { id: 'first_session',               label: 'First Step',     icon: '🚀', desc: 'Log your first session' },
-  { id: 'five_day_streak',             label: 'Unstoppable',    icon: '🔥', desc: 'Reach a 5-day streak' },
-  { id: 'concept_mastered_gravity',    label: 'Gravity Master', icon: '🍎', desc: '80%+ in Gravity' },
-  { id: 'concept_mastered_projectile', label: 'Artillery',      icon: '☄️', desc: '80%+ in Projectiles' },
-  { id: 'concept_mastered_pendulum',   label: 'Timekeeper',     icon: '⏱️', desc: '80%+ in Pendulums' },
-  { id: 'concept_mastered_collision',  label: 'Impact',         icon: '💥', desc: '80%+ in Collisions' },
-  { id: 'concept_mastered_angular',    label: 'Spin Doctor',    icon: '🌪️', desc: '80%+ in Angular' },
-  { id: 'all_rounder',                 label: 'All Rounder',    icon: '⭐', desc: '50%+ in all concepts' },
+  { id: 'first_session',               label: 'First Step',     Icon: Star,      desc: 'Log your first session' },
+  { id: 'five_day_streak',             label: 'Unstoppable',    Icon: Flame,     desc: 'Reach a 5-day streak' },
+  { id: 'concept_mastered_gravity',    label: 'Gravity Master', Icon: Compass,   desc: '80%+ in Gravity' },
+  { id: 'concept_mastered_projectile', label: 'Artillery',      Icon: Target,    desc: '80%+ in Projectiles' },
+  { id: 'concept_mastered_pendulum',   label: 'Timekeeper',     Icon: Clock,     desc: '80%+ in Pendulums' },
+  { id: 'concept_mastered_collision',  label: 'Impact',         Icon: Zap,       desc: '80%+ in Collisions' },
+  { id: 'concept_mastered_angular',    label: 'Spin Doctor',    Icon: Atom,      desc: '80%+ in Angular' },
+  { id: 'all_rounder',                 label: 'All Rounder',    Icon: Award,     desc: '50%+ in all concepts' },
 ]
 
 const GRADES = ['6','7','8','9','10','11','12']
-const AVATARS = ['🚀','⚡','🌊','🔬','🎯','🍎','🤖','🧠']
+const AVATAR_TITLES = {
+  PH: 'Physicist',
+  QC: 'Quantum Specialist',
+  CM: 'Classical Mechanics',
+  EM: 'Electromagnetics',
+  TH: 'Thermodynamics',
+  AP: 'Applied Physics',
+  RL: 'Relativity Theorist',
+  AS: 'Astrophysicist'
+}
+const AVATARS = ['PH', 'QC', 'CM', 'EM', 'TH', 'AP', 'RL', 'AS']
 
 // ── Skeleton ──
 function ProgressSkeleton() {
@@ -143,14 +155,15 @@ export default function ProgressScreen() {
           }}>
             <div>
               <h1 style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--weight-extrabold)' }}>My Progress</h1>
-              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>Grade {grade} · {streak} day streak 🔥</p>
+              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>Grade {grade} · {streak} day streak</p>
             </div>
             <div style={{
               width: 48, height: 48, borderRadius: '50%',
-              background: 'var(--navy-50)', border: '2.5px solid var(--navy-200)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24,
+              background: 'var(--cream-100)', border: '1.5px solid var(--gold-500)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', 
+              color: 'var(--obsidian-900)', fontWeight: 800, fontSize: 15,
             }}>
-              {avatar}
+              {avatar && avatar.length <= 3 ? avatar : 'PH'}
             </div>
           </div>
         )}
@@ -164,17 +177,22 @@ export default function ProgressScreen() {
 
         <div className="card" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)', marginBottom: 'var(--space-5)' }}>
           {[
-            { label: 'Overall Mastery', value: `${Math.min(100, Math.max(0, Math.round(avgMastery)))}%`, icon: '🎯' },
-            { label: 'Badges Earned', value: `${badges.length} / ${BADGE_DEFS.length}`, icon: '🏆' },
-            { label: 'Day Streak', value: `${streak} days`, icon: '🔥' },
-            { label: 'Sessions Logged', value: recentSessions.length, icon: '📚' },
-          ].map(s => (
-            <div key={s.label} style={{ textAlign: 'center', padding: 'var(--space-2)' }}>
-              <div style={{ fontSize: 20, marginBottom: 4 }}>{s.icon}</div>
-              <div style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--weight-extrabold)', color: 'var(--color-primary)' }}>{s.value}</div>
-              <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{s.label}</div>
-            </div>
-          ))}
+            { label: 'Overall Mastery', value: `${Math.min(100, Math.max(0, Math.round(avgMastery)))}%`, Icon: Target },
+            { label: 'Badges Earned', value: `${badges.length} / ${BADGE_DEFS.length}`, Icon: Award },
+            { label: 'Day Streak', value: `${streak} days`, Icon: Flame },
+            { label: 'Sessions Logged', value: recentSessions.length, Icon: BookOpen },
+          ].map(s => {
+            const SIcon = s.Icon
+            return (
+              <div key={s.label} style={{ textAlign: 'center', padding: 'var(--space-2)' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6, color: 'var(--gold-600)' }}>
+                  <SIcon size={20} strokeWidth={2} />
+                </div>
+                <div style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--weight-extrabold)', color: 'var(--color-primary)' }}>{s.value}</div>
+                <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{s.label}</div>
+              </div>
+            )
+          })}
         </div>
 
         <div className={isDesktop ? "desktop-two-col" : ""}>
@@ -222,10 +240,11 @@ export default function ProgressScreen() {
                       <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
                         <div style={{
                           width: 40, height: 40, borderRadius: 'var(--radius-md)',
-                          background: 'var(--navy-50)',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0,
+                          background: 'var(--cream-100)', border: '1px solid var(--color-border)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                          color: 'var(--obsidian-900)'
                         }}>
-                          {meta?.icon || '📚'}
+                          <LabIcon id={s.conceptId} size={20} />
                         </div>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' }}>{meta?.label || s.conceptId}</div>
@@ -260,28 +279,38 @@ export default function ProgressScreen() {
 
               {!isEditing ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', paddingTop: 'var(--space-2)' }}>
-                  <div style={{ fontSize: 36 }}>{avatar}</div>
+                  <div style={{
+                    width: 52, height: 52, borderRadius: '50%',
+                    background: 'var(--cream-100)', border: '1.5px solid var(--gold-500)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontWeight: 800, fontSize: 16, color: 'var(--obsidian-900)'
+                  }}>
+                    {avatar && avatar.length <= 3 ? avatar : 'PH'}
+                  </div>
                   <div>
                     <div style={{ fontWeight: 'var(--weight-bold)', fontSize: 'var(--text-md)' }}>{name}</div>
-                    <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>Grade {grade}</div>
+                    <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>{AVATAR_TITLES[avatar] || 'Physicist'} · Grade {grade}</div>
                   </div>
                 </div>
               ) : (
                 <form onSubmit={handleSave}>
                   <div style={{ marginBottom: 'var(--space-4)' }}>
                     <label style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-semibold)', color: 'var(--color-text-muted)', display: 'block', marginBottom: 'var(--space-2)' }}>
-                      Avatar
+                      Physicist Role Specialization
                     </label>
                     <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
                       {AVATARS.map(a => (
                         <button
                           key={a} type="button"
                           onClick={() => setEditForm(f => ({ ...f, avatar: a }))}
+                          title={AVATAR_TITLES[a]}
                           style={{
-                            width: 44, height: 44, borderRadius: '50%', fontSize: 22,
-                            border: editForm.avatar === a ? '2.5px solid var(--color-primary)' : '2px solid var(--cream-300)',
-                            background: editForm.avatar === a ? 'var(--navy-50)' : 'var(--cream-100)',
+                            width: 44, height: 44, borderRadius: '50%', fontSize: 13, fontWeight: 700,
+                            border: editForm.avatar === a ? '2px solid var(--gold-600)' : '1px solid var(--color-border)',
+                            background: editForm.avatar === a ? 'var(--obsidian-900)' : 'var(--cream-100)',
+                            color: editForm.avatar === a ? 'var(--gold-400)' : 'var(--obsidian-900)',
                             minHeight: 'unset', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            cursor: 'pointer', transition: 'all var(--transition-fast)'
                           }}
                         >
                           {a}
@@ -365,23 +394,25 @@ export default function ProgressScreen() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--space-3)' }}>
                 {BADGE_DEFS.map(b => {
                   const earned = badges.includes(b.id)
+                  const BIcon = b.Icon
                   return (
                     <div key={b.id} title={b.desc} style={{
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
                       opacity: earned ? 1 : 0.35,
                       filter: earned ? 'none' : 'grayscale(1)',
                       transition: 'opacity 0.3s, filter 0.3s',
                     }}>
                       <div style={{
-                        width: 52, height: 52, borderRadius: '50%',
-                        background: earned ? 'var(--navy-50)' : 'var(--cream-200)',
-                        border: earned ? '2px solid var(--navy-200)' : '2px solid var(--cream-300)',
+                        width: 52, height: 52, borderRadius: 'var(--radius-md)',
+                        background: earned ? 'var(--cream-100)' : 'var(--cream-200)',
+                        border: earned ? '1.5px solid var(--gold-500)' : '1px solid var(--color-border)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 24,
+                        color: earned ? 'var(--gold-600)' : 'var(--color-text-muted)',
+                        boxShadow: earned ? 'var(--shadow-xs)' : 'none'
                       }}>
-                        {b.icon}
+                        <BIcon size={24} strokeWidth={2} />
                       </div>
-                      <span style={{ fontSize: '9px', textAlign: 'center', color: 'var(--color-text-muted)', fontWeight: 'var(--weight-semibold)', lineHeight: 1.2 }}>
+                      <span style={{ fontSize: '10px', textAlign: 'center', color: 'var(--color-text-muted)', fontWeight: 'var(--weight-semibold)', lineHeight: 1.2 }}>
                         {b.label}
                       </span>
                     </div>

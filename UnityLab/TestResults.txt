@@ -1,0 +1,50 @@
+RUNNING...
+Started: 38 tests
+PASSED: CircuitSolver_AmmeterAcrossSupply_ReturnsSupplyShortCircuitFault
+PASSED: CircuitSolver_AmmeterParallelAcrossResistor_ReturnsShortCircuitFault
+PASSED: CircuitSolver_FullCircuit_ReturnsFullyWired
+PASSED: CircuitSolver_Incomplete_ReturnsIncompleteStatus
+PASSED: CircuitSolver_SeriesLoopClosed_ReturnsSeriesLoopClosed
+PASSED: CircuitSolver_SupplyDirectShort_ReturnsSupplyShortCircuitFault
+PASSED: CircuitSolver_Unwired_ReturnsUnwiredStatus
+PASSED: CircuitSolver_VoltmeterInSeries_ReturnsVoltmeterInSeriesFault
+PASSED: LabObservationTablet_Deduplication_RejectsDuplicateTrial
+PASSED: LabObservationTablet_OhmsLawVerification_RequiresAtLeastFiveDistinctReadings
+PASSED: LabObservationTablet_PercentageError_MatchesTheoreticalExpectation
+PASSED: LabObservationTablet_RegressionAndSlope_CalculatesAccurateResistance
+PASSED: MovingCoilPhysics_SettlesToTarget_UnderDampedOscillation
+PASSED: MovingCoilPhysics_StopsAtZeroPin_BounceDoesNotGoNegative
+PASSED: OhmsLawController_SimulationMode_SwitchesBetweenIdealAndRealistic
+PASSED: OhmsLawModel_IdealMode_CalculatesExactCurrentAndPower
+PASSED: OhmsLawModel_RealisticMode_ComputesExactFormulaLoadAndCurrents
+PASSED: OhmsLawModel_RealisticMode_OverloadCurrent_TripsFuse
+PASSED: OhmsLawModel_RealisticMode_TemperatureHeating_IncreasesResistance
+PASSED: VoltmeterDevice_DualRange_ModulatesDeflectionSensitivity
+PASSED: VoltmeterDevice_TorsionalDynamics_SettlesToTargetVoltage
+PASSED: VoltmeterDevice_ZeroScrewAdjustment_CalibratesOffset
+PASSED: CircuitAndPhysicsTests
+PASSED: CalculatedResistance_MatchesActual_Within5Percent
+PASSED: Current_MatchesOhmsLaw(5.0f,10.0f,0.5f,"V=5V R=10Ω → I=0.5A")
+PASSED: Current_MatchesOhmsLaw(4.0f,20.0f,0.2f,"V=4V R=20Ω → I=0.2A")
+PASSED: Current_MatchesOhmsLaw(6.0f,30.0f,0.2f,"V=6V R=30Ω → I=0.2A")
+PASSED: Current_MatchesOhmsLaw(3.0f,5.0f,0.6f,"V=3V R=5Ω  → I=0.6A")
+PASSED: Current_MatchesOhmsLaw(0.0f,10.0f,0.0f,"V=0V R=10Ω → I=0A (zero voltage)")
+PASSED: Current_MatchesOhmsLaw(10.0f,100.0f,0.1f,"V=10V R=100Ω → I=0.1A (max resistance)")
+PASSED: Current_MatchesOhmsLaw
+PASSED: MaxVoltage_StaysWithinSafeRange
+PASSED: Model_PassesBuiltInValidation
+PASSED: Power_ConsistencyCheck_AllThreeFormulas
+PASSED: Power_EqualsVSquaredDividedByR(6.0f,12.0f,3.0f,"P = V²/R = 36/12 = 3W")
+PASSED: Power_EqualsVSquaredDividedByR(5.0f,10.0f,2.5f,"P = V²/R = 25/10 = 2.5W")
+PASSED: Power_EqualsVSquaredDividedByR(4.0f,8.0f,2.0f,"P = V²/R = 16/8  = 2W")
+PASSED: Power_EqualsVSquaredDividedByR
+PASSED: VIRelationship_IsLinear_ForOhmicConductor
+PASSED: VoltageAboveRange_IsClamped
+PASSED: ZeroVoltage_ProducesZeroCurrent
+PASSED: OhmsLawModelTests
+PASSED: EditMode
+PASSED: Tests
+PASSED: Visora
+PASSED: Visora.Tests.EditMode.dll
+PASSED: Visora Virtual Lab
+[VisoraTestRunner] FINISHED: Total=38, Passed=38, Failed=0, Inconclusive=0, Status=Passed

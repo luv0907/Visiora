@@ -80,17 +80,26 @@ async def limit_request_size(request: Request, call_next):
         )
     return await call_next(request)
 
+from .routes.progress_router import router as progress_router
+from .routes.admin_router import router as admin_router, UPLOAD_DIR
+from fastapi.staticfiles import StaticFiles
+
 # ── Exception Handlers ────────────────────────────────────────────
 app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, unhandled_exception_handler)
 
+# ── Static Uploads ────────────────────────────────────────────────
+app.mount("/api/v1/admin/uploads", StaticFiles(directory=UPLOAD_DIR), name="admin_uploads")
+
 # ── Routes ───────────────────────────────────────────────────────
 app.include_router(api_router, prefix="/api/v1")
 app.include_router(progress_router, prefix="/api/v1")
+app.include_router(admin_router, prefix="/api/v1")
 # Keep /api as a deprecated alias for one release to prevent breakage
 app.include_router(api_router, prefix="/api")
 app.include_router(progress_router, prefix="/api")
+app.include_router(admin_router, prefix="/api")
 
 
 # ── Health Check ─────────────────────────────────────────────────

@@ -39,3 +39,19 @@ yarn-debug.log*
 
 # Test artifacts
 test_*.js
+
+# Unity
+UnityLab/[Ll]ibrary/
+UnityLab/[Tt]emp/
+UnityLab/[Oo]bj/
+UnityLab/[Bb]uild/
+UnityLab/[Bb]uilds/
+UnityLab/[Ll]ogs/
+UnityLab/[Uu]ser[Ss]ettings/
+UnityLab/[Mm]emoryCaptures/
+UnityLab/[Rr]ecordings/
+UnityLab/WebGLBuild/
+UnityLab/*.csproj
+UnityLab/*.unityproj
+UnityLab/*.sln
+UnityLab/*.slnx

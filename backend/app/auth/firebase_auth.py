@@ -1,6 +1,7 @@
 """
 VISIORA — Firebase Auth Integration
 Verifies Firebase ID tokens issued by the frontend.
+firebase_admin is optional — Dev Mode bypass works without it.
 """
 import structlog
 from fastapi import Depends, HTTPException, Cookie, Header, Request
@@ -8,16 +9,19 @@ from typing import Optional
 
 log = structlog.get_logger()
 
-# Firebase Admin SDK — lazy init to avoid startup crash if not configured
+# Firebase Admin SDK — optional, only needed for production token verification
 _firebase_app = None
+_firebase_checked = False  # Only log the warning once
 
 
 def _get_firebase_app():
-    global _firebase_app
-    if _firebase_app is not None:
+    global _firebase_app, _firebase_checked
+    if _firebase_checked:
         return _firebase_app
 
     from ..config import settings
+    _firebase_checked = True
+
     try:
         import firebase_admin
         from firebase_admin import credentials
@@ -32,10 +36,14 @@ def _get_firebase_app():
                     options={"projectId": settings.FIREBASE_PROJECT_ID}
                 )
             else:
-                log.warning("firebase_not_configured", msg="No Firebase credentials provided")
+                log.warning("firebase_not_configured", msg="No Firebase credentials — Dev Mode only")
                 return None
         else:
             _firebase_app = firebase_admin.get_app()
+    except ImportError:
+        # firebase_admin not installed — Dev Mode only, no error spam
+        log.info("firebase_unavailable", msg="firebase_admin not installed. Dev Mode auth bypass active.")
+        return None
     except Exception as e:
         log.error("firebase_init_error", error=str(e))
         return None
@@ -77,7 +85,6 @@ class CurrentUser:
         authorization: Optional[str] = Header(None),
         session: Optional[str] = Cookie(None),
     ) -> Optional[dict]:
-        log.info("auth_debug", headers=dict(request.headers), authorization=authorization)
         if authorization and authorization.startswith("Bearer "):
             token = authorization[7:]
             return await verify_firebase_token(token)

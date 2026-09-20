@@ -11,6 +11,7 @@ import { SCENE_META } from '../config/physics'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 import TutorPanel from '../components/tutor/TutorPanel'
 import { ErrorBoundary } from '../components/ui/ErrorBoundary'
+import { Award, Target, CheckCircle2 } from 'lucide-react'
 
 export default function QuizScreen() {
   const { conceptId } = useParams()
@@ -159,9 +160,21 @@ export default function QuizScreen() {
           width: '100%', maxWidth: 400, textAlign: 'center',
           animation: 'scaleInBounce 0.6s var(--ease-bounce)',
         }}>
-          {/* Trophy */}
-          <div style={{ fontSize: 64, marginBottom: 'var(--space-4)', animation: 'float 3s ease-in-out infinite' }}>
-            {isPassing ? '🏆' : '💪'}
+          {/* Result Icon */}
+          <div style={{
+            width: 72,
+            height: 72,
+            borderRadius: '50%',
+            background: isPassing ? 'var(--color-accent-light)' : 'var(--cream-200)',
+            border: `1.5px solid ${isPassing ? 'var(--gold-500)' : 'var(--color-border)'}`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto var(--space-4) auto',
+            color: isPassing ? 'var(--gold-600)' : 'var(--obsidian-800)',
+            boxShadow: 'var(--shadow-sm)'
+          }}>
+            {isPassing ? <Award size={36} strokeWidth={2} /> : <Target size={36} strokeWidth={2} />}
           </div>
 
           <h1 style={{ fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-extrabold)', marginBottom: 'var(--space-2)' }}>
@@ -178,26 +191,28 @@ export default function QuizScreen() {
           }}>
             <div style={{
               width: 76, height: 76, borderRadius: '50%',
-              background: 'var(--color-surface)',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              background: 'white', display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center',
             }}>
               <span style={{ fontSize: 'var(--text-xl)', fontWeight: 'var(--weight-extrabold)', color: 'var(--color-primary)', lineHeight: 1 }}>{pctScore}%</span>
-              <span style={{ fontSize: '10px', color: 'var(--color-text-muted)' }}>Score</span>
+              <span style={{ fontSize: '9px', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Score</span>
             </div>
           </div>
 
-          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-5)' }}>
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
             Topic Mastery: <strong style={{ color: 'var(--color-primary)' }}>{Math.min(100, Math.max(0, Math.round(mastery)))}%</strong>
           </p>
 
           {/* New badges */}
           {newBadges.length > 0 && (
             <div style={{ backgroundColor: 'var(--navy-50)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-4)', marginBottom: 'var(--space-5)', border: '1px solid var(--navy-100)' }}>
-              <p style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-bold)', color: 'var(--color-primary)', marginBottom: 'var(--space-2)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                🎉 New Badge{newBadges.length > 1 ? 's' : ''} Unlocked!
+              <p style={{ fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-bold)', color: 'var(--color-primary)', marginBottom: 'var(--space-2)', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}>
+                <Award size={14} /> New Badge{newBadges.length > 1 ? 's' : ''} Unlocked!
               </p>
               {newBadges.map(b => (
-                <div key={b} style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)', color: 'var(--color-primary)' }}>🏆 {b}</div>
+                <div key={b} style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}>
+                  <CheckCircle2 size={14} /> {b}
+                </div>
               ))}
             </div>
           )}
@@ -410,7 +425,7 @@ export default function QuizScreen() {
               ? 'Submitting…'
               : currentIndex < (questions?.length ?? 0) - 1
               ? 'Next Question →'
-              : 'Finish Quiz 🎯'}
+              : 'Complete Evaluation'}
           </button>
         )}
 

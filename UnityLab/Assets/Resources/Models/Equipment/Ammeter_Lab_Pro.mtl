@@ -1,0 +1,61 @@
+# Visora Ammeter Materials Definition
+newmtl M_Bakelite
+Kd 0.12 0.13 0.15
+Ks 0.25 0.25 0.28
+Ns 35.0
+d 1.0
+
+newmtl M_Bezel
+Kd 0.08 0.08 0.09
+Ks 0.40 0.40 0.40
+Ns 60.0
+d 1.0
+
+newmtl M_DialPlate
+Kd 0.96 0.95 0.91
+Ks 0.10 0.10 0.10
+Ns 10.0
+d 1.0
+map_Kd ../Textures/ammeter_dial_2k.png
+
+newmtl M_MirrorStrip
+Kd 0.85 0.88 0.92
+Ks 0.95 0.95 0.98
+Ns 120.0
+d 1.0
+
+newmtl M_Glass
+Kd 0.90 0.95 1.00
+Ks 0.90 0.90 0.95
+Ns 90.0
+d 0.25
+
+newmtl M_Brass
+Kd 0.85 0.68 0.22
+Ks 0.92 0.82 0.45
+Ns 75.0
+d 1.0
+
+newmtl M_TerminalRed
+Kd 0.85 0.14 0.12
+Ks 0.35 0.35 0.35
+Ns 40.0
+d 1.0
+
+newmtl M_TerminalBlack
+Kd 0.09 0.09 0.10
+Ks 0.30 0.30 0.30
+Ns 40.0
+d 1.0
+
+newmtl M_NeedleRed
+Kd 0.92 0.12 0.10
+Ks 0.40 0.40 0.40
+Ns 50.0
+d 1.0
+
+newmtl M_NeedleHub
+Kd 0.20 0.20 0.22
+Ks 0.80 0.80 0.85
+Ns 80.0
+d 1.0

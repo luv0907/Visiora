@@ -96,10 +96,11 @@ export default function AuthModal({ onClose }) {
   }
 
   const btnPrimaryStyle = {
-    width: '100%', padding: 'var(--space-3) var(--space-4)', borderRadius: 'var(--radius-md)',
-    backgroundColor: 'var(--color-primary)', color: '#FFFBF8', border: 'none',
-    fontWeight: 'var(--weight-semibold)', fontSize: 'var(--text-base)', cursor: 'pointer',
+    width: '100%', padding: 'var(--space-3) var(--space-4)', borderRadius: 0,
+    backgroundColor: '#002B66', color: '#FFFFFF', border: 'none',
+    fontWeight: 700, fontSize: 'var(--text-base)', cursor: 'pointer',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
+    boxShadow: '0 4px 14px rgba(0, 43, 102, 0.35)',
     transition: 'background-color var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast)',
     opacity: loading ? 0.7 : 1
   }
@@ -112,10 +113,17 @@ export default function AuthModal({ onClose }) {
     }}>
       <div style={{
         background: 'var(--color-surface-2)', padding: 'var(--space-6) var(--space-8)',
-        borderRadius: 'var(--radius-lg)', width: '100%', maxWidth: '400px',
+        borderRadius: 0, width: '100%', maxWidth: '400px',
         boxShadow: 'var(--shadow-lg)', border: '1px solid var(--color-border)',
         maxHeight: '90vh', overflowY: 'auto'
       }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+          <img 
+            src="/images/visiora_lotus_logo.png" 
+            alt="VISIORA Lotus Logo" 
+            style={{ width: 46, height: 46, borderRadius: '50%', objectFit: 'cover', boxShadow: '0 2px 8px rgba(18, 14, 11, 0.12)' }} 
+          />
+        </div>
         <h2 style={{ fontFamily: 'var(--font-display)', marginBottom: 'var(--space-4)', color: 'var(--color-text)', textAlign: 'center' }}>
           {isLogin ? 'Welcome Back' : 'Create Account'}
         </h2>

@@ -122,7 +122,7 @@ export default function FormulaPanel() {
   if (!formulaState) {
     return (
       <div style={{ padding: 'var(--space-4)', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-        Loading formulas...
+        No formulas available for this simulation.
       </div>
     )
   }
