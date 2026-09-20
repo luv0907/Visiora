@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react'
+import { BrowserRouter } from 'react-router-dom'
 import { AppRouter } from './router'
+import AdminScreen from './screens/AdminScreen'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
 import ToastContainer from './components/ui/Toast'
 import { useAuthStore } from './store/useAuthStore'
@@ -8,6 +10,26 @@ import { useLenisScroll } from './hooks/useLenisScroll'
 
 export default function App() {
   useLenisScroll()
+
+  // 1. Direct Admin Portal Enforcement (Bypasses student router completely)
+  const isDirectAdmin = typeof window !== 'undefined' && (
+    window.location.hostname.includes('admin') ||
+    window.location.pathname.startsWith('/admin') ||
+    window.location.search.includes('portal=admin') ||
+    window.location.search.includes('admin=true')
+  )
+
+  if (isDirectAdmin) {
+    return (
+      <ErrorBoundary section="admin-portal">
+        <BrowserRouter>
+          <AdminScreen />
+        </BrowserRouter>
+        <ToastContainer />
+      </ErrorBoundary>
+    )
+  }
+
   const init = useAuthStore(state => state.init)
   const isLoading = useAuthStore(state => state.isLoading)
   const isAuthenticated = useAuthStore(state => state.isAuthenticated)
