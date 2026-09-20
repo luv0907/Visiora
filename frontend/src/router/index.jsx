@@ -51,25 +51,12 @@ const isDedicatedAdmin =
     window.location.search.includes('admin=true')
   ))
 
-function AdminProtectedRoute() {
-  const isAdminAuthenticated = useAdminStore(state => state.isAdminAuthenticated)
-  if (!isAdminAuthenticated) {
-    return <Navigate to={isDedicatedAdmin ? "/onboarding" : "/onboarding?portal=admin"} replace />
-  }
-  return <Outlet />
-}
-
 const router = createBrowserRouter(
   isDedicatedAdmin
     ? [
-        { path: '/onboarding', element: <OnboardingScreen /> },
-        {
-          element: <AdminProtectedRoute />,
-          children: [
-            { path: '/', element: <AdminScreen /> },
-            { path: '/admin', element: <AdminScreen /> },
-          ]
-        },
+        { path: '/', element: <AdminScreen /> },
+        { path: '/admin', element: <AdminScreen /> },
+        { path: '/onboarding', element: <AdminScreen /> },
         { path: '*', element: <Navigate to="/" replace /> }
       ]
     : [
@@ -90,13 +77,7 @@ const router = createBrowserRouter(
             { path: '/profile',           element: <ProfileScreen /> },
           ]
         },
-        {
-          path: '/admin',
-          element: <AdminProtectedRoute />,
-          children: [
-            { path: '', element: <AdminScreen /> }
-          ]
-        },
+        { path: '/admin', element: <AdminScreen /> },
         { path: '*', element: <Navigate to="/" replace /> }
       ]
 )
