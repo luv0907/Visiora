@@ -4,6 +4,7 @@ import { useAuthStore } from '../store/useAuthStore'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 import BottomNav from '../components/nav/BottomNav'
 import TopNav from '../components/nav/TopNav'
+import { useAdminStore } from '../store/useAdminStore'
 
 import OnboardingScreen from '../screens/OnboardingScreen'
 import HomeScreen from '../screens/HomeScreen'
@@ -44,11 +45,25 @@ function ProtectedRoute() {
 
 const isDedicatedAdmin = import.meta.env.VITE_APP_TARGET === 'admin'
 
+function AdminProtectedRoute() {
+  const isAdminAuthenticated = useAdminStore(state => state.isAdminAuthenticated)
+  if (!isAdminAuthenticated) {
+    return <Navigate to="/onboarding" replace />
+  }
+  return <Outlet />
+}
+
 const router = createBrowserRouter(
   isDedicatedAdmin
     ? [
-        { path: '/', element: <AdminScreen /> },
-        { path: '/admin', element: <AdminScreen /> },
+        { path: '/onboarding', element: <OnboardingScreen /> },
+        {
+          element: <AdminProtectedRoute />,
+          children: [
+            { path: '/', element: <AdminScreen /> },
+            { path: '/admin', element: <AdminScreen /> },
+          ]
+        },
         { path: '*', element: <Navigate to="/" replace /> }
       ]
     : [

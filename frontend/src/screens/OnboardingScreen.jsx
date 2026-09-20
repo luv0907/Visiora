@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/useAuthStore'
+import { useAdminStore } from '../store/useAdminStore'
 import { useProgressStore } from '../store/useProgressStore'
+
+const isDedicatedAdmin = import.meta.env.VITE_APP_TARGET === 'admin'
 import {
   Compass,
   Sparkles,
@@ -40,17 +43,31 @@ function GoogleIcon() {
 export default function OnboardingScreen() {
   const navigate = useNavigate()
   
+  const authStore = useAuthStore()
+  const adminStore = useAdminStore()
+
   const {
     signIn,
     signUp,
-    signInWithGoogle,
+    signInWithGoogle: authSignInWithGoogle,
     signInAsScholar,
-    isAuthenticated,
+    isAuthenticated: isAuthUser,
     isJustSignedIn,
-    error: authError,
+    error: mainAuthError,
     clearError,
     clearJustSignedIn
-  } = useAuthStore()
+  } = authStore
+
+  const {
+    loginWithGoogle: adminSignInWithGoogle,
+    enableDevAdmin,
+    isAdminAuthenticated,
+    authError: adminAuthError,
+    isAuthLoading: adminLoading
+  } = adminStore
+
+  const isAuthenticated = isDedicatedAdmin ? isAdminAuthenticated : isAuthUser
+  const authError = isDedicatedAdmin ? adminAuthError : mainAuthError
 
   const { updateClassCode, error: progressError } = useProgressStore()
 
@@ -74,10 +91,14 @@ export default function OnboardingScreen() {
   }, [isAuthenticated, isJustSignedIn, navigate])
 
   const handleGoogleLogin = async () => {
-    clearError()
+    if (!isDedicatedAdmin) clearError()
     setLoading(true)
     try {
-      await signInWithGoogle()
+      if (isDedicatedAdmin) {
+        await adminSignInWithGoogle()
+      } else {
+        await authSignInWithGoogle()
+      }
     } catch (err) {
       console.warn('Google sign-in completed or reported:', err.message)
     } finally {
@@ -235,7 +256,7 @@ export default function OnboardingScreen() {
               border: '1px solid rgba(0, 43, 102, 0.15)'
             }}
           >
-            ACADEMIC EDITION
+            {isDedicatedAdmin ? 'ADMIN CONSOLE' : 'ACADEMIC EDITION'}
           </span>
         </div>
       </header>
@@ -393,7 +414,7 @@ export default function OnboardingScreen() {
                       marginBottom: 6
                     }}
                   >
-                    Scholar Access Portal
+                    {isDedicatedAdmin ? 'Executive Admin Console' : 'Scholar Access Portal'}
                   </div>
                   <h2
                     style={{
@@ -404,10 +425,12 @@ export default function OnboardingScreen() {
                       margin: 0
                     }}
                   >
-                    Enter the Physics Atelier
+                    {isDedicatedAdmin ? 'Enter Admin Dashboard' : 'Enter the Physics Atelier'}
                   </h2>
                   <p style={{ fontSize: 13, color: '#64748B', marginTop: 6, lineHeight: 1.5, margin: '6px 0 0 0' }}>
-                    Sign in with your Google account to automatically synchronize your physics mastery, active streak, and experiment notes.
+                    {isDedicatedAdmin
+                      ? 'Sign in with an authorized Google account to configure curriculum parameters and manage simulations.'
+                      : 'Sign in with your Google account to automatically synchronize your physics mastery, active streak, and experiment notes.'}
                   </p>
                 </div>
 
@@ -433,7 +456,13 @@ export default function OnboardingScreen() {
                       <div style={{ marginTop: 6 }}>
                         <button
                           type="button"
-                          onClick={() => handleInstantScholar('Research Scholar')}
+                          onClick={() => {
+                            if (isDedicatedAdmin) {
+                              enableDevAdmin()
+                            } else {
+                              handleInstantScholar('Research Scholar')
+                            }
+                          }}
                           style={{
                             background: '#002B66',
                             color: '#FFFFFF',
@@ -444,7 +473,7 @@ export default function OnboardingScreen() {
                             cursor: 'pointer'
                           }}
                         >
-                          ✦ Click Here for Instant Scholar Access
+                          ✦ Click Here for Instant {isDedicatedAdmin ? 'Admin' : 'Scholar'} Access
                         </button>
                       </div>
                     </div>
@@ -487,53 +516,83 @@ export default function OnboardingScreen() {
                     <span>{loading ? 'Connecting with Google...' : 'Continue with Google Account'}</span>
                   </button>
 
-                  {/* 1-Click Instant Scholar Access (Guest / Demo Bypass) */}
-                  <button
-                    type="button"
-                    onClick={() => handleInstantScholar(scholarName || 'Physics Scholar')}
-                    disabled={loading}
-                    style={{
-                      width: '100%',
-                      padding: '13px 20px',
-                      background: '#002B66',
-                      color: '#FFFFFF',
-                      border: 'none',
-                      fontWeight: 700,
-                      fontSize: 14.5,
-                      cursor: loading ? 'wait' : 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 10,
-                      boxShadow: '0 4px 16px rgba(0, 43, 102, 0.3)',
-                      transition: 'background 0.15s ease'
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.background = '#0A192F'}
-                    onMouseLeave={e => e.currentTarget.style.background = '#002B66'}
-                  >
-                    <Sparkles size={16} color="#F59E0B" />
-                    <span>✦ Instant Scholar Access (1-Click Entry)</span>
-                  </button>
+                  {/* 1-Click Instant Access */}
+                  {!isDedicatedAdmin ? (
+                    <button
+                      type="button"
+                      onClick={() => handleInstantScholar('Physics Scholar')}
+                      disabled={loading}
+                      style={{
+                        width: '100%',
+                        padding: '13px 20px',
+                        background: '#002B66',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        fontWeight: 700,
+                        fontSize: 14.5,
+                        cursor: loading ? 'wait' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 10,
+                        boxShadow: '0 4px 16px rgba(0, 43, 102, 0.3)',
+                        transition: 'background 0.15s ease'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#0A192F'}
+                      onMouseLeave={e => e.currentTarget.style.background = '#002B66'}
+                    >
+                      <Sparkles size={16} color="#F59E0B" />
+                      <span>✦ Instant Scholar Access (1-Click Entry)</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => enableDevAdmin()}
+                      disabled={loading}
+                      style={{
+                        width: '100%',
+                        padding: '13px 20px',
+                        background: '#002B66',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        fontWeight: 700,
+                        fontSize: 14.5,
+                        cursor: loading ? 'wait' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 10,
+                        boxShadow: '0 4px 16px rgba(0, 43, 102, 0.3)',
+                        transition: 'background 0.15s ease'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#0A192F'}
+                      onMouseLeave={e => e.currentTarget.style.background = '#002B66'}
+                    >
+                      <ShieldCheck size={16} color="#F59E0B" />
+                      <span>✦ Switch to Verified Admin (Dev Mode)</span>
+                    </button>
+                  )}
                 </div>
 
-                {/* Divider */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    margin: '22px 0 16px 0'
-                  }}
-                >
-                  <div style={{ flex: 1, height: 1, background: 'rgba(0, 43, 102, 0.12)' }} />
-                  <span style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', letterSpacing: '0.08em' }}>
-                    OR INSTITUTIONAL ID
-                  </span>
-                  <div style={{ flex: 1, height: 1, background: 'rgba(0, 43, 102, 0.12)' }} />
-                </div>
+                {/* Email / Password Toggle Form (Hidden in Admin) */}
+                {!isDedicatedAdmin && (
+                  <>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        margin: '22px 0 16px 0'
+                      }}
+                    >
+                      <div style={{ flex: 1, height: 1, background: 'rgba(0, 43, 102, 0.12)' }} />
+                      <span style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', letterSpacing: '0.08em' }}>
+                        OR INSTITUTIONAL ID
+                      </span>
+                      <div style={{ flex: 1, height: 1, background: 'rgba(0, 43, 102, 0.12)' }} />
+                    </div>
 
-                {/* Email / Password Toggle Form */}
-                {mode === 'google' ? (
+                    {mode === 'google' ? (
                   <button
                     type="button"
                     onClick={() => setMode('email')}
@@ -655,6 +714,8 @@ export default function OnboardingScreen() {
                       ← Back to Google Login
                     </button>
                   </form>
+                )}
+                </>
                 )}
 
                 <div

@@ -379,9 +379,14 @@ export const useAdminStore = create((set, get) => ({
       return true
     } catch (err) {
       console.warn('Google Popup Login Error:', err.message)
+      let msg = err.message || 'Google sign-in was interrupted or failed.'
+      if (err.code === 'auth/unauthorized-domain' || err.message?.includes('unauthorized-domain')) {
+        const domain = typeof window !== 'undefined' ? window.location.hostname : 'your-domain.vercel.app'
+        msg = `Domain unauthorized (${domain}). Please add "${domain}" to Firebase Console -> Authentication -> Settings -> Authorized Domains.`
+      }
       set({
         isAuthLoading: false,
-        authError: err.message || 'Google sign-in was interrupted or failed.'
+        authError: msg
       })
       return false
     }

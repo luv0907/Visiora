@@ -199,8 +199,9 @@ export const useAuthStore = create((set, get) => ({
       }
       
       let msg = err.message
-      if (err.code === 'auth/unauthorized-domain') {
-        msg = 'This domain is awaiting Firebase OAuth authorization. You can click "Instant Scholar Access" to enter immediately!'
+      if (err.code === 'auth/unauthorized-domain' || err.message?.includes('unauthorized-domain')) {
+        const domain = typeof window !== 'undefined' ? window.location.hostname : 'your-domain.vercel.app'
+        msg = `Domain unauthorized (${domain}). Please add "${domain}" to Firebase Console -> Authentication -> Settings -> Authorized Domains.`
       } else if (err.code === 'auth/popup-closed-by-user') {
         msg = 'Google Sign-In was cancelled.'
       }
