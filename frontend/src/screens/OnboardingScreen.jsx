@@ -4,7 +4,13 @@ import { useAuthStore } from '../store/useAuthStore'
 import { useAdminStore } from '../store/useAdminStore'
 import { useProgressStore } from '../store/useProgressStore'
 
-const isDedicatedAdmin = import.meta.env.VITE_APP_TARGET === 'admin'
+const isDedicatedAdmin = 
+  import.meta.env.VITE_APP_TARGET === 'admin' ||
+  (typeof window !== 'undefined' && (
+    window.location.hostname.includes('admin') ||
+    new URLSearchParams(window.location.search).get('portal') === 'admin' ||
+    new URLSearchParams(window.location.search).get('admin') === 'true'
+  ))
 import {
   Compass,
   Sparkles,
@@ -83,7 +89,9 @@ export default function OnboardingScreen() {
   // Route upon successful authentication
   useEffect(() => {
     if (isAuthenticated) {
-      if (!isJustSignedIn) {
+      if (isDedicatedAdmin) {
+        navigate(window.location.hostname.includes('admin') ? '/' : '/admin', { replace: true })
+      } else if (!isJustSignedIn) {
         navigate('/', { replace: true })
       } else {
         setStep('classCode')

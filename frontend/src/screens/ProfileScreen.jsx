@@ -835,6 +835,46 @@ export default function ProfileScreen() {
               </div>
             </div>
 
+            {/* Administrative Portal Gateway */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '16px 20px',
+              backgroundColor: 'rgba(0, 43, 102, 0.04)',
+              border: '1.5px solid rgba(0, 43, 102, 0.18)',
+              borderRadius: 6,
+              marginBottom: 16
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <ShieldCheck size={22} color="#002B66" />
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: '#002B66' }}>Visiora Executive Admin Studio</div>
+                  <div style={{ fontSize: 12, color: '#4A5568' }}>Manage 3D/2D virtual laboratories, customize home banners & review scholar analytics.</div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => navigate('/admin')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '8px 16px',
+                  backgroundColor: '#002B66',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: 4,
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                <span>Enter Admin Console</span>
+                <ArrowRight size={14} />
+              </button>
+            </div>
+
             {/* Logout Section */}
             <div style={{ borderTop: '1px solid rgba(0, 43, 102, 0.12)', paddingTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
               <button

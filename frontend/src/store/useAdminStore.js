@@ -253,8 +253,21 @@ const DEFAULT_USERS = [
 
 export const useAdminStore = create((set, get) => ({
   // Admin Auth State
-  adminUser: null,
-  isAdminAuthenticated: false,
+  adminUser: (() => {
+    try {
+      const stored = localStorage.getItem('visiora_admin_user')
+      return stored ? JSON.parse(stored) : null
+    } catch {
+      return null
+    }
+  })(),
+  isAdminAuthenticated: (() => {
+    try {
+      return !!localStorage.getItem('visiora_admin_user')
+    } catch {
+      return false
+    }
+  })(),
   authorizedEmails: [
     'admin@visiora.edu',
     'director@visiora.org',
@@ -367,6 +380,10 @@ export const useAdminStore = create((set, get) => ({
         lastLogin: new Date().toISOString()
       }
 
+      try {
+        localStorage.setItem('visiora_admin_user', JSON.stringify(adminProfile))
+      } catch (e) {}
+
       set({
         adminUser: adminProfile,
         isAdminAuthenticated: true,
@@ -403,6 +420,9 @@ export const useAdminStore = create((set, get) => ({
       role: 'Admin',
       lastLogin: new Date().toISOString()
     }
+    try {
+      localStorage.setItem('visiora_admin_user', JSON.stringify(devAdmin))
+    } catch (e) {}
     set({
       adminUser: devAdmin,
       isAdminAuthenticated: true,
@@ -414,6 +434,9 @@ export const useAdminStore = create((set, get) => ({
   logoutAdmin: () => {
     try {
       signOut(auth)
+    } catch (e) {}
+    try {
+      localStorage.removeItem('visiora_admin_user')
     } catch (e) {}
     set({ adminUser: null, isAdminAuthenticated: false, authError: null })
   },

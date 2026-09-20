@@ -43,12 +43,18 @@ function ProtectedRoute() {
   )
 }
 
-const isDedicatedAdmin = import.meta.env.VITE_APP_TARGET === 'admin'
+const isDedicatedAdmin = 
+  import.meta.env.VITE_APP_TARGET === 'admin' ||
+  (typeof window !== 'undefined' && (
+    window.location.hostname.includes('admin') ||
+    window.location.search.includes('portal=admin') ||
+    window.location.search.includes('admin=true')
+  ))
 
 function AdminProtectedRoute() {
   const isAdminAuthenticated = useAdminStore(state => state.isAdminAuthenticated)
   if (!isAdminAuthenticated) {
-    return <Navigate to="/onboarding" replace />
+    return <Navigate to={isDedicatedAdmin ? "/onboarding" : "/onboarding?portal=admin"} replace />
   }
   return <Outlet />
 }
@@ -84,7 +90,13 @@ const router = createBrowserRouter(
             { path: '/profile',           element: <ProfileScreen /> },
           ]
         },
-        { path: '/admin', element: <Navigate to="/" replace /> },
+        {
+          path: '/admin',
+          element: <AdminProtectedRoute />,
+          children: [
+            { path: '', element: <AdminScreen /> }
+          ]
+        },
         { path: '*', element: <Navigate to="/" replace /> }
       ]
 )
