@@ -17,12 +17,14 @@ import VirtualLabScreen from '../screens/VirtualLabScreen'
 import ProfileScreen from '../screens/ProfileScreen'
 import DynamicLabScreen from '../screens/DynamicLabScreen'
 import AITutorScreen from '../screens/AITutorScreen'
+import GraphBoardScreen from '../screens/GraphBoardScreen'
+import MotionLabScreen from '../screens/MotionLabScreen'
 
 function ProtectedRoute() {
   const isAuthenticated = useAuthStore(state => state.isAuthenticated)
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   const location = useLocation()
-  const isSim = location.pathname.startsWith('/sim') || location.pathname.startsWith('/virtual-lab') || location.pathname.startsWith('/lab')
+  const isSim = location.pathname.startsWith('/sim') || location.pathname.startsWith('/virtual-lab') || location.pathname.startsWith('/lab') || location.pathname.startsWith('/board') || location.pathname.startsWith('/motion')
 
   if (!isAuthenticated) {
     return <Navigate to="/onboarding" replace />
@@ -70,6 +72,8 @@ const router = createBrowserRouter(
             { path: '/sim-2d/:labId',     element: <DynamicLabScreen /> },
             { path: '/lab',               element: <DynamicLabScreen /> },
             { path: '/lab/:labId',        element: <DynamicLabScreen /> },
+            { path: '/board',             element: <GraphBoardScreen /> },
+            { path: '/motion',            element: <MotionLabScreen /> },
             { path: '/ai-tutor',          element: <AITutorScreen /> },
             { path: '/progress',          element: <ProgressScreen /> },
             { path: '/quiz/:conceptId',   element: <QuizScreen /> },
