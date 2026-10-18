@@ -12,6 +12,7 @@ import LiveGraph from '../components/motion/LiveGraph'
 import { MOTION_COLORS } from '../components/motion/colors'
 import { stateAt, runEnd, stopTime, stoppingDistance, insight, ROAD_LENGTH } from '../engine/motion'
 import { niceStep } from '../engine/formula'
+import { useLabChallenges } from '../store/useLabStore'
 import '../components/motion/motion.css'
 
 const FLAG_AT = 60
@@ -58,7 +59,7 @@ export default function MotionLabScreen() {
   const [playing, setPlaying] = useState(false)
   const [rate, setRate] = useState(1)
   const [showPrediction, setShowPrediction] = useState(false)
-  const [won, setWon] = useState(() => new Set())
+  const [won, setWon] = useLabChallenges('motion')
   const [toast, setToast] = useState(null)
   const [openHint, setOpenHint] = useState(null)
 
@@ -103,7 +104,7 @@ export default function MotionLabScreen() {
         setToast(c.title)
       }
     }
-  }, [st, u, a, won])
+  }, [st, u, a, won, setWon])
 
   useEffect(() => {
     if (!toast) return

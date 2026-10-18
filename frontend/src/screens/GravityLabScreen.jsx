@@ -12,6 +12,7 @@ import LiveGraph from '../components/motion/LiveGraph'
 import { MOTION_COLORS } from '../components/motion/colors'
 import { PLANETS, stateAt, flightTime, apex, components, insight } from '../engine/projectile'
 import { niceStep } from '../engine/formula'
+import { useLabChallenges } from '../store/useLabStore'
 import '../components/motion/motion.css'
 
 const TARGET = 30
@@ -65,7 +66,7 @@ export default function GravityLabScreen() {
   const [playing, setPlaying] = useState(false)
   const [rate, setRate] = useState(1)
   const [showPath, setShowPath] = useState(false)
-  const [won, setWon] = useState(() => new Set())
+  const [won, setWon] = useLabChallenges('gravity')
   const [runs, setRuns] = useState([])
   const [toast, setToast] = useState(null)
   const [openHint, setOpenHint] = useState(null)
@@ -126,7 +127,7 @@ export default function GravityLabScreen() {
       setWon(prev => new Set([...prev, ...fresh.map(([id]) => id)]))
       setToast(fresh[0][1])
     }
-  }, [st.landed, st.x, T, h, u, theta, planet.g, mass, runs, won])
+  }, [st.landed, st.x, T, h, u, theta, planet.g, mass, runs, won, setWon])
 
   useEffect(() => {
     if (!toast) return

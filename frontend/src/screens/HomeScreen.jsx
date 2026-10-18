@@ -13,12 +13,7 @@ import {
   Globe,
   ExternalLink,
   ShieldCheck,
-  LineChart,
-  Gauge,
-  Orbit,
-  Flashlight,
-  Zap,
-  Package
+  FlaskConical
 } from 'lucide-react'
 import { useProgressStore } from '../store/useProgressStore'
 import { useUIStore } from '../store/useUIStore'
@@ -28,6 +23,7 @@ import { SCENE_META } from '../config/physics'
 import LabIcon from '../components/common/LabIcon'
 import PeriodicParallaxSection from '../components/home/PeriodicParallaxSection'
 import KinematicsLivePreview from '../components/home/KinematicsLivePreview'
+import LabsSection from '../components/home/LabsSection'
 import TopicSearchBar from '../components/home/TopicSearchBar'
 
 export default function HomeScreen() {
@@ -283,7 +279,7 @@ export default function HomeScreen() {
               <button
                 onClick={(e) => {
                   e.stopPropagation()
-                  navigate('/board')
+                  document.getElementById('labs-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                 }}
                 style={{
                   padding: '9px 16px',
@@ -299,123 +295,8 @@ export default function HomeScreen() {
                   boxShadow: '0 2px 6px rgba(18, 14, 11, 0.05)'
                 }}
               >
-                <LineChart size={14} color="#059669" />
-                <span>Graph Board</span>
-              </button>
-
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  navigate('/motion')
-                }}
-                style={{
-                  padding: '9px 16px',
-                  background: '#FFFFFF',
-                  color: '#002B66',
-                  border: '1px solid rgba(0, 43, 102, 0.25)',
-                  fontWeight: 700,
-                  fontSize: 13,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  boxShadow: '0 2px 6px rgba(18, 14, 11, 0.05)'
-                }}
-              >
-                <Gauge size={14} color="#D97706" />
-                <span>Motion Lab</span>
-              </button>
-
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  navigate('/gravity')
-                }}
-                style={{
-                  padding: '9px 16px',
-                  background: '#FFFFFF',
-                  color: '#002B66',
-                  border: '1px solid rgba(0, 43, 102, 0.25)',
-                  fontWeight: 700,
-                  fontSize: 13,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  boxShadow: '0 2px 6px rgba(18, 14, 11, 0.05)'
-                }}
-              >
-                <Orbit size={14} color="#0D9488" />
-                <span>Gravity Lab</span>
-              </button>
-
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  navigate('/light')
-                }}
-                style={{
-                  padding: '9px 16px',
-                  background: '#FFFFFF',
-                  color: '#002B66',
-                  border: '1px solid rgba(0, 43, 102, 0.25)',
-                  fontWeight: 700,
-                  fontSize: 13,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  boxShadow: '0 2px 6px rgba(18, 14, 11, 0.05)'
-                }}
-              >
-                <Flashlight size={14} color="#E11D48" />
-                <span>Light Lab</span>
-              </button>
-
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  navigate('/electricity')
-                }}
-                style={{
-                  padding: '9px 16px',
-                  background: '#FFFFFF',
-                  color: '#002B66',
-                  border: '1px solid rgba(0, 43, 102, 0.25)',
-                  fontWeight: 700,
-                  fontSize: 13,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  boxShadow: '0 2px 6px rgba(18, 14, 11, 0.05)'
-                }}
-              >
-                <Zap size={14} color="#D97706" />
-                <span>Electricity Lab</span>
-              </button>
-
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  navigate('/force')
-                }}
-                style={{
-                  padding: '9px 16px',
-                  background: '#FFFFFF',
-                  color: '#002B66',
-                  border: '1px solid rgba(0, 43, 102, 0.25)',
-                  fontWeight: 700,
-                  fontSize: 13,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  boxShadow: '0 2px 6px rgba(18, 14, 11, 0.05)'
-                }}
-              >
-                <Package size={14} color="#8A5A2B" />
-                <span>Force Lab</span>
+                <FlaskConical size={14} color="#059669" />
+                <span>Explore labs</span>
               </button>
             </div>
           </div>
@@ -427,7 +308,7 @@ export default function HomeScreen() {
 
       {/* ── 2. PAGE CONTENT CONTAINER ────────────────────────────────────── */}
       <div style={{ maxWidth: 1240, margin: '0 auto', padding: '40px 24px 48px 24px', boxSizing: 'border-box' }}>
-        
+        <LabsSection />
 
 
         {/* ── 3D LABS TOPICS & SEARCH (LEFT-ALIGNED SEARCH BAR) ──────────────── */}

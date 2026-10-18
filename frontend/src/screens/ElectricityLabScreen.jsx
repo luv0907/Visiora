@@ -10,6 +10,7 @@ import { ArrowLeft, CheckCircle2, Circle, Lightbulb } from 'lucide-react'
 import CircuitScene from '../components/circuit/CircuitScene'
 import { layoutFor } from '../components/circuit/layouts'
 import { solve, buildCircuit, equivalentResistance, insight } from '../engine/circuit'
+import { useLabChallenges } from '../store/useLabStore'
 import '../components/motion/motion.css'
 
 const KINDS = [
@@ -55,7 +56,7 @@ export default function ElectricityLabScreen() {
   const [closed, setClosed] = useState(true)
   const [electrons, setElectrons] = useState(false)
   const [meterOn, setMeterOn] = useState('R1')
-  const [won, setWon] = useState(() => new Set())
+  const [won, setWon] = useLabChallenges('electricity')
   const [toast, setToast] = useState(null)
   const [openHint, setOpenHint] = useState(null)
 
@@ -80,7 +81,7 @@ export default function ElectricityLabScreen() {
     if (!fresh.length) return
     setWon(prev => new Set([...prev, ...fresh.map(c => c.id)]))
     setToast(fresh[0].title)
-  }, [kind, closed, I, sol, ends, V, won])
+  }, [kind, closed, I, sol, ends, V, won, setWon])
 
   useEffect(() => {
     if (!toast) return

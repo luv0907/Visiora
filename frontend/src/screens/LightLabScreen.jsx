@@ -10,6 +10,7 @@ import { ArrowLeft, CheckCircle2, Circle, Lightbulb } from 'lucide-react'
 import RayScene from '../components/light/RayScene'
 import BendGraph from '../components/light/BendGraph'
 import { MEDIA, interact, criticalAngle, insight } from '../engine/optics'
+import { useLabChallenges } from '../store/useLabStore'
 import '../components/motion/motion.css'
 
 const CHALLENGES = [
@@ -43,7 +44,7 @@ export default function LightLabScreen() {
   const [bottomId, setBottomId] = useState('water')
   const [side, setSide] = useState('top')
   const [theta, setTheta] = useState(40)
-  const [won, setWon] = useState(() => new Set())
+  const [won, setWon] = useLabChallenges('light')
   const [toast, setToast] = useState(null)
   const [openHint, setOpenHint] = useState(null)
 
@@ -59,7 +60,7 @@ export default function LightLabScreen() {
     if (!fresh.length) return
     setWon(prev => new Set([...prev, ...fresh.map(c => c.id)]))
     setToast(fresh[0].title)
-  }, [res, from, into, won])
+  }, [res, from, into, won, setWon])
 
   useEffect(() => {
     if (!toast) return

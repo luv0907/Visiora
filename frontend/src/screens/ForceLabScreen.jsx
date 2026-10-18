@@ -12,6 +12,7 @@ import LiveGraph from '../components/motion/LiveGraph'
 import { FORCE_COLORS } from '../components/force/colors'
 import { SURFACES, G, step, forcesAt, insight } from '../engine/forces'
 import { niceStep } from '../engine/formula'
+import { useLabChallenges } from '../store/useLabStore'
 import '../components/motion/motion.css'
 
 const MAX_TIME = 60
@@ -53,7 +54,7 @@ export default function ForceLabScreen() {
   const [rate, setRate] = useState(1)
   const [showForces, setShowForces] = useState(true)
   const [sim, setSim] = useState({ t: 0, x: 0, v: 0 })
-  const [won, setWon] = useState(() => new Set())
+  const [won, setWon] = useLabChallenges('force')
   const [toast, setToast] = useState(null)
   const [openHint, setOpenHint] = useState(null)
 
@@ -116,7 +117,7 @@ export default function ForceLabScreen() {
     if (!fresh.length) return
     setWon(prev => new Set([...prev, ...fresh]))
     setToast(CHALLENGES.find(c => c.id === fresh[0]).title)
-  }, [sim, surfaceId, m, F, won])
+  }, [sim, surfaceId, m, F, won, setWon])
 
   useEffect(() => {
     if (!toast) return
