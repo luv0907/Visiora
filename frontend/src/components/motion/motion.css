@@ -389,6 +389,53 @@
   color: var(--color-text-muted);
 }
 
+/* Light Lab */
+.ml-main-static { grid-template-rows: minmax(300px, 60%) minmax(0, 1fr); }
+.lt-canvas { touch-action: none; cursor: crosshair; }
+.lt-tip {
+  position: absolute;
+  left: 70px;
+  top: 22px;
+  margin: 0;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--cream-300);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+.lt-seg { display: flex; }
+.lt-seg button { flex: 1; font-family: var(--font-body); }
+.lt-readings {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  align-content: start;
+  padding: 14px;
+  background: #fff;
+  border: 1px solid var(--cream-300);
+  border-radius: var(--radius-md);
+}
+.lt-readings div {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--cream-100);
+}
+.lt-readings small {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+.lt-readings b { font: 700 24px var(--font-mono); font-variant-numeric: tabular-nums; }
+.lt-readings .lt-wide { grid-column: 1 / -1; }
+.lt-readings em { font-style: normal; font-size: 12px; color: var(--color-text-muted); margin-top: 2px; }
+
 /* ── Phone / tablet: one scrolling column ─────────────── */
 @media (max-width: 960px) {
   /* Flatten the two columns so sliders sit right under the play bar, next to the graphs. */
@@ -414,6 +461,8 @@
   .ml-head { margin: 0 16px; }
   .ml-sec-controls { padding-top: 14px; }
   .ml-scene { height: 260px; }
+  .ml-main-static .ml-scene { height: 360px; }
+  .lt-tip { left: 64px; top: 20px; font-size: 11px; }
   .ml-playbar { position: sticky; top: 0; z-index: 5; padding: 8px 12px; gap: 8px; }
   .ml-graphs { grid-template-columns: 1fr; }
   .ml-graph-canvas { height: 190px; flex: none; }

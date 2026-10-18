@@ -15,7 +15,8 @@ import {
   ShieldCheck,
   LineChart,
   Gauge,
-  Orbit
+  Orbit,
+  Flashlight
 } from 'lucide-react'
 import { useProgressStore } from '../store/useProgressStore'
 import { useUIStore } from '../store/useUIStore'
@@ -344,6 +345,29 @@ export default function HomeScreen() {
               >
                 <Orbit size={14} color="#0D9488" />
                 <span>Gravity Lab</span>
+              </button>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  navigate('/light')
+                }}
+                style={{
+                  padding: '9px 16px',
+                  background: '#FFFFFF',
+                  color: '#002B66',
+                  border: '1px solid rgba(0, 43, 102, 0.25)',
+                  fontWeight: 700,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  boxShadow: '0 2px 6px rgba(18, 14, 11, 0.05)'
+                }}
+              >
+                <Flashlight size={14} color="#E11D48" />
+                <span>Light Lab</span>
               </button>
             </div>
           </div>
