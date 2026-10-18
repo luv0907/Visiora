@@ -174,11 +174,11 @@ export default function LiveGraph({
       </figcaption>
       <canvas
         ref={ref}
-        className="ml-canvas ml-graph-canvas"
+        className={`ml-canvas ml-graph-canvas ${onScrub ? '' : 'is-static'}`}
         role="img"
-        aria-label={`${title} graph. Drag to move through time.`}
-        onPointerDown={e => { e.currentTarget.setPointerCapture(e.pointerId); scrub(e) }}
-        onPointerMove={e => { if (e.buttons) scrub(e) }}
+        aria-label={`${title} graph.${onScrub ? ' Drag to move through time.' : ''}`}
+        onPointerDown={onScrub ? e => { e.currentTarget.setPointerCapture(e.pointerId); scrub(e) } : undefined}
+        onPointerMove={onScrub ? e => { if (e.buttons) scrub(e) } : undefined}
       />
       {note && <p className="ml-graph-note">{note}</p>}
     </figure>
