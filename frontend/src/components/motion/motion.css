@@ -358,6 +358,37 @@
 }
 @keyframes ml-pop { from { transform: translateX(-50%) scale(0.8); opacity: 0; } }
 
+/* Chips (planets, presets) */
+.ml-chips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.ml-chips-row { display: flex; flex-wrap: wrap; }
+.ml-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 8px 4px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--cream-300);
+  background: #fff;
+  color: var(--color-text);
+  font: 700 13px var(--font-body);
+  cursor: pointer;
+}
+.ml-chip small { font: 600 10px var(--font-mono); color: var(--color-text-muted); }
+.ml-chip.is-on { background: var(--obsidian-900); border-color: var(--obsidian-900); color: #fff; }
+.ml-chip.is-on small { color: var(--cream-300); }
+.ml-chip-sm { padding: 6px 12px; border-radius: var(--radius-full); font-size: 12.5px; }
+.ml-chip-sm:hover, .ml-chip:hover:not(.is-on) { border-color: var(--obsidian-600); }
+.ml-slider.is-disabled { opacity: 0.45; }
+.ml-play:disabled { opacity: 0.4; cursor: default; }
+.ml-graph-note {
+  margin: 0;
+  padding: 0 14px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
 /* ── Phone / tablet: one scrolling column ─────────────── */
 @media (max-width: 960px) {
   /* Flatten the two columns so sliders sit right under the play bar, next to the graphs. */

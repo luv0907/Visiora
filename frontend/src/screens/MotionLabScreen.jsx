@@ -4,13 +4,13 @@
  * Everything comes from the exact equations in engine/motion.js, so the car,
  * the dots, the graphs and the worked numbers always agree.
  */
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Play, Pause, RotateCcw, CheckCircle2, Circle, Lightbulb } from 'lucide-react'
 import RoadScene from '../components/motion/RoadScene'
-import MotionGraph from '../components/motion/MotionGraph'
+import LiveGraph from '../components/motion/LiveGraph'
 import { MOTION_COLORS } from '../components/motion/colors'
-import { stateAt, runEnd, stopTime, stoppingDistance, insight } from '../engine/motion'
+import { stateAt, runEnd, stopTime, stoppingDistance, insight, ROAD_LENGTH } from '../engine/motion'
 import { niceStep } from '../engine/formula'
 import '../components/motion/motion.css'
 
@@ -67,6 +67,10 @@ export default function MotionLabScreen() {
   const tAxis = Math.max(4, niceCeil(end.t))
   // Speed is largest at the start (braking) or the end (speeding up).
   const vAxis = Math.max(10, niceCeil(Math.max(u, stateAt(end.t, u, a).v)))
+
+  const distanceAt = useCallback(tt => stateAt(tt, u, a).s, [u, a])
+  const speedAt = useCallback(tt => stateAt(tt, u, a).v, [u, a])
+  const areaLabel = useCallback(tt => `area = ${stateAt(tt, u, a).s.toFixed(1)} m`, [u, a])
 
   // Playback: real seconds × rate.
   const rafRef = useRef(0)
@@ -125,7 +129,8 @@ export default function MotionLabScreen() {
 
   const scrub = value => {
     setPlaying(false)
-    setT(Math.min(snap(value), end.t))
+    // Dragging to the end lands exactly on the end time (e.g. 6.06 s), not the nearest 0.1 s.
+    setT(value >= end.t - 0.05 ? end.t : Math.min(snap(value), end.t))
   }
 
   const ts = stopTime(u, a)
@@ -165,7 +170,7 @@ export default function MotionLabScreen() {
             type="range"
             min={0}
             max={end.t}
-            step={0.1}
+            step="any"
             value={st.t}
             onChange={e => scrub(Number(e.target.value))}
             aria-label="Time"
@@ -181,8 +186,31 @@ export default function MotionLabScreen() {
         </div>
 
         <section className="ml-graphs">
-          <MotionGraph kind="s" u={u} a={a} t={st.t} tAxis={tAxis} vAxis={vAxis} showPrediction={showPrediction} onScrub={scrub} />
-          <MotionGraph kind="v" u={u} a={a} t={st.t} tAxis={tAxis} vAxis={vAxis} showPrediction={showPrediction} onScrub={scrub} />
+          <LiveGraph
+            title="Distance–time"
+            yName="distance (m)"
+            unit="m"
+            color={MOTION_COLORS.distance}
+            valueAt={distanceAt}
+            t={st.t}
+            tAxis={tAxis}
+            yMax={ROAD_LENGTH}
+            showPrediction={showPrediction}
+            onScrub={scrub}
+          />
+          <LiveGraph
+            title="Speed–time"
+            yName="speed (m/s)"
+            unit="m/s"
+            color={MOTION_COLORS.speed}
+            valueAt={speedAt}
+            t={st.t}
+            tAxis={tAxis}
+            yMax={vAxis}
+            showPrediction={showPrediction}
+            areaLabel={areaLabel}
+            onScrub={scrub}
+          />
         </section>
       </main>
 
