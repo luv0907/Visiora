@@ -12,7 +12,9 @@ import {
   CheckCircle2,
   Globe,
   ExternalLink,
-  ShieldCheck
+  ShieldCheck,
+  LineChart,
+  Gauge
 } from 'lucide-react'
 import { useProgressStore } from '../store/useProgressStore'
 import { useUIStore } from '../store/useUIStore'
@@ -272,6 +274,52 @@ export default function HomeScreen() {
               >
                 <Sparkles size={14} color="#D97706" />
                 <span>Ask AI &amp; Generate 2D Visual</span>
+              </button>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  navigate('/board')
+                }}
+                style={{
+                  padding: '9px 16px',
+                  background: '#FFFFFF',
+                  color: '#002B66',
+                  border: '1px solid rgba(0, 43, 102, 0.25)',
+                  fontWeight: 700,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  boxShadow: '0 2px 6px rgba(18, 14, 11, 0.05)'
+                }}
+              >
+                <LineChart size={14} color="#059669" />
+                <span>Graph Board</span>
+              </button>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  navigate('/motion')
+                }}
+                style={{
+                  padding: '9px 16px',
+                  background: '#FFFFFF',
+                  color: '#002B66',
+                  border: '1px solid rgba(0, 43, 102, 0.25)',
+                  fontWeight: 700,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  boxShadow: '0 2px 6px rgba(18, 14, 11, 0.05)'
+                }}
+              >
+                <Gauge size={14} color="#D97706" />
+                <span>Motion Lab</span>
               </button>
             </div>
           </div>
