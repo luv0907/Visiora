@@ -172,6 +172,7 @@
   color: var(--color-text-muted);
 }
 .ml-graph-canvas { flex: 1; min-height: 150px; touch-action: none; cursor: ew-resize; }
+.ml-graph-canvas.is-static { cursor: default; touch-action: auto; }
 
 /* ── Panel ─────────────────────────────────────────────── */
 .ml-panel {
@@ -358,6 +359,111 @@
 }
 @keyframes ml-pop { from { transform: translateX(-50%) scale(0.8); opacity: 0; } }
 
+/* Chips (planets, presets) */
+.ml-chips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.ml-chips-row { display: flex; flex-wrap: wrap; }
+.ml-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 8px 4px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--cream-300);
+  background: #fff;
+  color: var(--color-text);
+  font: 700 13px var(--font-body);
+  cursor: pointer;
+}
+.ml-chip small { font: 600 10px var(--font-mono); color: var(--color-text-muted); }
+.ml-chip.is-on { background: var(--obsidian-900); border-color: var(--obsidian-900); color: #fff; }
+.ml-chip.is-on small { color: var(--cream-300); }
+.ml-chip-sm { padding: 6px 12px; border-radius: var(--radius-full); font-size: 12.5px; }
+.ml-chip-sm:hover, .ml-chip:hover:not(.is-on) { border-color: var(--obsidian-600); }
+.ml-slider.is-disabled { opacity: 0.45; }
+.ml-play:disabled { opacity: 0.4; cursor: default; }
+.ml-graph-note {
+  margin: 0;
+  padding: 0 14px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+/* Light Lab */
+.ml-main-static { grid-template-rows: minmax(300px, 60%) minmax(0, 1fr); }
+.lt-canvas { touch-action: none; cursor: crosshair; }
+.lt-tip {
+  position: absolute;
+  left: 70px;
+  top: 22px;
+  margin: 0;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--cream-300);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+.lt-seg { display: flex; }
+.lt-seg button { flex: 1; font-family: var(--font-body); }
+.lt-readings {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  align-content: start;
+  padding: 14px;
+  background: #fff;
+  border: 1px solid var(--cream-300);
+  border-radius: var(--radius-md);
+}
+.lt-readings div {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--cream-100);
+}
+.lt-readings small {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+.lt-readings b { font: 700 24px var(--font-mono); font-variant-numeric: tabular-nums; }
+.lt-readings .lt-wide { grid-column: 1 / -1; }
+.lt-readings em { font-style: normal; font-size: 12px; color: var(--color-text-muted); margin-top: 2px; }
+
+/* Electricity Lab */
+.ml-work p { white-space: pre-line; }
+.el-canvas { cursor: pointer; }
+.el-readings { align-content: stretch; }
+.el-readings b { font-size: 22px; }
+.el-table { display: block; overflow-x: auto; }
+.el-table table { width: 100%; border-collapse: collapse; font: 600 13px var(--font-mono); }
+.el-table th {
+  text-align: right;
+  font: 700 10.5px var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  padding: 4px 8px 8px;
+}
+.el-table td { text-align: right; padding: 8px; border-top: 1px solid var(--cream-200); font-variant-numeric: tabular-nums; }
+.el-table th:first-child, .el-table td:first-child { text-align: left; }
+.el-table tbody tr { cursor: pointer; }
+.el-table tbody tr.is-on { background: #EEF0FF; color: #3730A3; }
+.el-table tr.el-total td { font-weight: 800; border-top: 2px solid var(--cream-300); cursor: default; }
+
+/* Force Lab: push slider lives in the play bar */
+.fl-push { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.fl-push .ml-slider-head b { font-size: 16px; }
+.fl-letgo { flex: none; flex-direction: row; gap: 6px; }
+.fl-letgo:disabled { opacity: 0.45; cursor: default; }
+
 /* ── Phone / tablet: one scrolling column ─────────────── */
 @media (max-width: 960px) {
   /* Flatten the two columns so sliders sit right under the play bar, next to the graphs. */
@@ -383,6 +489,10 @@
   .ml-head { margin: 0 16px; }
   .ml-sec-controls { padding-top: 14px; }
   .ml-scene { height: 260px; }
+  .ml-main-static .ml-scene { height: 360px; }
+  .ml-scene:has(.fl-canvas) { height: 340px; }
+  .ml-main-static .ml-scene:has(.el-canvas) { height: 440px; }
+  .lt-tip { left: 64px; top: 20px; font-size: 11px; }
   .ml-playbar { position: sticky; top: 0; z-index: 5; padding: 8px 12px; gap: 8px; }
   .ml-graphs { grid-template-columns: 1fr; }
   .ml-graph-canvas { height: 190px; flex: none; }
