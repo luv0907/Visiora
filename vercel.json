@@ -14,8 +14,5 @@
       "src": "/(.*)",
       "dest": "/frontend/$1"
     }
-  ],
-  "env": {
-    "VITE_API_BASE_URL": "@visiora_api_url"
-  }
+  ]
 }
