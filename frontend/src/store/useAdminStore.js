@@ -268,11 +268,15 @@ export const useAdminStore = create((set, get) => ({
       return false
     }
   })(),
+  // Extra admins can be added without a code change via VITE_ADMIN_EMAILS
+  // (comma-separated) in the Vercel project's environment variables.
   authorizedEmails: [
     'admin@visiora.edu',
     'director@visiora.org',
     'bouroju@gmail.com',
-    'admin@atelier.visiora'
+    'akshaybouroju@gmail.com',
+    'admin@atelier.visiora',
+    ...(import.meta.env.VITE_ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean)
   ],
   isAuthLoading: false,
   authError: null,
@@ -458,7 +462,8 @@ export const useAdminStore = create((set, get) => ({
           localStorage.setItem('visiora_showcase_img', config.showcaseImage)
         }
         if (config.authorizedGoogleEmails) {
-          set({ authorizedEmails: config.authorizedGoogleEmails })
+          // Merge with the built-in list so a backend config can't lock the owners out.
+          set(state => ({ authorizedEmails: [...new Set([...state.authorizedEmails, ...config.authorizedGoogleEmails.map(e => e.toLowerCase())])] }))
         }
       }
 
