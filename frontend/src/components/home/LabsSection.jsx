@@ -27,6 +27,8 @@ export default function LabsSection() {
         <div>
           <h2 id="labs-title">Interactive labs</h2>
           <p>Play with real experiments. Every number is calculated live from the real equations.</p>
+          {/* Full page load: the blog is static HTML outside the React app. */}
+          <a className="lb-blog" href="/blog">Read the blog — physics explained →</a>
         </div>
         <div className="lb-total" aria-label={`${done} of ${total} challenges complete`}>
           <b>{done}<span>/{total}</span></b>
