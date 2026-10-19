@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="A parabola plotted on graph paper with a slider">
+  <defs>
+    <pattern id="g" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0 H0 V20" fill="none" stroke="#CFE6EA" stroke-width="1.5"/></pattern>
+    <marker id="a" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#3A4148"/></marker>
+  </defs>
+  <rect width="400" height="300" fill="#FFFDF8"/>
+  <rect width="400" height="300" fill="url(#g)"/>
+  <path d="M60 230 H352" stroke="#3A4148" stroke-width="4" marker-end="url(#a)"/>
+  <path d="M80 250 V30" stroke="#3A4148" stroke-width="4" marker-end="url(#a)"/>
+  <path d="M96 226 Q206 -64 316 226" stroke="#F08A3C" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M206 82 V230" stroke="#C9661F" stroke-width="2.5" stroke-dasharray="6 6"/>
+  <circle cx="206" cy="81" r="10" fill="#E3B53A" stroke="#6B4A2B" stroke-width="4"/>
+  <path d="M120 274 H300" stroke="#3A4148" stroke-width="5" stroke-linecap="round"/>
+  <path d="M120 274 H232" stroke="#F08A3C" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="232" cy="274" r="11" fill="#FFFDF8" stroke="#6B4A2B" stroke-width="4"/>
+</svg>

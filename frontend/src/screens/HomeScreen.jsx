@@ -17,11 +17,28 @@ import { SCENE_META } from '../config/physics'
 import { LAB_GROUPS } from '../data/labCatalog'
 import './home.css'
 
+// Characters decorate the page; concept illustrations sit on lab and experiment cards.
 const ART = '/images/art/'
-const TINTS = ['#DDEFF1', '#FFF0D9', '#E8F3E2', '#FBE3EA', '#E7E6F6', '#FFF4D6']
+const CONCEPT = '/images/concepts/'
 const CORE_3D = ['projectile', 'gravity', 'pendulum', 'buoyancy', 'collision']
-const ART_3D = { gravity: 'boy-crawl', freefall: 'boy-crawl', projectile: 'bird', pendulum: 'boy-back', buoyancy: 'boy-kneel', collision: 'boy-clap' }
-const SPARE_ART = ['balloon', 'bunny', 'girl', 'seal', 'boy-wave', 'boy-think', 'kid-yellow']
+const CONCEPT_3D = { gravity: 'freefall', projectile: 'projectile', pendulum: 'pendulum', buoyancy: 'buoyancy', collision: 'collision' }
+
+// Best-matching illustration for an experiment added from the admin portal.
+const conceptFor = lab => {
+  if (CONCEPT_3D[lab.id]) return CONCEPT_3D[lab.id]
+  const text = `${lab.id} ${lab.label} ${lab.badge} ${lab.description} ${lab.formula}`.toLowerCase()
+  if (/ohm|circuit|resist|current|volt|electric/.test(text)) return 'circuit-lab'
+  if (/wave|sound|frequen|oscillat/.test(text)) return 'waves'
+  if (/light|optic|lens|mirror|refract|snell/.test(text)) return 'light'
+  if (/pendul|swing/.test(text)) return 'pendulum'
+  if (/projectile|launch|trajector/.test(text)) return 'projectile'
+  if (/buoyan|fluid|float|archimed/.test(text)) return 'buoyancy'
+  if (/collision|momentum/.test(text)) return 'collision'
+  if (/gravit|fall|orbit/.test(text)) return 'gravity'
+  if (/force|friction|newton/.test(text)) return 'force'
+  if (/motion|velocity|speed|kinemat/.test(text)) return 'motion'
+  return 'lab'
+}
 
 const matches = (q, ...fields) => !q || fields.some(f => String(f || '').toLowerCase().includes(q))
 
@@ -66,7 +83,7 @@ export default function HomeScreen() {
     const custom = (experiments || [])
       .filter(e => e.type === '3d' && !CORE_3D.includes(e.id) && e.id !== 'ohmslaw' && e.isActive !== false)
       .map(e => ({ id: e.id, label: e.title, badge: e.badge || '3D lab', description: e.subtitle || e.category, formula: e.formula || '' }))
-    return [...core, ...custom].map((l, i) => ({ ...l, art: ART_3D[l.id] || SPARE_ART[i % SPARE_ART.length] }))
+    return [...core, ...custom].map(l => ({ ...l, image: `${CONCEPT}${conceptFor(l)}.svg` }))
   }, [experiments])
   const shown3D = labs3D.filter(l => matches(q, l.label, l.badge, l.description, l.formula))
   const showUnity = matches(q, "ohm's law", 'ohms law', 'electricity', 'circuit', 'resistor', 'virtual lab', 'unity')
@@ -177,10 +194,12 @@ export default function HomeScreen() {
       <section id="labs" className="sb-labs">
         <span className="sb-scallop-up" />
         <div className="sb-wrap">
-          <div className="sb-head">
+          <div className="sb-head has-art">
+            <img className="sb-head-art is-left" src={`${ART}dino.png`} alt="" loading="lazy" />
             <span className="sb-script">every number is real maths ✓</span>
             <h2>Pick a lab &amp; start playing</h2>
             <span className="sb-rule" />
+            <img className="sb-head-art is-right" src={`${ART}fox.png`} alt="" loading="lazy" />
           </div>
 
           <div className="sb-filters" role="group" aria-label="Filter labs">
@@ -193,13 +212,12 @@ export default function HomeScreen() {
             {labs.map((lab, i) => {
               const d = doneFor(lab)
               const round = i % 2 === 1
-              const tint = TINTS[allLabs.findIndex(l => l.id === lab.id) % TINTS.length]
               const cta = !lab.challenges ? 'Free play' : d === lab.challenges ? 'Play again' : d ? 'Continue' : 'Play now'
               return (
                 <a key={lab.id} className="sb-lab" href={lab.path} onClick={go(lab.path)}>
                   <div className={`sb-frame${round ? ' is-round' : ''}`}>
-                    <div className="sb-frame-in" style={{ background: tint }}>
-                      <img src={`${ART}${lab.art}.png`} alt="" loading="lazy" />
+                    <div className="sb-frame-in">
+                      <img src={lab.image} alt={`Illustration: ${lab.topic}`} loading="lazy" />
                     </div>
                     <span className="sb-frame-badge">{lab.group}</span>
                   </div>
@@ -215,7 +233,12 @@ export default function HomeScreen() {
               )
             })}
           </div>
-          {nothing && <p className="sb-empty">nothing matches “{query}”, try another word ✶</p>}
+          {nothing && (
+            <div className="sb-empty">
+              <img src={`${ART}monster.png`} alt="" />
+              <p>nothing matches “{query}”, try another word ✶</p>
+            </div>
+          )}
         </div>
       </section>
 
@@ -251,7 +274,9 @@ export default function HomeScreen() {
       {(shown3D.length > 0 || showUnity) && (
         <section className="sb-exps">
           <div className="sb-wrap">
-            <div className="sb-head">
+            <div className="sb-head has-art">
+              <img className="sb-head-art is-right is-bird" src={`${ART}bird.png`} alt="" loading="lazy" />
+              <img className="sb-head-art is-left" src={`${ART}boy-reach.png`} alt="" loading="lazy" />
               <span className="sb-script">spin them around!</span>
               <h2>3D experiments</h2>
               <span className="sb-rule is-sky" />
@@ -259,14 +284,14 @@ export default function HomeScreen() {
             <div className="sb-exp-grid">
               {showUnity && (
                 <button className="sb-exp" onClick={() => navigate('/virtual-lab')}>
-                  <span className="sb-porthole"><span style={{ background: TINTS[0] }}><img src={`${ART}monster.png`} alt="" loading="lazy" /></span></span>
+                  <span className="sb-porthole"><span><img src={`${CONCEPT}circuit-lab.svg`} alt="" loading="lazy" /></span></span>
                   <span className="sb-exp-title">Walk-in Circuit Lab</span>
                   <span className="sb-mono sb-exp-formula">V = I · R</span>
                 </button>
               )}
-              {shown3D.map((lab, i) => (
+              {shown3D.map(lab => (
                 <button key={lab.id} className="sb-exp" onClick={() => open3D(lab.id)}>
-                  <span className="sb-porthole"><span style={{ background: TINTS[(i + 1) % TINTS.length] }}><img src={`${ART}${lab.art}.png`} alt="" loading="lazy" /></span></span>
+                  <span className="sb-porthole"><span><img src={lab.image} alt="" loading="lazy" /></span></span>
                   <span className="sb-exp-title">{lab.label}</span>
                   <span className="sb-mono sb-exp-formula">{lab.formula || lab.badge}</span>
                 </button>
@@ -281,7 +306,7 @@ export default function HomeScreen() {
         <section className="sb-list-sec">
           <div className="sb-wrap">
             <div className="sb-list-head">
-              <h3>2D visualisations</h3>
+              <h3><img className="sb-list-art" src={`${ART}boy-push.png`} alt="" loading="lazy" />2D visualisations</h3>
               <a href="/sim-2d" onClick={go('/sim-2d')}>See all 2D labs →</a>
             </div>
             <div className="sb-list">

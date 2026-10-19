@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Two balls about to collide, with momentum arrows">
+  <defs>
+    <marker id="y" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#C99A1E"/></marker>
+    <marker id="o" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#F08A3C"/></marker>
+  </defs>
+  <rect width="400" height="300" fill="#FBE3EA"/>
+  <rect y="222" width="400" height="78" fill="#F4C9D5"/>
+  <path d="M0 222 H400" stroke="#6B4A2B" stroke-width="4"/>
+  <g stroke="#6B4A2B" stroke-width="4" stroke-linecap="round" opacity=".45"><path d="M30 170 H62"/><path d="M22 192 H58"/><path d="M340 182 H372"/><path d="M346 204 H378"/></g>
+  <circle cx="122" cy="186" r="36" fill="#3A4148" stroke="#6B4A2B" stroke-width="4"/>
+  <circle cx="110" cy="172" r="8" fill="#FFFDF8" opacity=".6"/>
+  <text x="122" y="194" fill="#FFFDF8" font-family="ui-monospace, Menlo, monospace" font-size="20" font-weight="700" text-anchor="middle">m₁</text>
+  <circle cx="290" cy="196" r="26" fill="#F08A3C" stroke="#6B4A2B" stroke-width="4"/>
+  <circle cx="282" cy="186" r="6" fill="#FFFDF8" opacity=".7"/>
+  <text x="290" y="203" fill="#FFFDF8" font-family="ui-monospace, Menlo, monospace" font-size="17" font-weight="700" text-anchor="middle">m₂</text>
+  <path d="M206 168 l8 -20 l6 18 l18 -8 l-10 16 l18 8 l-20 2 l4 18 l-14 -12 l-10 14 l-2 -18 l-18 -2 z" fill="#E3B53A" stroke="#6B4A2B" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M96 122 H162" stroke="#C99A1E" stroke-width="6" stroke-linecap="round" marker-end="url(#y)"/>
+  <text x="116" y="110" fill="#6B4A2B" font-family="ui-monospace, Menlo, monospace" font-size="18" font-weight="700">v₁</text>
+  <path d="M316 140 H262" stroke="#F08A3C" stroke-width="6" stroke-linecap="round" marker-end="url(#o)"/>
+  <text x="286" y="128" fill="#6B4A2B" font-family="ui-monospace, Menlo, monospace" font-size="18" font-weight="700">v₂</text>
+</svg>

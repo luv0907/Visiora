@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="A heavy and a light ball falling side by side in a vacuum tube">
+  <defs><marker id="m" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#C9661F"/></marker></defs>
+  <rect width="400" height="300" fill="#DDEFF1"/>
+  <rect x="118" y="26" width="164" height="248" rx="28" fill="#FFFDF8" fill-opacity=".6" stroke="#6B4A2B" stroke-width="4"/>
+  <rect x="108" y="14" width="184" height="20" rx="6" fill="#3A4148" stroke="#6B4A2B" stroke-width="3"/>
+  <rect x="108" y="266" width="184" height="20" rx="6" fill="#3A4148" stroke="#6B4A2B" stroke-width="3"/>
+  <path d="M134 50 V250" stroke="#FFFDF8" stroke-width="6" stroke-linecap="round" opacity=".9"/>
+  <g stroke="#6B4A2B" stroke-width="3">
+    <g fill="#3A4148"><circle cx="172" cy="60" r="18" opacity=".2"/><circle cx="172" cy="96" r="18" opacity=".4"/><circle cx="172" cy="168" r="20"/></g>
+    <g fill="#F08A3C"><circle cx="236" cy="60" r="11" opacity=".2"/><circle cx="236" cy="96" r="11" opacity=".4"/><circle cx="236" cy="168" r="12"/></g>
+  </g>
+  <path d="M204 196 V244" stroke="#C9661F" stroke-width="6" stroke-linecap="round" marker-end="url(#m)"/>
+</svg>

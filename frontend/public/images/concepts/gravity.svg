@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="A ball falling faster and faster towards Earth">
+  <defs><marker id="m" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#E3B53A"/></marker></defs>
+  <rect width="400" height="300" fill="#3A4148"/>
+  <g fill="#FFF4D6"><circle cx="60" cy="40" r="2.5"/><circle cx="110" cy="90" r="2"/><circle cx="250" cy="30" r="2.5"/><circle cx="350" cy="130" r="2"/><circle cx="80" cy="160" r="2"/><circle cx="270" cy="150" r="2.5"/><circle cx="40" cy="110" r="1.6"/><circle cx="210" cy="60" r="1.6"/></g>
+  <circle cx="318" cy="66" r="28" fill="#FFF4D6" stroke="#6B4A2B" stroke-width="4"/>
+  <circle cx="308" cy="58" r="6" fill="#E9C9B6"/><circle cx="328" cy="76" r="4" fill="#E9C9B6"/>
+  <circle cx="200" cy="560" r="300" fill="#8DBF8B" stroke="#6B4A2B" stroke-width="5"/>
+  <path d="M110 286 q30 -20 60 -6 q20 10 40 0 M240 274 q24 -14 50 0" stroke="#A8D8DE" stroke-width="12" fill="none" stroke-linecap="round"/>
+  <g stroke="#6B4A2B" stroke-width="3" fill="#F08A3C">
+    <circle cx="160" cy="34" r="13" opacity=".25"/><circle cx="160" cy="58" r="13" opacity=".4"/><circle cx="160" cy="98" r="13" opacity=".6"/><circle cx="160" cy="156" r="16"/>
+  </g>
+  <path d="M208 112 V186" stroke="#E3B53A" stroke-width="7" stroke-linecap="round" marker-end="url(#m)"/>
+  <text x="226" y="160" fill="#E3B53A" font-family="ui-monospace, Menlo, monospace" font-size="24" font-weight="700">g</text>
+</svg>

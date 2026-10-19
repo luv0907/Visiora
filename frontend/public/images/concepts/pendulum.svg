@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="A pendulum swinging from a fixed support">
+  <rect width="400" height="300" fill="#E7E6F6"/>
+  <rect x="116" y="14" width="168" height="18" rx="4" fill="#3A4148" stroke="#6B4A2B" stroke-width="3"/>
+  <path d="M200 32 V246" stroke="#3A4148" stroke-width="2.5" stroke-dasharray="6 7"/>
+  <path d="M105 196.5 A190 190 0 0 0 295 196.5" stroke="#6B4A2B" stroke-width="3" stroke-dasharray="3 9" fill="none" stroke-linecap="round"/>
+  <path d="M200 32 L105 196.5" stroke="#6B4A2B" stroke-width="2" opacity=".3"/>
+  <circle cx="105" cy="196.5" r="22" fill="#F08A3C" stroke="#6B4A2B" stroke-width="3" opacity=".3"/>
+  <path d="M200 32 L280 204" stroke="#6B4A2B" stroke-width="4"/>
+  <circle cx="200" cy="32" r="7" fill="#FFFDF8" stroke="#6B4A2B" stroke-width="3"/>
+  <circle cx="280" cy="204" r="24" fill="#F08A3C" stroke="#6B4A2B" stroke-width="4"/>
+  <circle cx="272" cy="196" r="6" fill="#FFF4D6"/>
+  <path d="M200 82 A50 50 0 0 0 221 77" stroke="#C99A1E" stroke-width="4" fill="none"/>
+  <text x="214" y="104" fill="#3A4148" font-family="ui-monospace, Menlo, monospace" font-size="18" font-weight="700">θ</text>
+  <text x="252" y="128" fill="#3A4148" font-family="ui-monospace, Menlo, monospace" font-size="18" font-weight="700">L</text>
+</svg>

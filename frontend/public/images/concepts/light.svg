@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="A light ray bending as it passes through a glass block">
+  <defs><marker id="r" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#D0482B"/></marker></defs>
+  <rect width="400" height="300" fill="#FFF0D9"/>
+  <circle cx="58" cy="44" r="24" fill="#E3B53A" opacity=".35"/>
+  <circle cx="58" cy="44" r="13" fill="#E3B53A" stroke="#6B4A2B" stroke-width="4"/>
+  <rect x="104" y="112" width="200" height="110" rx="6" fill="#A8D8DE" fill-opacity=".7" stroke="#6B4A2B" stroke-width="4"/>
+  <path d="M118 124 H180" stroke="#FFFDF8" stroke-width="5" stroke-linecap="round" opacity=".9"/>
+  <path d="M158 62 V170 M218 170 V272" stroke="#3A4148" stroke-width="2.5" stroke-dasharray="6 6"/>
+  <path d="M68 52 L158 112" stroke="#D0482B" stroke-width="5" stroke-linecap="round"/>
+  <path d="M68 52 L117 85" stroke="#D0482B" stroke-width="5" marker-end="url(#r)"/>
+  <path d="M158 112 L218 222" stroke="#D0482B" stroke-width="5" stroke-linecap="round"/>
+  <path d="M218 222 L306 281" stroke="#D0482B" stroke-width="5" stroke-linecap="round"/>
+  <path d="M218 222 L270 257" stroke="#D0482B" stroke-width="5" marker-end="url(#r)"/>
+  <path d="M158 82 A30 30 0 0 0 133 95" stroke="#C9661F" stroke-width="3" fill="none"/>
+  <path d="M158 142 A30 30 0 0 0 172 138" stroke="#C9661F" stroke-width="3" fill="none"/>
+  <text x="122" y="78" fill="#C9661F" font-family="ui-monospace, Menlo, monospace" font-size="16" font-weight="700">i</text>
+  <text x="176" y="156" fill="#C9661F" font-family="ui-monospace, Menlo, monospace" font-size="16" font-weight="700">r</text>
+  <text x="262" y="208" fill="#6B4A2B" font-family="ui-monospace, Menlo, monospace" font-size="15" font-weight="700" text-anchor="middle">glass</text>
+</svg>
