@@ -145,7 +145,14 @@ export function compute(check) {
 const fmt = v => (Math.abs(v) >= 1000 || (Math.abs(v) < 0.01 && v !== 0) ? v.toPrecision(3) : String(Number(v.toFixed(3))))
 
 /** Compare the model's claimed number with the recomputed one (1% tolerance). */
-export function verify(check) {
+// Numbers written in an answer like "t = 2 s" or "Rp = 2.0 Ω" (ignores exponents such as m/s²).
+const numbersIn = text => (String(text || '').replace(/[²³]/g, '').match(/-?\d+(?:\.\d+)?(?:e-?\d+)?/gi) || []).map(Number).filter(Number.isFinite)
+
+/**
+ * Compare the AI's number with the engine's. `finalAnswer` is a fallback for when the
+ * model leaves `check.claimed` empty but states the number in its final answer.
+ */
+export function verify(check, finalAnswer = '') {
   const results = compute(check)
   if (!results) return { status: 'unchecked' }
   const q = String(check.quantity || '').toLowerCase().replace(/[\s-]+/g, '_')
@@ -154,8 +161,14 @@ export function verify(check) {
     return { status: 'verified', detail: 'Checked: no refracted ray — total internal reflection happens at this angle.' }
   }
   if (expected === undefined || !Number.isFinite(expected)) return { status: 'unchecked' }
-  const claimed = num(check.claimed)
-  if (claimed !== undefined && Math.abs(claimed - expected) <= Math.max(1e-9, Math.abs(expected) * 0.01)) {
+  const close = v => Math.abs(v - expected) <= Math.max(1e-9, Math.abs(expected) * 0.01)
+  let claimed = num(check.claimed)
+  if (claimed === undefined) {
+    const stated = numbersIn(finalAnswer)
+    if (!stated.length) return { status: 'unchecked' }
+    claimed = stated.find(close) ?? stated[0]
+  }
+  if (close(claimed)) {
     return { status: 'verified', expected, detail: `Checked by Visiora's physics engine: ${fmt(expected)}.` }
   }
   return {
@@ -174,7 +187,7 @@ export function normalize(raw) {
   const kind = ['greeting', 'concept', 'numerical', 'off_topic'].includes(r.kind) ? r.kind : 'concept'
   const quiet = kind === 'greeting' || kind === 'off_topic'
   const labId = !quiet && LABS[r.lab] ? r.lab : null
-  const verification = !quiet && r.check ? verify(r.check) : { status: 'unchecked' }
+  const verification = !quiet && r.check ? verify(r.check, kind === 'numerical' ? r.final_answer : '') : { status: 'unchecked' }
   // Strip any LaTeX dollar signs the model slipped in.
   const clean = s => s.replace(/\$\$?([^$]+)\$\$?/g, '$1')
   return {
@@ -203,6 +216,8 @@ export function buildRequest(message, history = []) {
       temperature: 0.2,
       responseMimeType: 'application/json',
       responseSchema: RESPONSE_SCHEMA,
+      // Gemini 3 Flash thinks at "medium" by default, which is slow; "low" is plenty here.
+      thinkingConfig: { thinkingLevel: 'low' },
     },
   }
 }

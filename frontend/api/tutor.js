@@ -18,8 +18,8 @@ const MAX_MESSAGE = 2000
 const WINDOW_MS = 10 * 60 * 1000
 const MAX_PER_WINDOW = 30
 const FALLBACK_MODELS = ['gemini-3.6-flash', 'gemini-3.5-flash-lite']
-const ATTEMPT_TIMEOUT_MS = 30000
-const TOTAL_BUDGET_MS = 80000
+const ATTEMPT_TIMEOUT_MS = 22000
+const TOTAL_BUDGET_MS = 52000 // stays under the function's 60 s limit (vercel.json)
 const RETRYABLE = new Set([404, 429, 500, 503, 504])
 const hits = new Map() // best-effort per-instance limit; resets when the instance recycles
 
@@ -54,7 +54,8 @@ export default async function handler(req, res) {
 
   const primary = process.env.GEMINI_MODEL || 'gemini-3.8-flash'
   const attempts = [primary, primary, ...FALLBACK_MODELS.filter(m => m !== primary)]
-  const payload = JSON.stringify(buildRequest(message, body?.history))
+  const request = buildRequest(message, body?.history)
+  let payload = JSON.stringify(request)
   const deadline = Date.now() + TOTAL_BUDGET_MS
   let lastStatus = 0
   let lastTimedOut = false
@@ -80,7 +81,15 @@ export default async function handler(req, res) {
     if (!r.ok) {
       lastStatus = r.status
       lastTimedOut = false
-      console.error('[tutor] gemini error', model, r.status, (await r.text()).slice(0, 300))
+      const detail = (await r.text()).slice(0, 300)
+      console.error('[tutor] gemini error', model, r.status, detail)
+      // If a model ever rejects the thinking setting, drop it and try that model again.
+      if (r.status === 400 && /thinking/i.test(detail) && request.generationConfig.thinkingConfig) {
+        delete request.generationConfig.thinkingConfig
+        payload = JSON.stringify(request)
+        attempts.splice(i + 1, 0, model)
+        continue
+      }
       if (RETRYABLE.has(r.status)) continue
       break
     }
