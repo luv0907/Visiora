@@ -122,7 +122,7 @@ export default function HomeScreen() {
 
         <div className="sb-hero-row">
           <div className="sb-hero-left" aria-hidden="true">
-            <img src={`${ART}balloon.png`} alt="" />
+            <img src={`${ART}hero-balloon.webp`} alt="" />
           </div>
 
           <div className="sb-cloud">
@@ -147,8 +147,7 @@ export default function HomeScreen() {
           </div>
 
           <div className="sb-hero-right" aria-hidden="true">
-            <img className="sb-bunny" src={`${ART}bunny.png`} alt="" />
-            <img className="sb-girl" src={`${ART}girl.png`} alt="" />
+            <img className="sb-rocket" src={`${ART}hero-rocket.webp`} alt="" />
           </div>
         </div>
 
