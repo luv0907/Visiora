@@ -75,7 +75,9 @@ export const RESPONSE_SCHEMA = {
       required: ['type'],
     },
   },
-  required: ['kind', 'title', 'explanation', 'lab', 'check'],
+  // Every field is required: newer Gemini models leave optional fields out entirely.
+  // Greetings and off-topic replies send empty lists/strings instead.
+  required: ['kind', 'title', 'explanation', 'formulas', 'steps', 'final_answer', 'key_points', 'lab', 'lab_reason', 'check'],
 }
 
 const D2R = Math.PI / 180
