@@ -505,3 +505,72 @@
   .ml-endnote { top: 66px; font-size: 12px; }
   .ml-scene { flex: none; }
 }
+
+/* ── Sticker Notebook skin for lab chrome ─────────────────────────
+   Panels, buttons, readouts and cards only. The scene and graph
+   canvases inside them are drawn by the labs and stay unchanged. */
+.ml-root { background: var(--paper); }
+.ml-root .ml-panel { background: var(--paper-deep); border-left: 3px solid var(--ink); }
+.ml-root .ml-head h1 { font-family: var(--font-display); font-weight: 900; letter-spacing: -0.035em; }
+.ml-root .ml-kicker { color: var(--grape-ink); font-family: var(--font-display); }
+.ml-root .ml-section { border-bottom: 2px dashed rgba(27, 19, 64, 0.25); }
+.ml-root .ml-section h2 { font-family: var(--font-display); color: var(--ink); letter-spacing: 0.04em; }
+
+/* Readouts: sticky notes */
+.ml-root .ml-hud { border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); border-radius: 16px; background: #FFFFFF; transform: rotate(-1deg); }
+.ml-root .ml-hud small { color: var(--ink-soft); font-family: var(--font-display); font-weight: 700; }
+.ml-root .ml-hud b { font-family: var(--font-mono); }
+.ml-root .ml-endnote { background: var(--ink); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--bubblegum); font-family: var(--font-display); font-weight: 700; }
+.ml-root .ml-back { border: 3px solid var(--ink); border-radius: 14px; box-shadow: 3px 3px 0 var(--ink); background: #FFFFFF; }
+.ml-root .lt-tip { border: 2.5px solid var(--ink); box-shadow: 2px 2px 0 var(--ink); background: var(--sunflower); color: var(--ink); font-family: var(--font-body); }
+
+/* Play bar */
+.ml-root .ml-playbar { background: #FFFFFF; border-top: 3px solid var(--ink); border-bottom: 3px solid var(--ink); }
+.ml-root .ml-play { background: var(--bubblegum); color: var(--ink); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); }
+.ml-root .ml-iconbtn { border: 2.5px solid var(--ink); }
+.ml-root .ml-seg { background: var(--paper-deep); border: 2.5px solid var(--ink); }
+.ml-root .ml-seg button { color: var(--ink); font-weight: 800; }
+.ml-root .ml-seg button.is-on { background: var(--ink); color: var(--paper); }
+
+/* Graph and readings cards (the canvas inside is unchanged) */
+.ml-root .ml-graph, .ml-root .lt-readings { border: 3px solid var(--ink); border-radius: 20px; box-shadow: 5px 5px 0 var(--ink); }
+.ml-root .ml-graph figcaption { font-family: var(--font-display); font-weight: 800; }
+.ml-root .ml-graph figcaption span { border: 2px solid var(--ink); }
+.ml-root .lt-readings div { background: var(--paper); border: 2px solid var(--ink); border-radius: 12px; }
+
+/* Sliders: chunky track, sticker thumb */
+.ml-root .ml-slider-head span { font-family: var(--font-body); font-weight: 700; }
+.ml-root .ml-slider-head b { font-family: var(--font-mono); }
+.ml-root .ml-range::-webkit-slider-runnable-track { height: 12px; border-radius: 6px; border: 2.5px solid var(--ink); }
+.ml-root .ml-range::-moz-range-track { height: 12px; border-radius: 6px; border: 2.5px solid var(--ink); }
+.ml-root .ml-range::-webkit-slider-thumb { width: 28px; height: 28px; margin-top: -10px; background: #FFFFFF; border: 3px solid var(--ink); box-shadow: 2px 2px 0 var(--ink); }
+.ml-root .ml-range::-moz-range-thumb { width: 22px; height: 22px; background: #FFFFFF; border: 3px solid var(--ink); box-shadow: 2px 2px 0 var(--ink); }
+
+/* Chips (planets, materials, presets) */
+.ml-root .ml-chip { border: 2.5px solid var(--ink); background: #FFFFFF; font-family: var(--font-body); }
+.ml-root .ml-chip.is-on { background: var(--ink); border-color: var(--ink); color: var(--paper); box-shadow: 3px 3px 0 var(--bubblegum); }
+.ml-root .ml-chip:hover:not(.is-on) { background: var(--sunflower); }
+
+/* Insight, maths and challenges */
+.ml-root .ml-insight { background: var(--sunflower); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); border-radius: 16px; }
+.ml-root .ml-insight svg { color: var(--ink); }
+.ml-root .ml-work {
+  border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); border-radius: 16px; font-family: var(--font-mono); font-weight: 400;
+  background-color: #FFFFFF;
+  background-image: repeating-linear-gradient(180deg, transparent 0, transparent 25px, var(--rule) 25px, var(--rule) 26px);
+}
+.ml-root .ml-at { font-family: var(--font-display); }
+.ml-root .ml-eq { color: var(--grape-ink); }
+.ml-root .ml-count { background: var(--sunflower); border: 2px solid var(--ink); }
+.ml-root .ml-challenges li > svg { color: rgba(27, 19, 64, 0.35); }
+.ml-root .ml-challenges li.is-won > svg { color: var(--bubblegum); }
+.ml-root .ml-hint { background: #FFFFFF; border: 2px dashed var(--ink); }
+.ml-root .ml-link { color: var(--grape-ink); }
+.ml-root .ml-check input { accent-color: var(--bubblegum); }
+.ml-root .ml-toast { background: var(--sunflower); color: var(--ink); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); font-family: var(--font-display); }
+.ml-root .el-table th { font-family: var(--font-display); }
+.ml-root .el-table tbody tr.is-on { background: var(--sunflower); color: var(--ink); }
+
+@media (max-width: 960px) {
+  .ml-root .ml-panel { border-left: 0; }
+}

@@ -309,12 +309,9 @@ export default function TopNav() {
         left: 0,
         right: 0,
         zIndex: 'var(--z-header)',
-        backgroundColor: isScrolled ? 'rgba(250, 245, 236, 0.94)' : 'transparent',
-        backdropFilter: isScrolled ? 'blur(16px)' : 'none',
-        WebkitBackdropFilter: isScrolled ? 'blur(16px)' : 'none',
-        borderBottom: isScrolled ? '1px solid rgba(203, 163, 88, 0.35)' : '1px solid transparent',
-        boxShadow: isScrolled ? '0 8px 24px rgba(18, 14, 11, 0.08)' : 'none',
-        height: '64px',
+        backgroundColor: isScrolled ? 'rgba(255, 247, 232, 0.97)' : 'var(--paper)',
+        borderBottom: isScrolled ? '3px solid var(--ink)' : '3px solid transparent',
+        height: '72px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -341,40 +338,37 @@ export default function TopNav() {
             navigate('/')
           }}
           style={{ 
-            fontFamily: 'var(--font-serif)', 
-            fontSize: 22, 
-            fontWeight: 700,
-            color: 'var(--obsidian-950)',
+            fontFamily: 'var(--font-display)', 
+            fontSize: 24, 
+            fontWeight: 900,
+            color: 'var(--ink)',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             gap: 10,
-            letterSpacing: '0.04em'
+            letterSpacing: '-0.03em'
           }}
         >
           <img 
             src="/images/visiora_lotus_logo.png" 
             alt="VISIORA Lotus Logo" 
             style={{
-              width: 34,
-              height: 34,
+              width: 42,
+              height: 42,
               borderRadius: '50%',
               objectFit: 'cover',
-              display: 'block',
-              boxShadow: '0 2px 8px rgba(18, 14, 11, 0.12)'
+              display: 'block'
             }} 
           />
-          VISIORA
+          visiora
         </div>
 
         {/* Center: Nav Tabs with Dropdown Anchors */}
         <div style={{
           display: 'flex',
-          gap: 6,
-          background: 'var(--cream-200)',
-          padding: 4,
-          borderRadius: 0, // Sharp architectural container
-          border: '1px solid var(--color-border-subtle)'
+          gap: 4,
+          background: 'transparent',
+          padding: 4
         }}>
           {TABS.map(tab => {
             const active = activeTab === tab.id
@@ -393,19 +387,21 @@ export default function TopNav() {
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: 6,
-                    padding: '7px 18px',
-                    borderRadius: 0, // Sharp architectural edges
-                    fontSize: 13,
-                    fontWeight: active || isOpen ? 700 : 500,
-                    color: active || isOpen ? '#FFFFFF' : (tab.isSpecial ? '#002B66' : 'var(--obsidian-900)'),
-                    backgroundColor: active || isOpen ? '#002B66' : (tab.isSpecial ? 'rgba(0, 43, 102, 0.08)' : 'transparent'),
-                    border: tab.isSpecial ? '1px solid rgba(0, 43, 102, 0.22)' : 'none',
+                    minHeight: 42,
+                    padding: '0 16px',
+                    borderRadius: 999,
+                    fontFamily: 'var(--font-body)',
+                    fontSize: 14,
+                    fontWeight: 700,
+                    color: active || isOpen ? 'var(--paper)' : 'var(--ink)',
+                    backgroundColor: active || isOpen ? 'var(--ink)' : (tab.isSpecial ? 'var(--sunflower)' : 'transparent'),
+                    border: active || isOpen || tab.isSpecial ? '2.5px solid var(--ink)' : '2.5px solid transparent',
                     transition: 'all var(--duration-fast)',
-                    boxShadow: active || isOpen ? '0 2px 8px rgba(0, 43, 102, 0.25)' : 'none',
+                    boxShadow: active || isOpen ? '3px 3px 0 var(--bubblegum)' : (tab.isSpecial ? '3px 3px 0 var(--ink)' : 'none'),
                     cursor: 'pointer'
                   }}
                 >
-                  {tab.isSpecial && <Sparkles size={13} color={active || isOpen ? '#F59E0B' : '#002B66'} />}
+                  {tab.isSpecial && <Sparkles size={15} strokeWidth={2.5} color={active || isOpen ? 'var(--sunflower)' : 'var(--ink)'} />}
                   <span>{tab.label}</span>
                   {tab.hasDropdown && (
                     <ChevronDown
@@ -448,11 +444,11 @@ export default function TopNav() {
                       maxHeight: '480px',
                       overflowY: 'auto',
                       overscrollBehavior: 'contain',
-                      borderRadius: 0,
+                      borderRadius: 14,
                       background: '#FAF8F5',
-                      border: '1px solid rgba(0, 43, 102, 0.18)',
-                      borderTop: '3px solid #002B66',
-                      boxShadow: '0 16px 40px rgba(0, 43, 102, 0.15)',
+                      border: '1px solid rgba(27, 19, 64, 0.18)',
+                      borderTop: '3px solid var(--ink)',
+                      boxShadow: '0 16px 40px rgba(27, 19, 64, 0.15)',
                       zIndex: 1000,
                       padding: '6px 0',
                       animation: 'fadeIn 0.15s ease-out'
@@ -466,16 +462,16 @@ export default function TopNav() {
                         fontWeight: 800,
                         letterSpacing: '0.1em',
                         textTransform: 'uppercase',
-                        color: '#002B66',
-                        borderBottom: '1px solid rgba(0, 43, 102, 0.12)',
+                        color: 'var(--ink)',
+                        borderBottom: '1px solid rgba(27, 19, 64, 0.12)',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        background: 'rgba(0, 43, 102, 0.05)'
+                        background: 'rgba(27, 19, 64, 0.05)'
                       }}
                     >
                       <span>3D Physics Engines</span>
-                      <span style={{ fontSize: 10, color: '#002B66', fontWeight: 700, background: 'rgba(0, 43, 102, 0.08)', padding: '2px 6px' }}>
+                      <span style={{ fontSize: 10, color: 'var(--ink)', fontWeight: 700, background: 'rgba(27, 19, 64, 0.08)', padding: '2px 6px' }}>
                         {display3DList.length} Real-Time Labs
                       </span>
                     </div>
@@ -500,7 +496,7 @@ export default function TopNav() {
                             alignItems: 'center',
                             justifyContent: 'space-between',
                             padding: '10px 12px',
-                            borderRadius: 0,
+                            borderRadius: 14,
                             cursor: 'pointer',
                             transition: 'all 0.15s ease',
                             border: '1px solid transparent',
@@ -508,9 +504,9 @@ export default function TopNav() {
                           }}
                           onMouseEnter={e => {
                             e.currentTarget.style.background = '#FFFFFF'
-                            e.currentTarget.style.borderColor = 'rgba(0, 43, 102, 0.22)'
+                            e.currentTarget.style.borderColor = 'rgba(27, 19, 64, 0.22)'
                             e.currentTarget.style.transform = 'translateX(3px)'
-                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 43, 102, 0.08)'
+                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(27, 19, 64, 0.08)'
                           }}
                           onMouseLeave={e => {
                             e.currentTarget.style.background = 'transparent'
@@ -524,13 +520,13 @@ export default function TopNav() {
                               style={{
                                 width: 36,
                                 height: 36,
-                                borderRadius: 0,
+                                borderRadius: 14,
                                 background: '#FFFFFF',
-                                border: '1px solid rgba(0, 43, 102, 0.2)',
+                                border: '1px solid rgba(27, 19, 64, 0.2)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                color: '#002B66',
+                                color: 'var(--ink)',
                                 flexShrink: 0
                               }}
                             >
@@ -538,17 +534,17 @@ export default function TopNav() {
                             </div>
                             <div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <span style={{ fontSize: 13.5, fontWeight: 700, color: '#0A192F' }}>
+                                <span style={{ fontSize: 13.5, fontWeight: 700, color: '#2A2158' }}>
                                   {simLabel}
                                 </span>
                                 <span style={{ 
                                   fontSize: 9.5, 
                                   fontWeight: 700, 
-                                  color: '#002B66', 
-                                  background: 'rgba(0, 43, 102, 0.08)',
-                                  border: '1px solid rgba(0, 43, 102, 0.15)',
+                                  color: 'var(--ink)', 
+                                  background: 'rgba(27, 19, 64, 0.08)',
+                                  border: '1px solid rgba(27, 19, 64, 0.15)',
                                   padding: '1px 6px',
-                                  borderRadius: 0
+                                  borderRadius: 14,
                                 }}>
                                   {simBadge}
                                 </span>
@@ -559,13 +555,13 @@ export default function TopNav() {
                             </div>
                           </div>
 
-                          <ArrowUpRight size={15} color="#002B66" style={{ flexShrink: 0, marginLeft: 8 }} />
+                          <ArrowUpRight size={15} color="var(--ink)" style={{ flexShrink: 0, marginLeft: 8 }} />
                         </div>
                       )})}
                     </div>
 
                     {/* Footer Shortcut to 2D Studios */}
-                    <div style={{ padding: '8px 12px', borderTop: '1px solid rgba(0, 43, 102, 0.1)', background: '#F4EFE6' }}>
+                    <div style={{ padding: '8px 12px', borderTop: '1px solid rgba(27, 19, 64, 0.1)', background: '#F4EFE6' }}>
                       <div
                         onClick={() => {
                           setOpenDropdown(null)
@@ -574,7 +570,7 @@ export default function TopNav() {
                         style={{
                           fontSize: 11.5,
                           fontWeight: 700,
-                          color: '#002B66',
+                          color: 'var(--ink)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
@@ -606,11 +602,11 @@ export default function TopNav() {
                       maxHeight: '480px',
                       overflowY: 'auto',
                       overscrollBehavior: 'contain',
-                      borderRadius: 0,
+                      borderRadius: 14,
                       background: '#FAF8F5',
-                      border: '1px solid rgba(0, 43, 102, 0.18)',
-                      borderTop: '3px solid #002B66',
-                      boxShadow: '0 16px 40px rgba(0, 43, 102, 0.15)',
+                      border: '1px solid rgba(27, 19, 64, 0.18)',
+                      borderTop: '3px solid var(--ink)',
+                      boxShadow: '0 16px 40px rgba(27, 19, 64, 0.15)',
                       zIndex: 1000,
                       padding: '6px 0',
                       animation: 'fadeIn 0.15s ease-out'
@@ -624,16 +620,16 @@ export default function TopNav() {
                         fontWeight: 800,
                         letterSpacing: '0.1em',
                         textTransform: 'uppercase',
-                        color: '#002B66',
-                        borderBottom: '1px solid rgba(0, 43, 102, 0.12)',
+                        color: 'var(--ink)',
+                        borderBottom: '1px solid rgba(27, 19, 64, 0.12)',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        background: 'rgba(0, 43, 102, 0.05)'
+                        background: 'rgba(27, 19, 64, 0.05)'
                       }}
                     >
                       <span>Native 2D Physics Laboratories</span>
-                      <span style={{ fontSize: 10, color: '#002B66', fontWeight: 700, background: 'rgba(0, 43, 102, 0.08)', padding: '2px 6px' }}>
+                      <span style={{ fontSize: 10, color: 'var(--ink)', fontWeight: 700, background: 'rgba(27, 19, 64, 0.08)', padding: '2px 6px' }}>
                         Atelier 2D Engine
                       </span>
                     </div>
@@ -653,7 +649,7 @@ export default function TopNav() {
                               alignItems: 'center',
                               justifyContent: 'space-between',
                               padding: '10px 12px',
-                              borderRadius: 0,
+                              borderRadius: 14,
                               cursor: 'pointer',
                               transition: 'all 0.15s ease',
                               border: '1px solid transparent',
@@ -661,9 +657,9 @@ export default function TopNav() {
                             }}
                             onMouseEnter={e => {
                               e.currentTarget.style.background = '#FFFFFF'
-                              e.currentTarget.style.borderColor = 'rgba(0, 43, 102, 0.22)'
+                              e.currentTarget.style.borderColor = 'rgba(27, 19, 64, 0.22)'
                               e.currentTarget.style.transform = 'translateX(3px)'
-                              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 43, 102, 0.08)'
+                              e.currentTarget.style.boxShadow = '0 2px 8px rgba(27, 19, 64, 0.08)'
                             }}
                             onMouseLeave={e => {
                               e.currentTarget.style.background = 'transparent'
@@ -677,8 +673,8 @@ export default function TopNav() {
                                 style={{
                                   width: 36,
                                   height: 36,
-                                  borderRadius: 0,
-                                  background: '#002B66',
+                                  borderRadius: 14,
+                                  background: 'var(--ink)',
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
@@ -698,17 +694,17 @@ export default function TopNav() {
                               </div>
                               <div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                  <span style={{ fontSize: 13.5, fontWeight: 700, color: '#0A192F' }}>
+                                  <span style={{ fontSize: 13.5, fontWeight: 700, color: '#2A2158' }}>
                                     {vis.title.split(':')[0]}
                                   </span>
                                   <span style={{
                                     fontSize: 9.5,
                                     fontWeight: 700,
-                                    color: '#002B66',
-                                    background: 'rgba(0, 43, 102, 0.08)',
-                                    border: '1px solid rgba(0, 43, 102, 0.15)',
+                                    color: 'var(--ink)',
+                                    background: 'rgba(27, 19, 64, 0.08)',
+                                    border: '1px solid rgba(27, 19, 64, 0.15)',
                                     padding: '1px 6px',
-                                    borderRadius: 0
+                                    borderRadius: 14,
                                   }}>
                                     {vis.badge || '2D Studio'}
                                   </span>
@@ -719,7 +715,7 @@ export default function TopNav() {
                               </div>
                             </div>
 
-                            <ArrowUpRight size={15} color="#002B66" style={{ flexShrink: 0, marginLeft: 8 }} />
+                            <ArrowUpRight size={15} color="var(--ink)" style={{ flexShrink: 0, marginLeft: 8 }} />
                           </div>
                         )
                       })}
@@ -732,10 +728,10 @@ export default function TopNav() {
                         style={{
                           width: '100%',
                           padding: '9px 14px',
-                          background: '#002B66',
+                          background: 'var(--ink)',
                           color: '#FFFFFF',
                           border: 'none',
-                          borderRadius: 0,
+                          borderRadius: 14,
                           fontSize: 12,
                           fontWeight: 700,
                           cursor: 'pointer',
@@ -743,7 +739,7 @@ export default function TopNav() {
                           alignItems: 'center',
                           justifyContent: 'center',
                           gap: 6,
-                          boxShadow: '0 2px 8px rgba(0, 43, 102, 0.25)'
+                          boxShadow: '0 2px 8px rgba(27, 19, 64, 0.25)'
                         }}
                       >
                         <span>Open 2D Atelier Studio</span>
@@ -767,11 +763,11 @@ export default function TopNav() {
                       maxHeight: '480px',
                       overflowY: 'auto',
                       overscrollBehavior: 'contain',
-                      borderRadius: 0,
+                      borderRadius: 14,
                       background: '#FAF8F5',
-                      border: '1px solid rgba(0, 43, 102, 0.18)',
-                      borderTop: '3px solid #002B66',
-                      boxShadow: '0 16px 40px rgba(0, 43, 102, 0.15)',
+                      border: '1px solid rgba(27, 19, 64, 0.18)',
+                      borderTop: '3px solid var(--ink)',
+                      boxShadow: '0 16px 40px rgba(27, 19, 64, 0.15)',
                       zIndex: 1000,
                       padding: '6px 0',
                       animation: 'fadeIn 0.15s ease-out'
@@ -785,16 +781,16 @@ export default function TopNav() {
                         fontWeight: 800,
                         letterSpacing: '0.1em',
                         textTransform: 'uppercase',
-                        color: '#002B66',
-                        borderBottom: '1px solid rgba(0, 43, 102, 0.12)',
+                        color: 'var(--ink)',
+                        borderBottom: '1px solid rgba(27, 19, 64, 0.12)',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        background: 'rgba(0, 43, 102, 0.05)'
+                        background: 'rgba(27, 19, 64, 0.05)'
                       }}
                     >
                       <span>Physics Topic Quizzes</span>
-                      <span style={{ fontSize: 10, color: '#002B66', fontWeight: 700, background: 'rgba(0, 43, 102, 0.08)', padding: '2px 6px' }}>
+                      <span style={{ fontSize: 10, color: 'var(--ink)', fontWeight: 700, background: 'rgba(27, 19, 64, 0.08)', padding: '2px 6px' }}>
                         {QUIZ_TOPICS.length} Challenges
                       </span>
                     </div>
@@ -810,7 +806,7 @@ export default function TopNav() {
                             alignItems: 'center',
                             justifyContent: 'space-between',
                             padding: '10px 12px',
-                            borderRadius: 0,
+                            borderRadius: 14,
                             cursor: 'pointer',
                             transition: 'all 0.15s ease',
                             border: '1px solid transparent',
@@ -818,9 +814,9 @@ export default function TopNav() {
                           }}
                           onMouseEnter={e => {
                             e.currentTarget.style.background = '#FFFFFF'
-                            e.currentTarget.style.borderColor = 'rgba(0, 43, 102, 0.22)'
+                            e.currentTarget.style.borderColor = 'rgba(27, 19, 64, 0.22)'
                             e.currentTarget.style.transform = 'translateX(3px)'
-                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 43, 102, 0.08)'
+                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(27, 19, 64, 0.08)'
                           }}
                           onMouseLeave={e => {
                             e.currentTarget.style.background = 'transparent'
@@ -834,13 +830,13 @@ export default function TopNav() {
                               style={{
                                 width: 36,
                                 height: 36,
-                                borderRadius: 0,
+                                borderRadius: 14,
                                 background: '#FFFFFF',
-                                border: '1px solid rgba(0, 43, 102, 0.2)',
+                                border: '1px solid rgba(27, 19, 64, 0.2)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                color: '#002B66',
+                                color: 'var(--ink)',
                                 flexShrink: 0
                               }}
                             >
@@ -848,17 +844,17 @@ export default function TopNav() {
                             </div>
                             <div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <span style={{ fontSize: 13.5, fontWeight: 700, color: '#0A192F' }}>
+                                <span style={{ fontSize: 13.5, fontWeight: 700, color: '#2A2158' }}>
                                   {quiz.label}
                                 </span>
                                 <span style={{ 
                                   fontSize: 9.5, 
                                   fontWeight: 700, 
-                                  color: '#002B66', 
-                                  background: 'rgba(0, 43, 102, 0.08)',
-                                  border: '1px solid rgba(0, 43, 102, 0.15)',
+                                  color: 'var(--ink)', 
+                                  background: 'rgba(27, 19, 64, 0.08)',
+                                  border: '1px solid rgba(27, 19, 64, 0.15)',
                                   padding: '1px 6px',
-                                  borderRadius: 0
+                                  borderRadius: 14,
                                 }}>
                                   {quiz.badge}
                                 </span>
@@ -869,7 +865,7 @@ export default function TopNav() {
                             </div>
                           </div>
 
-                          <ArrowUpRight size={15} color="#002B66" style={{ flexShrink: 0, marginLeft: 8 }} />
+                          <ArrowUpRight size={15} color="var(--ink)" style={{ flexShrink: 0, marginLeft: 8 }} />
                         </div>
                       ))}
                     </div>
@@ -891,11 +887,11 @@ export default function TopNav() {
                       maxHeight: '480px',
                       overflowY: 'auto',
                       overscrollBehavior: 'contain',
-                      borderRadius: 0,
+                      borderRadius: 14,
                       background: '#FAF8F5',
-                      border: '1px solid rgba(0, 43, 102, 0.18)',
-                      borderTop: '3px solid #002B66',
-                      boxShadow: '0 16px 40px rgba(0, 43, 102, 0.15)',
+                      border: '1px solid rgba(27, 19, 64, 0.18)',
+                      borderTop: '3px solid var(--ink)',
+                      boxShadow: '0 16px 40px rgba(27, 19, 64, 0.15)',
                       zIndex: 1000,
                       padding: '6px 0',
                       animation: 'fadeIn 0.15s ease-out'
@@ -909,16 +905,16 @@ export default function TopNav() {
                         fontWeight: 800,
                         letterSpacing: '0.1em',
                         textTransform: 'uppercase',
-                        color: '#002B66',
-                        borderBottom: '1px solid rgba(0, 43, 102, 0.12)',
+                        color: 'var(--ink)',
+                        borderBottom: '1px solid rgba(27, 19, 64, 0.12)',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        background: 'rgba(0, 43, 102, 0.05)'
+                        background: 'rgba(27, 19, 64, 0.05)'
                       }}
                     >
                       <span>Physicist Mastery</span>
-                      <span style={{ fontSize: 10, color: '#002B66', fontWeight: 700, background: 'rgba(0, 43, 102, 0.08)', padding: '2px 6px' }}>Overview</span>
+                      <span style={{ fontSize: 10, color: 'var(--ink)', fontWeight: 700, background: 'rgba(27, 19, 64, 0.08)', padding: '2px 6px' }}>Overview</span>
                     </div>
 
                     {/* Mastery Options */}
@@ -932,7 +928,7 @@ export default function TopNav() {
                             alignItems: 'center',
                             justifyContent: 'space-between',
                             padding: '10px 12px',
-                            borderRadius: 0,
+                            borderRadius: 14,
                             cursor: 'pointer',
                             transition: 'all 0.15s ease',
                             border: '1px solid transparent',
@@ -940,9 +936,9 @@ export default function TopNav() {
                           }}
                           onMouseEnter={e => {
                             e.currentTarget.style.background = '#FFFFFF'
-                            e.currentTarget.style.borderColor = 'rgba(0, 43, 102, 0.22)'
+                            e.currentTarget.style.borderColor = 'rgba(27, 19, 64, 0.22)'
                             e.currentTarget.style.transform = 'translateX(3px)'
-                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 43, 102, 0.08)'
+                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(27, 19, 64, 0.08)'
                           }}
                           onMouseLeave={e => {
                             e.currentTarget.style.background = 'transparent'
@@ -956,13 +952,13 @@ export default function TopNav() {
                               style={{
                                 width: 36,
                                 height: 36,
-                                borderRadius: 0,
+                                borderRadius: 14,
                                 background: '#FFFFFF',
-                                border: '1px solid rgba(0, 43, 102, 0.2)',
+                                border: '1px solid rgba(27, 19, 64, 0.2)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                color: '#002B66',
+                                color: 'var(--ink)',
                                 flexShrink: 0
                               }}
                             >
@@ -972,17 +968,17 @@ export default function TopNav() {
                             </div>
                             <div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <span style={{ fontSize: 13.5, fontWeight: 700, color: '#0A192F' }}>
+                                <span style={{ fontSize: 13.5, fontWeight: 700, color: '#2A2158' }}>
                                   {item.label}
                                 </span>
                                 <span style={{ 
                                   fontSize: 9.5, 
                                   fontWeight: 700, 
-                                  color: '#002B66', 
-                                  background: 'rgba(0, 43, 102, 0.08)',
-                                  border: '1px solid rgba(0, 43, 102, 0.15)',
+                                  color: 'var(--ink)', 
+                                  background: 'rgba(27, 19, 64, 0.08)',
+                                  border: '1px solid rgba(27, 19, 64, 0.15)',
                                   padding: '1px 6px',
-                                  borderRadius: 0
+                                  borderRadius: 14,
                                 }}>
                                   {item.badge}
                                 </span>
@@ -993,7 +989,7 @@ export default function TopNav() {
                             </div>
                           </div>
 
-                          <ArrowUpRight size={15} color="#002B66" style={{ flexShrink: 0, marginLeft: 8 }} />
+                          <ArrowUpRight size={15} color="var(--ink)" style={{ flexShrink: 0, marginLeft: 8 }} />
                         </div>
                       ))}
                     </div>
@@ -1010,13 +1006,15 @@ export default function TopNav() {
             display: 'flex',
             alignItems: 'center',
             gap: 6,
-            backgroundColor: 'var(--cream-100)',
-            padding: '4px 12px',
-            borderRadius: 0, // Sharp corners
-            border: '1px solid var(--color-border)'
-          }}>
-            <Flame size={15} color="#D97706" />
-            <span className="mono" style={{ fontSize: 13, fontWeight: 700, color: 'var(--obsidian-900)' }}>
+            backgroundColor: 'var(--sunflower)',
+            height: 40,
+            padding: '0 14px',
+            borderRadius: 999,
+            border: '2.5px solid var(--ink)',
+            boxShadow: '3px 3px 0 var(--ink)'
+          }} title={`${streak}-day streak`}>
+            <Flame size={16} strokeWidth={2.5} color="var(--ink)" fill="var(--tangerine)" />
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 800, color: 'var(--ink)' }}>
               {streak}d
             </span>
           </div>
@@ -1028,28 +1026,22 @@ export default function TopNav() {
             }}
             title={user?.displayName ? `Signed in as ${user.displayName}` : "View Physicist Profile"}
             style={{
-              width: 36,
-              height: 36,
-              borderRadius: 0,
+              width: 42,
+              height: 42,
+              borderRadius: '50%',
               overflow: 'hidden',
-              background: activeTab === 'profile' ? '#0A192F' : '#002B66',
-              border: '1.5px solid #002B66',
+              background: activeTab === 'profile' ? '#2A2158' : 'var(--bubblegum)',
+              border: '2.5px solid var(--ink)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: '#FFFFFF',
               cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(0, 43, 102, 0.25)',
-              transition: 'all 0.15s ease'
+              boxShadow: '3px 3px 0 var(--ink)',
+              transition: 'transform 0.15s ease'
             }}
-            onMouseEnter={e => {
-              e.currentTarget.style.transform = 'translateY(-1px)'
-              e.currentTarget.style.background = '#0A192F'
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.transform = 'none'
-              e.currentTarget.style.background = activeTab === 'profile' ? '#0A192F' : '#002B66'
-            }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-1px, -2px)' }}
+            onMouseLeave={e => { e.currentTarget.style.transform = 'none' }}
           >
             {user?.photoURL ? (
               <img
@@ -1059,7 +1051,7 @@ export default function TopNav() {
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             ) : user?.displayName ? (
-              <span style={{ fontSize: 13, fontWeight: 800, color: '#FFFFFF' }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 900, color: 'var(--ink)' }}>
                 {user.displayName.charAt(0).toUpperCase()}
               </span>
             ) : (

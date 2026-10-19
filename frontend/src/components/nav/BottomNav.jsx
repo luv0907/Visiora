@@ -24,7 +24,7 @@ const TABS = [
     icon: (active) => (
       <svg width="20" height="20" viewBox="0 0 24 24" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10" />
-        <polygon points="10 8 16 12 10 16 10 8" fill={active ? 'white' : 'currentColor'} />
+        <polygon points="10 8 16 12 10 16 10 8" fill={active ? 'var(--sunflower)' : 'currentColor'} />
       </svg>
     ),
   },
@@ -80,25 +80,29 @@ export default function BottomNav() {
 
   const activeTab = getActiveTab()
 
+  // Floating ink "sticker" bar: the active tab is a sunflower pill with its
+  // label; the others are icons (each still has an aria-label).
   return (
     <nav
       role="navigation"
       aria-label="Main navigation"
       style={{
         position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
+        left: 12,
+        right: 12,
+        bottom: 'calc(10px + var(--bottom-nav-safe, 0px))',
         zIndex: 'var(--z-modal)',
-        height: 'calc(var(--bottom-nav-height) + var(--bottom-nav-safe))',
-        paddingBottom: 'var(--bottom-nav-safe)',
-        backgroundColor: 'rgba(250, 248, 245, 0.96)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        borderTop: '1px solid rgba(0, 43, 102, 0.12)',
-        boxShadow: '0 -4px 24px rgba(0, 43, 102, 0.08)',
+        height: 64,
+        padding: 8,
+        boxSizing: 'border-box',
+        backgroundColor: 'var(--ink)',
+        border: '3px solid var(--ink)',
+        borderRadius: 999,
+        boxShadow: '4px 4px 0 var(--grape-ink)',
         display: 'flex',
-        alignItems: 'stretch',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 4,
       }}
     >
       {TABS.map(tab => {
@@ -110,52 +114,28 @@ export default function BottomNav() {
             aria-label={tab.label}
             aria-current={active ? 'page' : undefined}
             style={{
-              flex: 1,
+              flex: active ? '0 0 auto' : '1 1 0',
               display: 'flex',
-              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '4px',
+              gap: 6,
+              height: 44,
+              padding: active ? '0 16px' : 0,
               border: 'none',
-              background: 'none',
+              borderRadius: 999,
+              background: active ? 'var(--sunflower)' : 'transparent',
+              color: active ? 'var(--ink)' : 'var(--paper)',
               cursor: 'pointer',
-              padding: 'var(--space-2) var(--space-1)',
-              minHeight: 'unset',
-              color: active ? '#002B66' : '#718096',
-              transition: 'color var(--transition-fast)',
-              position: 'relative',
+              transition: 'background var(--transition-fast)',
               WebkitTapHighlightColor: 'transparent',
             }}
           >
+            <span style={{ display: 'flex' }}>{tab.icon(active)}</span>
             {active && (
-              <span
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: '28px',
-                  height: '3px',
-                  borderRadius: '0 0 2px 2px',
-                  background: '#002B66',
-                }}
-              />
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 12.5, fontWeight: 800, lineHeight: 1 }}>
+                {tab.label}
+              </span>
             )}
-
-            <span>{tab.icon(active)}</span>
-
-            <span
-              style={{
-                fontSize: '10.5px',
-                fontWeight: active ? 700 : 500,
-                fontFamily: 'var(--font-body)',
-                letterSpacing: active ? '0.02em' : '0',
-                lineHeight: 1,
-                color: active ? '#002B66' : 'inherit'
-              }}
-            >
-              {tab.label}
-            </span>
           </button>
         )
       })}
