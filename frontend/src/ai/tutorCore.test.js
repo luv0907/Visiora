@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { compute, verify, normalize, buildRequest } from './tutorCore'
+import { compute, verify, normalize, buildRequest, RESPONSE_SCHEMA } from './tutorCore'
 
 describe('tutor answer checking', () => {
   it('verifies a correct free-fall answer', () => {
@@ -72,5 +72,11 @@ describe('buildRequest', () => {
     expect(req.contents.at(-1)).toEqual({ role: 'user', parts: [{ text: 'What is g?' }] })
     expect(req.contents.some(c => c.role === 'assistant')).toBe(false)
     expect(req.generationConfig.responseMimeType).toBe('application/json')
+  })
+})
+
+describe('RESPONSE_SCHEMA', () => {
+  it('requires every answer field so newer models cannot skip steps or the final answer', () => {
+    expect(RESPONSE_SCHEMA.required).toEqual(expect.arrayContaining(['formulas', 'steps', 'final_answer', 'key_points', 'lab_reason']))
   })
 })

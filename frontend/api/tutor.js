@@ -4,7 +4,10 @@
  * Calls Google Gemini on the server so the API key never reaches the browser.
  * Env (Vercel project settings, NOT prefixed with VITE_):
  *   GEMINI_API_KEY   required — from aistudio.google.com/apikey
- *   GEMINI_MODEL     optional — defaults to gemini-3.8-flash (2.5 models are closed to new API keys)
+ *   GEMINI_MODEL     optional — first model to try; defaults to gemini-3.8-flash
+ *
+ * Free-tier models are often briefly overloaded (503) or out of quota (429), so each
+ * question tries the main model twice, then falls back to other stable Flash models.
  *
  * Body: { message: string, history?: [{ role: 'user'|'assistant', content }] }
  * Reply: { data } with the normalized answer (see src/ai/tutorCore.js), or { error }.
@@ -14,6 +17,10 @@ import { buildRequest, normalize } from '../src/ai/tutorCore.js'
 const MAX_MESSAGE = 2000
 const WINDOW_MS = 10 * 60 * 1000
 const MAX_PER_WINDOW = 30
+const FALLBACK_MODELS = ['gemini-3.6-flash', 'gemini-3.5-flash-lite']
+const ATTEMPT_TIMEOUT_MS = 30000
+const TOTAL_BUDGET_MS = 80000
+const RETRYABLE = new Set([404, 429, 500, 503, 504])
 const hits = new Map() // best-effort per-instance limit; resets when the instance recycles
 
 function rateLimited(ip) {
@@ -45,18 +52,37 @@ export default async function handler(req, res) {
   if (!message) return res.status(400).json({ error: 'Please type a question.' })
   if (message.length > MAX_MESSAGE) return res.status(400).json({ error: `Please keep questions under ${MAX_MESSAGE} characters.` })
 
-  const model = process.env.GEMINI_MODEL || 'gemini-3.8-flash'
-  try {
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-      body: JSON.stringify(buildRequest(message, body?.history)),
-      signal: AbortSignal.timeout(45000),
-    })
-    if (r.status === 429) return res.status(429).json({ error: 'The free AI quota is used up for now. Please try again later.' })
+  const primary = process.env.GEMINI_MODEL || 'gemini-3.8-flash'
+  const attempts = [primary, primary, ...FALLBACK_MODELS.filter(m => m !== primary)]
+  const payload = JSON.stringify(buildRequest(message, body?.history))
+  const deadline = Date.now() + TOTAL_BUDGET_MS
+  let lastStatus = 0
+  let lastTimedOut = false
+
+  for (let i = 0; i < attempts.length; i++) {
+    const model = attempts[i]
+    const remaining = deadline - Date.now()
+    if (remaining < 5000) break
+    if (i > 0) await new Promise(r => setTimeout(r, i === 1 ? 800 : 300))
+    let r
+    try {
+      r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+        body: payload,
+        signal: AbortSignal.timeout(Math.min(ATTEMPT_TIMEOUT_MS, remaining)),
+      })
+    } catch (err) {
+      lastTimedOut = err?.name === 'TimeoutError'
+      console.error('[tutor] request failed', model, err?.name, err?.message)
+      continue
+    }
     if (!r.ok) {
-      console.error('[tutor] gemini error', r.status, (await r.text()).slice(0, 500))
-      return res.status(502).json({ error: 'The AI service had a problem. Please try again.' })
+      lastStatus = r.status
+      lastTimedOut = false
+      console.error('[tutor] gemini error', model, r.status, (await r.text()).slice(0, 300))
+      if (RETRYABLE.has(r.status)) continue
+      break
     }
     const json = await r.json()
     const text = json?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || ''
@@ -64,13 +90,13 @@ export default async function handler(req, res) {
     try {
       raw = JSON.parse(text.replace(/^```(?:json)?\s*/m, '').replace(/```\s*$/m, ''))
     } catch {
-      console.error('[tutor] unparseable reply', text.slice(0, 300))
-      return res.status(502).json({ error: 'The AI gave an unreadable answer. Please ask again.' })
+      console.error('[tutor] unparseable reply', model, text.slice(0, 300))
+      continue
     }
     return res.status(200).json({ data: normalize(raw), model })
-  } catch (err) {
-    console.error('[tutor] request failed', err?.name, err?.message)
-    const timedOut = err?.name === 'TimeoutError'
-    return res.status(timedOut ? 504 : 502).json({ error: timedOut ? 'The AI took too long. Please try again.' : 'Could not reach the AI service.' })
   }
+
+  if (lastStatus === 429) return res.status(429).json({ error: 'The free AI quota is used up for now. Please try again later.' })
+  if (lastTimedOut) return res.status(504).json({ error: 'The AI took too long. Please try again.' })
+  return res.status(502).json({ error: 'The AI is very busy right now. Please try again in a minute.' })
 }
