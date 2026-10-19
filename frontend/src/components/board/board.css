@@ -482,3 +482,41 @@
   .gb-zoom button { width: 38px; height: 38px; }
   .gb-vgrid { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ── Sticker Notebook skin (panel and controls only; the plane is unchanged) ── */
+.gb-root { background: var(--paper); }
+.gb-root .gb-panel { background: var(--paper-deep); border-right: 3px solid var(--ink); }
+.gb-root .gb-head { border-bottom: 2px dashed rgba(27, 19, 64, 0.25); }
+.gb-root .gb-head h1 { font-weight: 900; letter-spacing: -0.035em; }
+.gb-root .gb-tabs, .gb-root .gb-seg { background: #FFFFFF; border: 2.5px solid var(--ink); }
+.gb-root .gb-tabs button.is-on, .gb-root .gb-seg button.is-on { background: var(--ink); color: var(--paper); box-shadow: 2px 2px 0 var(--bubblegum); }
+.gb-root .gb-section { border-bottom: 2px dashed rgba(27, 19, 64, 0.25); }
+.gb-root .gb-section h2 { font-family: var(--font-display); color: var(--ink); }
+.gb-root .gb-badge { background: var(--sunflower); color: var(--ink); border: 2px solid var(--ink); }
+
+.gb-root .gb-frow, .gb-root .gb-vcard { border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); border-radius: 16px; }
+.gb-root .gb-frow.is-active { box-shadow: 5px 5px 0 var(--bubblegum); }
+.gb-root .gb-swatch { border: 2px solid var(--ink); }
+.gb-root .gb-finput { font-family: var(--font-mono); }
+.gb-root .gb-add { border: 2.5px dashed var(--ink); font-family: var(--font-display); font-size: 13px; }
+.gb-root .gb-add:hover:not(:disabled) { background: var(--sunflower); border-style: solid; }
+.gb-root .gb-chip { border: 2.5px solid var(--ink); box-shadow: 2px 2px 0 var(--ink); font-weight: 700; }
+.gb-root .gb-chip:hover { background: var(--sunflower); }
+.gb-root .gb-num { border: 2px solid var(--ink); font-family: var(--font-mono); }
+.gb-root .gb-icon-btn.is-on { background: var(--bubblegum); color: var(--ink); }
+.gb-root .gb-range::-webkit-slider-runnable-track { height: 12px; border-radius: 6px; border: 2.5px solid var(--ink); background: linear-gradient(to right, var(--bubblegum) var(--pct), #FFFFFF var(--pct)); }
+.gb-root .gb-range::-moz-range-track { height: 12px; border-radius: 6px; border: 2.5px solid var(--ink); background: linear-gradient(to right, var(--bubblegum) var(--pct), #FFFFFF var(--pct)); }
+.gb-root .gb-range::-webkit-slider-thumb { width: 26px; height: 26px; margin-top: -9px; background: #FFFFFF; border: 3px solid var(--ink); box-shadow: 2px 2px 0 var(--ink); }
+.gb-root .gb-range::-moz-range-thumb { width: 20px; height: 20px; background: #FFFFFF; border: 3px solid var(--ink); }
+.gb-root .gb-toggle-track { border: 2.5px solid var(--ink); }
+.gb-root .gb-toggle input:checked + .gb-toggle-track { background: var(--bubblegum); }
+.gb-root .gb-trace { background: #FFFFFF; border: 2px solid var(--ink); }
+.gb-root .gb-facts dd { font-family: var(--font-mono); }
+
+.gb-root .gb-back, .gb-root .gb-zoom button { border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); background: #FFFFFF; }
+.gb-root .gb-zoom button:hover, .gb-root .gb-back:hover { background: var(--sunflower); }
+.gb-root .gb-hint { border: 2.5px solid var(--ink); background: var(--sunflower); color: var(--ink); box-shadow: 3px 3px 0 var(--ink); }
+
+@media (max-width: 860px) {
+  .gb-root .gb-panel { border-right: 0; border-top: 3px solid var(--ink); }
+}

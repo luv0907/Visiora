@@ -30,6 +30,10 @@ export default function App() {
     )
   }
 
+  return <StudentApp />
+}
+
+function StudentApp() {
   const init = useAuthStore(state => state.init)
   const isLoading = useAuthStore(state => state.isLoading)
   const isAuthenticated = useAuthStore(state => state.isAuthenticated)

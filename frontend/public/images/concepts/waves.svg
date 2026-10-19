@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="Two waves overlapping">
+  <rect width="400" height="300" fill="#E7E6F6"/>
+  <path d="M20 150 H380" stroke="#3A4148" stroke-width="2.5" stroke-dasharray="6 7"/>
+  <path d="M20 150 C50 70 80 70 110 150 S170 230 200 150 S260 70 290 150 S350 230 380 150" stroke="#F08A3C" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M20 150 C40 110 60 110 80 150 S120 190 140 150 S180 110 200 150 S240 190 260 150 S300 110 320 150 S360 190 380 150" stroke="#5FA9B3" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <path d="M65 62 V88 M65 238 V212" stroke="#6B4A2B" stroke-width="3"/>
+  <text x="200" y="262" fill="#6B4A2B" font-family="ui-monospace, Menlo, monospace" font-size="18" font-weight="700" text-anchor="middle">v = f · λ</text>
+</svg>

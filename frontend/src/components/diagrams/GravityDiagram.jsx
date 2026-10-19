@@ -3,6 +3,10 @@ import { usePhysicsStore } from '../../store/usePhysicsStore'
 
 export default function GravityDiagram({ formulaState }) {
   if (!formulaState) return null
+  return <GravityDiagramContent formulaState={formulaState} />
+}
+
+function GravityDiagramContent({ formulaState }) {
 
   const { values } = formulaState
   const H = values.height || 20

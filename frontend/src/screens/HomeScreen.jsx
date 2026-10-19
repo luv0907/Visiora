@@ -1,979 +1,358 @@
-import React, { useEffect, useState, useMemo } from 'react'
+/**
+ * VISIORA — Home ("Storybook" design)
+ * Sky hero with a cloud headline, today's mission + search, the exact-physics
+ * labs (with saved challenge progress), an AI tutor band, every 3D experiment
+ * and 2D visualisation (including ones added from the admin portal) and the
+ * latest blog posts.
+ */
+import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { 
-  Sparkles, 
-  ArrowUpRight, 
-  Play, 
-  BookOpen, 
-  Compass, 
-  ChevronRight, 
-  TrendingUp, 
-  Layers, 
-  CheckCircle2,
-  Globe,
-  ExternalLink,
-  ShieldCheck,
-  FlaskConical
-} from 'lucide-react'
+import { Search, Flame } from 'lucide-react'
 import { useProgressStore } from '../store/useProgressStore'
 import { useUIStore } from '../store/useUIStore'
 import { useAuthStore } from '../store/useAuthStore'
 import { useAdminStore } from '../store/useAdminStore'
+import { useLabStore } from '../store/useLabStore'
 import { SCENE_META } from '../config/physics'
-import LabIcon from '../components/common/LabIcon'
-import PeriodicParallaxSection from '../components/home/PeriodicParallaxSection'
-import KinematicsLivePreview from '../components/home/KinematicsLivePreview'
-import LabsSection from '../components/home/LabsSection'
-import TopicSearchBar from '../components/home/TopicSearchBar'
+import { LAB_GROUPS } from '../data/labCatalog'
+import { greetingName } from '../utils/greetingName'
+import './home.css'
+
+// Characters decorate the page; concept illustrations sit on lab and experiment cards.
+const ART = '/images/art/'
+const CONCEPT = '/images/concepts/'
+const CORE_3D = ['projectile', 'gravity', 'pendulum', 'buoyancy', 'collision']
+const CONCEPT_3D = { gravity: 'freefall', projectile: 'projectile', pendulum: 'pendulum', buoyancy: 'buoyancy', collision: 'collision' }
+
+// Best-matching illustration for an experiment added from the admin portal.
+const conceptFor = lab => {
+  if (CONCEPT_3D[lab.id]) return CONCEPT_3D[lab.id]
+  const text = `${lab.id} ${lab.label} ${lab.badge} ${lab.description} ${lab.formula}`.toLowerCase()
+  if (/ohm|circuit|resist|current|volt|electric/.test(text)) return 'circuit-lab'
+  if (/wave|sound|frequen|oscillat/.test(text)) return 'waves'
+  if (/light|optic|lens|mirror|refract|snell/.test(text)) return 'light'
+  if (/pendul|swing/.test(text)) return 'pendulum'
+  if (/projectile|launch|trajector/.test(text)) return 'projectile'
+  if (/buoyan|fluid|float|archimed/.test(text)) return 'buoyancy'
+  if (/collision|momentum/.test(text)) return 'collision'
+  if (/gravit|fall|orbit/.test(text)) return 'gravity'
+  if (/force|friction|newton/.test(text)) return 'force'
+  if (/motion|velocity|speed|kinemat/.test(text)) return 'motion'
+  return 'lab'
+}
+
+const matches = (q, ...fields) => !q || fields.some(f => String(f || '').toLowerCase().includes(q))
 
 export default function HomeScreen() {
   const navigate = useNavigate()
-  const progressPayload = useProgressStore(state => state.profile)
-  const user = useAuthStore(state => state.user)
+  const profile = useProgressStore(s => s.profile)
+  const user = useAuthStore(s => s.user)
+  const experiments = useAdminStore(s => s.experiments)
+  const visualizations = useAdminStore(s => s.visualizations)
+  const won = useLabStore(s => s.won)
+  const [query, setQuery] = useState('')
+  const [filter, setFilter] = useState('All')
+  const [posts, setPosts] = useState([])
 
-  const [greeting, setGreeting] = useState('Welcome')
-  const [hoveredCard, setHoveredCard] = useState(null)
-  const [hovered2dCard, setHovered2dCard] = useState(null)
-  const [topicSearchQuery, setTopicSearchQuery] = useState('')
+  const q = query.trim().toLowerCase()
+  const firstName = greetingName(profile, user)
+  const streak = profile?.streak || 1
 
-  const experiments = useAdminStore(state => state.experiments)
-  const visualizations = useAdminStore(state => state.visualizations)
-  const trackVisualizationClick = useAdminStore(state => state.trackVisualizationClick)
-  const [currentDateTime, setCurrentDateTime] = useState({
-    time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-    date: new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
-  })
-
+  // Latest articles from the static blog (absent in local dev — then the list hides).
   useEffect(() => {
-    const updateDateTime = () => {
-      const now = new Date()
-      const hour = now.getHours()
-      if (hour < 12) setGreeting('Good morning')
-      else if (hour < 17) setGreeting('Good afternoon')
-      else setGreeting('Good evening')
-
-      setCurrentDateTime({
-        time: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-        date: now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
-      })
-    }
-
-    updateDateTime()
-    const timer = setInterval(updateDateTime, 1000)
-    return () => clearInterval(timer)
+    let alive = true
+    fetch('/blog/posts.json')
+      .then(r => (r.ok && r.headers.get('content-type')?.includes('json') ? r.json() : []))
+      .then(list => { if (alive && Array.isArray(list)) setPosts(list.slice(0, 3)) })
+      .catch(() => {})
+    return () => { alive = false }
   }, [])
 
-  const displayName = progressPayload?.profile?.name || user?.displayName || 'Physicist'
-  const mastery = progressPayload?.mastery || {}
-  const labs = Object.values(SCENE_META)
+  const doneFor = lab => Math.min(lab.challenges, (won[lab.id] || []).length)
+  const mission = useMemo(() => {
+    for (const g of LAB_GROUPS) for (const lab of g.labs) if (lab.challenges && doneFor(lab) < lab.challenges) return lab
+    return null
+  }, [won]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Dynamically merge custom 3D labs added by admin
-  const custom3DLabs = useMemo(() => {
-    const coreLabIds = new Set(['projectile', 'gravity', 'pendulum', 'buoyancy', 'collision', 'ohmslaw'])
-    return (experiments || [])
-      .filter(e => e.type === '3d' && !coreLabIds.has(e.id) && e.isActive !== false)
-      .map(e => ({
-        id: e.id,
-        label: e.title,
-        badge: e.badge || '3D Lab',
-        description: e.subtitle || e.category,
-        formula: e.formula || '',
-        isCustom: true
-      }))
+  const allLabs = LAB_GROUPS.flatMap(g => g.labs.map(l => ({ ...l, group: g.title })))
+  const labs = allLabs
+    .filter(l => filter === 'All' || l.group === filter)
+    .filter(l => matches(q, l.title, l.topic, l.chapter))
+
+  const labs3D = useMemo(() => {
+    const core = Object.values(SCENE_META)
+    const custom = (experiments || [])
+      .filter(e => e.type === '3d' && !CORE_3D.includes(e.id) && e.id !== 'ohmslaw' && e.isActive !== false)
+      .map(e => ({ id: e.id, label: e.title, badge: e.badge || '3D lab', description: e.subtitle || e.category, formula: e.formula || '' }))
+    return [...core, ...custom].map(l => ({ ...l, image: `${CONCEPT}${conceptFor(l)}.svg` }))
   }, [experiments])
+  const shown3D = labs3D.filter(l => matches(q, l.label, l.badge, l.description, l.formula))
+  const showUnity = matches(q, "ohm's law", 'ohms law', 'electricity', 'circuit', 'resistor', 'virtual lab', 'unity')
 
-  const all3DLabs = useMemo(() => {
-    return [...labs, ...custom3DLabs]
-  }, [labs, custom3DLabs])
+  const shown2D = (visualizations || [])
+    .filter(v => v.isActive !== false)
+    .filter(v => matches(q, v.title, v.subtitle, v.category, v.badge))
 
-  const avgMastery = Math.round(
-    all3DLabs.reduce((acc, lab) => acc + (mastery[lab.id]?.score || 0), 0) / (all3DLabs.length || 1)
-  )
-
-  const filteredLabs = useMemo(() => {
-    const q = topicSearchQuery.trim().toLowerCase()
-    if (!q) return all3DLabs
-    return all3DLabs.filter(lab => {
-      const matchLabel = (lab.label || '').toLowerCase().includes(q)
-      const matchBadge = (lab.badge || '').toLowerCase().includes(q)
-      const matchDesc = (lab.description || '').toLowerCase().includes(q)
-      const matchFormula = (lab.formula || '').toLowerCase().includes(q)
-      return matchLabel || matchBadge || matchDesc || matchFormula
-    })
-  }, [all3DLabs, topicSearchQuery])
-
-  const active2dVisualizations = useMemo(() => {
-    return (visualizations || []).filter(v => v.isActive !== false)
-  }, [visualizations])
-
-  const filtered2dVisualizations = useMemo(() => {
-    const q = topicSearchQuery.trim().toLowerCase()
-    if (!q) return active2dVisualizations
-    return active2dVisualizations.filter(v => {
-      const matchTitle = (v.title || '').toLowerCase().includes(q)
-      const matchSubtitle = (v.subtitle || '').toLowerCase().includes(q)
-      const matchCat = (v.category || '').toLowerCase().includes(q)
-      const matchBadge = (v.badge || '').toLowerCase().includes(q)
-      return matchTitle || matchSubtitle || matchCat || matchBadge
-    })
-  }, [active2dVisualizations, topicSearchQuery])
-
-  const showVirtualLabCard = useMemo(() => {
-    if (!topicSearchQuery) return true
-    const q = topicSearchQuery.trim().toLowerCase()
-    return 'ohms law'.includes(q) || 'ohm'.includes(q) || 'electricity'.includes(q) || 
-           'circuit'.includes(q) || 'resistor'.includes(q) || 'virtual lab'.includes(q) ||
-           'unity'.includes(q) || 'voltage'.includes(q) || 'current'.includes(q) || 'resistance'.includes(q)
-  }, [topicSearchQuery])
-
-  const handleLaunchLab = (labId) => {
-    const coreLabIds = ['projectile', 'gravity', 'pendulum', 'buoyancy', 'collision']
-    if (coreLabIds.includes(labId)) {
-      useUIStore.getState().setActiveLab(labId)
+  const open3D = id => {
+    if (CORE_3D.includes(id)) {
+      useUIStore.getState().setActiveLab(id)
       navigate('/sim')
     } else {
-      navigate(`/lab/${labId}`)
+      navigate(`/lab/${id}`)
     }
   }
+  const open2D = v => navigate(v.internalPath || `/sim-2d?lab=${v.id.replace('vis-', '').replace('phet-', '')}`)
+  const go = path => e => { e.preventDefault(); navigate(path) }
+
+  const nothing = q && !labs.length && !shown3D.length && !shown2D.length && !showUnity
 
   return (
-    <div style={{
-      minHeight: '100dvh',
-      background: 'radial-gradient(ellipse at 50% 0%, #FFFDF9 0%, #F6F1E7 60%, #ECE4D6 100%)',
-      color: 'var(--color-text)',
-      padding: '0 0 80px 0',
-      position: 'relative',
-      overflowX: 'hidden'
-    }}>
-      {/* ── 1. FULL-WIDTH PANORAMIC KINEMATICS HERO SHOWCASE AT TOP ──────── */}
-      <section
-        onClick={() => handleLaunchLab('projectile')}
-        onMouseEnter={() => setHoveredCard('hero')}
-        onMouseLeave={() => setHoveredCard(null)}
-        style={{
-          width: '100%',
-          position: 'relative',
-          backgroundColor: '#FAF5EC',
-          backgroundImage: `linear-gradient(180deg, rgba(250, 245, 236, 0.35) 0%, rgba(250, 245, 236, 0.15) 100%), url('/images/minimal_bilateral_banner.jpg')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          borderBottom: '1px solid rgba(203, 163, 88, 0.35)',
-          boxShadow: '0 12px 32px rgba(18, 14, 11, 0.08)',
-          padding: '24px 0 24px 0',
-          cursor: 'pointer',
-          overflow: 'hidden',
-          transition: 'box-shadow var(--transition-smooth)'
-        }}
-      >
-        {/* Subtle Ambient Radial Highlight */}
-        <div style={{
-          position: 'absolute',
-          top: -80,
-          right: '15%',
-          width: 500,
-          height: 500,
-          background: 'radial-gradient(circle, rgba(203, 163, 88, 0.15) 0%, transparent 70%)',
-          borderRadius: '50%',
-          filter: 'blur(60px)',
-          pointerEvents: 'none'
-        }} />
+    <div className="sb">
+      {/* Phone header (the desktop top bar is hidden below 1024px) */}
+      <div className="sb-mobilebar">
+        <span className="sb-brand"><img src="/images/visiora_lotus_logo.png" alt="" width="34" height="34" /> visiora</span>
+        <span className="sb-chip"><Flame size={14} strokeWidth={2.5} color="#F08A3C" /> {streak}-day streak</span>
+      </div>
 
-        {/* Content Centered in Wide Atelier Container */}
-        <div
-          style={{
-            maxWidth: 1380,
-            margin: '0 auto',
-            padding: '0 36px',
-            boxSizing: 'border-box',
-            position: 'relative',
-            zIndex: 2,
-            display: 'grid',
-            gridTemplateColumns: '1.35fr 1fr',
-            gap: 40,
-            alignItems: 'center'
-          }}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center' }}>
-            {/* Live Time & Date Atelier Pill */}
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '5px 14px',
-              borderRadius: 'var(--radius-full)',
-              background: 'rgba(255, 255, 255, 0.72)',
-              border: '1px solid rgba(203, 163, 88, 0.35)',
-              boxShadow: '0 2px 8px rgba(18, 14, 11, 0.04)',
-              backdropFilter: 'blur(8px)',
-              marginBottom: 10
-            }}>
-              <span className="mono" style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--gold-700)', letterSpacing: '0.02em' }}>
-                {currentDateTime.time}
-              </span>
-              <span style={{ color: 'rgba(74, 63, 53, 0.4)', fontSize: 11 }}>•</span>
-              <span style={{ fontSize: 12.5, color: '#4A3F35', fontWeight: 600 }}>
-                {currentDateTime.date}
-              </span>
-            </div>
+      {/* Hero */}
+      <section className="sb-hero">
+        <span className="sb-puff" style={{ left: '46%', top: 26, width: 70, height: 26, opacity: 0.9 }} />
+        <span className="sb-puff" style={{ right: '8%', top: 120, width: 90, height: 30, opacity: 0.85 }} />
+        <span className="sb-puff" style={{ left: '6%', bottom: 200, width: 60, height: 22, opacity: 0.8 }} />
 
-            <h1 style={{
-              margin: '0 0 18px 0',
-              fontSize: 'clamp(2rem, 2.8vw, 2.6rem)',
-              fontFamily: 'var(--font-display)',
-              fontWeight: 800,
-              color: 'var(--obsidian-950)',
-              letterSpacing: '-0.035em',
-              lineHeight: 1.15
-            }}>
-              {greeting}, <span style={{ color: 'var(--gold-600)' }}>{displayName}</span>.
-            </h1>
-
-            {/* Quick Hero Action CTAs */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 4 }}>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  navigate('/sim')
-                }}
-                style={{
-                  padding: '9px 18px',
-                  background: '#002B66',
-                  color: '#FFFFFF',
-                  border: 'none',
-                  fontWeight: 700,
-                  fontSize: 13,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  boxShadow: '0 2px 8px rgba(0, 43, 102, 0.25)'
-                }}
-              >
-                <Play size={14} />
-                <span>Launch 3D Simulator</span>
-              </button>
-
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  navigate('/ai-tutor')
-                }}
-                style={{
-                  padding: '9px 16px',
-                  background: '#FFFFFF',
-                  color: '#002B66',
-                  border: '1px solid rgba(0, 43, 102, 0.25)',
-                  fontWeight: 700,
-                  fontSize: 13,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  boxShadow: '0 2px 6px rgba(18, 14, 11, 0.05)'
-                }}
-              >
-                <Sparkles size={14} color="#D97706" />
-                <span>Ask AI &amp; Generate 2D Visual</span>
-              </button>
-
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  document.getElementById('labs-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                }}
-                style={{
-                  padding: '9px 16px',
-                  background: '#FFFFFF',
-                  color: '#002B66',
-                  border: '1px solid rgba(0, 43, 102, 0.25)',
-                  fontWeight: 700,
-                  fontSize: 13,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  boxShadow: '0 2px 6px rgba(18, 14, 11, 0.05)'
-                }}
-              >
-                <FlaskConical size={14} color="#059669" />
-                <span>Explore labs</span>
-              </button>
-            </div>
+        <div className="sb-hero-row">
+          <div className="sb-hero-left" aria-hidden="true">
+            <img src={`${ART}hero-balloon.webp`} alt="" />
           </div>
 
-          {/* High-Tech Physics Telemetry & Animated Projectile Trajectory Preview */}
-          <KinematicsLivePreview />
+          <div className="sb-cloud">
+            <span className="sb-cloud-blob" />
+            <span className="sb-cloud-c" style={{ left: '12%', top: 0, width: 190, height: 190 }} />
+            <span className="sb-cloud-c" style={{ right: '14%', top: 12, width: 160, height: 160 }} />
+            <span className="sb-cloud-c" style={{ left: -14, top: '40%', width: 130, height: 130 }} />
+            <span className="sb-cloud-c" style={{ right: -12, top: '44%', width: 120, height: 120 }} />
+
+            <div className="sb-ribbon">
+              <span className="sb-ribbon-tail" />
+              <span className="sb-ribbon-text">{firstName ? `hey ${firstName}, ready to play?` : 'the happy lab of'}</span>
+              <span className="sb-ribbon-tail is-right" />
+            </div>
+
+            <h1 className="sb-h1">
+              <span className="sb-h1-a">PHYSICS</span>
+              <span className="sb-h1-b">you can</span>
+              <span className="sb-h1-c">PLAY</span>
+              <span className="sb-h1-d">with!</span>
+            </h1>
+          </div>
+
+          <div className="sb-hero-right" aria-hidden="true">
+            <img className="sb-rocket" src={`${ART}hero-rocket.webp`} alt="" />
+          </div>
+        </div>
+
+        <div className="sb-hero-foot">
+          <p className="sb-hero-line">Drop things on the Moon, bend lasers, wire up circuits.</p>
+          <div className="sb-hero-cta">
+            <a className="sb-btn is-ghost" href="#labs">Open a lab</a>
+            <a className="sb-btn is-slate" href="/ai-tutor" onClick={go('/ai-tutor')}>✦ Ask the AI tutor</a>
+          </div>
+        </div>
+
+        <span className="sb-ground" />
+        <img className="sb-van" src={`${ART}van.png`} alt="" />
+      </section>
+
+      {/* Intro + mission + search */}
+      <section className="sb-intro">
+        <div className="sb-intro-text">
+          <span className="sb-stitch" aria-hidden="true">✕✕✕✕✕ ✕✕</span>
+          <p>Hi! I'm Visiora, a little physics playground for Class 8–10 (CBSE &amp; ICSE). Every number you see comes from the real equations, and it's free.</p>
+        </div>
+
+        <div className="sb-intro-grid">
+          {mission && !q && (
+            <div className="sb-mission">
+              <span className="sb-tape" />
+              <div className="sb-mission-text">
+                <span className="sb-script">today's mission</span>
+                <span className="sb-mission-title">{mission.title}: finish all {mission.challenges} challenges</span>
+                <span className="sb-mission-sub">{doneFor(mission)} of {mission.challenges} done · {mission.chapter}</span>
+              </div>
+              <a className="sb-btn is-orange" href={mission.path} onClick={go(mission.path)}>Play mission</a>
+            </div>
+          )}
+          <label className="sb-search">
+            <Search size={22} strokeWidth={2.5} color="#6B4A2B" aria-hidden="true" />
+            <span className="sr-only">Search labs and topics</span>
+            <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search a topic, like gravity, circuits or light…" />
+          </label>
         </div>
       </section>
 
-      {/* ── 2. PAGE CONTENT CONTAINER ────────────────────────────────────── */}
-      <div style={{ maxWidth: 1240, margin: '0 auto', padding: '40px 24px 48px 24px', boxSizing: 'border-box' }}>
-        <LabsSection />
+      {/* Exact-physics labs */}
+      <section id="labs" className="sb-labs">
+        <span className="sb-scallop-up" />
+        <div className="sb-wrap">
+          <div className="sb-head has-art">
+            <img className="sb-head-art is-left" src={`${ART}dino.png`} alt="" loading="lazy" />
+            <span className="sb-script">every number is real maths ✓</span>
+            <h2>Pick a lab &amp; start playing</h2>
+            <span className="sb-rule" />
+            <img className="sb-head-art is-right" src={`${ART}fox.png`} alt="" loading="lazy" />
+          </div>
 
+          <div className="sb-filters" role="group" aria-label="Filter labs">
+            {['All', ...LAB_GROUPS.map(g => g.title)].map(f => (
+              <button key={f} className={`sb-filter${filter === f ? ' is-on' : ''}`} aria-pressed={filter === f} onClick={() => setFilter(f)}>{f}</button>
+            ))}
+          </div>
 
-        {/* ── 3D LABS TOPICS & SEARCH (LEFT-ALIGNED SEARCH BAR) ──────────────── */}
-        <div id="topics-section" style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: 16
-        }}>
-          <TopicSearchBar
-            searchQuery={topicSearchQuery}
-            onSearchChange={setTopicSearchQuery}
-            onSelectLab={handleLaunchLab}
-          />
-
-          {topicSearchQuery && (
-            <div style={{ marginBottom: 24, fontSize: 13, color: 'var(--color-text-muted)', fontWeight: 500 }}>
-              Showing <strong>{filteredLabs.length}</strong> of {labs.length} laboratories
+          <div className="sb-lab-grid">
+            {labs.map((lab, i) => {
+              const d = doneFor(lab)
+              const round = i % 2 === 1
+              const cta = !lab.challenges ? 'Free play' : d === lab.challenges ? 'Play again' : d ? 'Continue' : 'Play now'
+              return (
+                <a key={lab.id} className="sb-lab" href={lab.path} onClick={go(lab.path)}>
+                  <div className={`sb-frame${round ? ' is-round' : ''}`}>
+                    <div className="sb-frame-in">
+                      <img src={lab.image} alt={`Illustration: ${lab.topic}`} loading="lazy" />
+                    </div>
+                    <span className="sb-frame-badge">{lab.group}</span>
+                  </div>
+                  <span className="sb-lab-title">{lab.title}</span>
+                  <span className="sb-lab-topic">{lab.topic}</span>
+                  <span className="sb-lab-meta">
+                    {lab.challenges > 0 && (
+                      <span className="sb-stars" aria-label={`${d} of ${lab.challenges} challenges done`}>{'★'.repeat(d)}{'☆'.repeat(lab.challenges - d)}</span>
+                    )}
+                    <span className="sb-lab-cta">{cta}</span>
+                  </span>
+                </a>
+              )
+            })}
+          </div>
+          {nothing && (
+            <div className="sb-empty">
+              <img src={`${ART}monster.png`} alt="" />
+              <p>nothing matches “{query}”, try another word ✶</p>
             </div>
           )}
         </div>
+      </section>
 
-        {/* ── FEATURED UNITY 3D VIRTUAL SCIENCE LAB ───────────────────────── */}
-        {showVirtualLabCard && (
-          <div
-            onClick={() => navigate('/virtual-lab')}
-            onMouseEnter={() => setHoveredCard('ohmslaw-virtual')}
-            onMouseLeave={() => setHoveredCard(null)}
-            style={{
-              marginBottom: 28,
-              padding: '28px 32px',
-              borderRadius: 16,
-              background: 'linear-gradient(135deg, #0A1128 0%, #101F42 50%, #1A2B56 100%)',
-              border: '1px solid rgba(59, 130, 246, 0.3)',
-              boxShadow: hoveredCard === 'ohmslaw-virtual'
-                ? '0 20px 40px -15px rgba(10, 25, 60, 0.4), 0 0 24px rgba(59, 130, 246, 0.25)'
-                : '0 10px 30px -10px rgba(10, 25, 60, 0.25)',
-              cursor: 'pointer',
-              display: 'flex',
-              flexWrap: 'wrap',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              gap: 24,
-              transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-              transform: hoveredCard === 'ohmslaw-virtual' ? 'translateY(-3px)' : 'none',
-              position: 'relative',
-              overflow: 'hidden'
-            }}
-          >
-            {/* Ambient blue glow accent */}
-            <div style={{
-              position: 'absolute',
-              top: -80,
-              right: -80,
-              width: 260,
-              height: 260,
-              borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(59, 130, 246, 0.25) 0%, transparent 70%)',
-              pointerEvents: 'none'
-            }} />
-
-            <div style={{ flex: '1 1 500px', zIndex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                <span style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
-                  padding: '4px 10px',
-                  borderRadius: 6,
-                  background: 'rgba(59, 130, 246, 0.2)',
-                  color: '#60A5FA',
-                  border: '1px solid rgba(59, 130, 246, 0.35)'
-                }}>
-                  ✦ Unity 3D Virtual Science Lab
-                </span>
-                <span style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: 'rgba(255, 255, 255, 0.6)',
-                  fontFamily: 'monospace'
-                }}>
-                  Class 8 & 9 Standard Curriculum
-                </span>
+      {/* AI tutor */}
+      {!q && (
+        <section id="tutor" className="sb-tutor">
+          <span className="sb-scallop-down" />
+          <div className="sb-tutor-grid">
+            <div className="sb-tutor-copy">
+              <div className="sb-tutor-title">
+                <span className="sb-tutor-script">stuck on<br />homework?</span>
+                <span className="sb-tutor-badge">AI TUTOR</span>
               </div>
-
-              <h2 style={{
-                margin: '0 0 8px 0',
-                fontSize: 'clamp(1.3rem, 2vw, 1.6rem)',
-                fontFamily: 'var(--font-display)',
-                fontWeight: 700,
-                color: '#FFFFFF',
-                letterSpacing: '-0.02em',
-                lineHeight: 1.25
-              }}>
-                Ohm's Law: Verification & Resistance Analysis
-              </h2>
-
-              <p style={{
-                margin: 0,
-                fontSize: 14,
-                color: 'rgba(255, 255, 255, 0.7)',
-                lineHeight: 1.55,
-                maxWidth: 680
-              }}>
-                Step into an interactive 3D physics laboratory workbench. Operate real-time analog ammeters and voltmeters, slide the rheostat, close the key switch, and verify V = I · R on a dynamic holographic V-I graph.
-              </p>
-
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14 }}>
-                {['Analog Needle Meters', 'Smooth Rheostat Slider', 'Real-time V-I Plot', 'First-Person 3D Lab', 'Formula: V = I · R'].map((f) => (
-                  <span key={f} style={{
-                    fontSize: 11.5,
-                    color: 'rgba(255, 255, 255, 0.85)',
-                    background: 'rgba(255, 255, 255, 0.08)',
-                    padding: '3px 9px',
-                    borderRadius: 5,
-                    border: '1px solid rgba(255, 255, 255, 0.1)'
-                  }}>
-                    {f}
-                  </span>
-                ))}
+              <p>Ask anything. The AI tutor explains it step by step, and Visiora's physics engine double-checks every number before you see it.</p>
+              <div className="sb-tutor-cta">
+                <a className="sb-btn is-ghost" href="/ai-tutor" onClick={go('/ai-tutor')}>Open the AI tutor →</a>
+                <img src={`${ART}boy-think.png`} alt="" loading="lazy" />
               </div>
             </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, zIndex: 1 }}>
-              <button
-                style={{
-                  background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
-                  color: '#FFFFFF',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  padding: '12px 22px',
-                  borderRadius: 10,
-                  fontSize: 14,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  boxShadow: '0 4px 14px rgba(37, 99, 235, 0.35)',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <span>Enter 3D Lab</span>
-                <ArrowUpRight size={17} />
-              </button>
+            <div className="sb-chat" aria-hidden="true">
+              <div className="sb-bubble-q">A stone is dropped from 19.6 m. How long does it take to land?</div>
+              <div className="sb-bubble-a">
+                <span className="sb-script">free fall</span>
+                <div className="sb-mono">t = √(2h ÷ g) = √(2 × 19.6 ÷ 9.8)<br />t = <mark>2 s</mark></div>
+                <span className="sb-stamp">✓ Engine checked</span>
+              </div>
             </div>
           </div>
-        )}
-
-        {/* ── 3D LABS COLLECTION GRID ──────────────────────────────────────── */}
-
-        {filteredLabs.length > 0 ? (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-            gap: 20
-          }}>
-            {filteredLabs.map((meta, i) => {
-            const isHovered = hoveredCard === meta.id
-            const currentScore = mastery[meta.id]?.score || 0
-
-            return (
-              <div
-                key={meta.id}
-                onClick={() => handleLaunchLab(meta.id)}
-                onMouseEnter={() => setHoveredCard(meta.id)}
-                onMouseLeave={() => setHoveredCard(null)}
-                className="card-editorial"
-                style={{
-                  padding: '24px 24px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 16,
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}
-              >
-                {/* Top Badge & Vector Icon */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 'var(--radius-md)',
-                    background: isHovered ? 'var(--obsidian-900)' : 'var(--cream-100)',
-                    border: `1px solid ${isHovered ? 'var(--obsidian-900)' : 'var(--color-border)'}`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: isHovered ? 'var(--gold-400)' : 'var(--obsidian-900)',
-                    boxShadow: 'var(--shadow-xs)',
-                    transition: 'all var(--transition-fast)'
-                  }}>
-                    <LabIcon id={meta.id} size={24} strokeWidth={2} />
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-                    <span className="badge-gold">
-                      {meta.badge}
-                    </span>
-                    <span className="mono" style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
-                      3D LAB
-                    </span>
-                  </div>
-                </div>
-
-                {/* Title & Description */}
-                <div>
-                  <h3 style={{
-                    margin: 0,
-                    fontSize: 18,
-                    fontFamily: 'var(--font-display)',
-                    fontWeight: 700,
-                    color: 'var(--obsidian-950)',
-                    letterSpacing: '-0.02em'
-                  }}>
-                    {meta.label} Lab
-                  </h3>
-                  <p style={{
-                    margin: '6px 0 0 0',
-                    fontSize: 13,
-                    color: 'var(--color-text-muted)',
-                    lineHeight: 1.55
-                  }}>
-                    {meta.description}
-                  </p>
-                </div>
-
-                {/* Mathematical Formula Pill */}
-                {meta.formula && (
-                  <div className="mono" style={{
-                    padding: '6px 12px',
-                    borderRadius: 'var(--radius-sm)',
-                    background: 'var(--cream-100)',
-                    border: '1px solid var(--color-border-subtle)',
-                    fontSize: 12,
-                    color: 'var(--obsidian-800)',
-                    fontWeight: 600
-                  }}>
-                    {meta.formula}
-                  </div>
-                )}
-
-                {/* Bottom Mastery & Launch Action */}
-                <div style={{
-                  marginTop: 'auto',
-                  paddingTop: 14,
-                  borderTop: '1px solid var(--color-border)',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
-                }}>
-                  <div>
-                    <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-faint)' }}>Mastery</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
-                      <div style={{ width: 70, height: 4, background: 'var(--cream-200)', borderRadius: 2, overflow: 'hidden' }}>
-                        <div style={{ width: `${currentScore}%`, height: '100%', background: 'var(--gold-500)' }} />
-                      </div>
-                      <span className="mono" style={{ fontSize: 12, fontWeight: 700, color: 'var(--obsidian-800)' }}>
-                        {currentScore}%
-                      </span>
-                    </div>
-                  </div>
-
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4,
-                    fontSize: 13,
-                    fontWeight: 700,
-                    color: isHovered ? 'var(--gold-600)' : 'var(--obsidian-900)',
-                    transition: 'color var(--transition-fast)'
-                  }}>
-                    Enter Lab
-                    <ArrowUpRight size={16} />
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      ) : (
-        <div style={{
-          padding: '48px 24px',
-          textAlign: 'center',
-          background: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          marginBottom: 32,
-          borderRadius: 0
-        }}>
-          <p style={{ margin: '0 0 12px 0', fontSize: 16, fontWeight: 700, color: 'var(--obsidian-900)' }}>
-            No 3D laboratory matched &ldquo;{topicSearchQuery}&rdquo;
-          </p>
-          <button
-            onClick={() => setTopicSearchQuery('')}
-            className="btn-navy-primary"
-            style={{
-              padding: '8px 20px',
-              background: '#002B66',
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: 0,
-              fontWeight: 600,
-              fontSize: 13,
-              cursor: 'pointer'
-            }}
-          >
-            Show All Laboratories
-          </button>
-        </div>
+        </section>
       )}
 
-        {/* ── 2D INTERACTIVE LABORATORIES (ADMIN-MANAGED WITH INSTANT REDIRECTION) ── */}
-        <div id="2d-labs" style={{ marginTop: 64, marginBottom: 20 }}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-end',
-            marginBottom: 26,
-            flexWrap: 'wrap',
-            gap: 16
-          }}>
-            <div>
-              <div style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                fontSize: 11,
-                fontWeight: 800,
-                letterSpacing: '0.1em',
-                textTransform: 'uppercase',
-                color: 'var(--gold-700)',
-                marginBottom: 6
-              }}>
-                <Globe size={13} color="var(--gold-600)" />
-                Curated External Network &bull; Interactive 2D
-              </div>
-              <h2 style={{
-                margin: 0,
-                fontSize: 26,
-                fontFamily: 'var(--font-display)',
-                fontWeight: 700,
-                color: 'var(--obsidian-950)',
-                letterSpacing: '-0.025em'
-              }}>
-                Curated 2D Interactive Laboratories
-              </h2>
-              <p style={{
-                margin: '6px 0 0 0',
-                fontSize: 14,
-                color: 'var(--color-text-muted)',
-                maxWidth: 680,
-                lineHeight: 1.55
-              }}>
-                Complementing our real-time 3D computational engines with premier two-dimensional interactive simulations from PhET Interactive Simulations, GeoGebra, and university research ateliers. Click any simulation image box or launch button to jump directly into the live interactive laboratory.
-              </p>
+      {/* 3D experiments */}
+      {(shown3D.length > 0 || showUnity) && (
+        <section className="sb-exps">
+          <div className="sb-wrap">
+            <div className="sb-head has-art">
+              <img className="sb-head-art is-right is-bird" src={`${ART}bird.png`} alt="" loading="lazy" />
+              <img className="sb-head-art is-left" src={`${ART}boy-reach.png`} alt="" loading="lazy" />
+              <span className="sb-script">spin them around!</span>
+              <h2>3D experiments</h2>
+              <span className="sb-rule is-sky" />
+            </div>
+            <div className="sb-exp-grid">
+              {showUnity && (
+                <button className="sb-exp" onClick={() => navigate('/virtual-lab')}>
+                  <span className="sb-porthole"><span><img src={`${CONCEPT}circuit-lab.svg`} alt="" loading="lazy" /></span></span>
+                  <span className="sb-exp-title">Walk-in Circuit Lab</span>
+                  <span className="sb-mono sb-exp-formula">V = I · R</span>
+                </button>
+              )}
+              {shown3D.map(lab => (
+                <button key={lab.id} className="sb-exp" onClick={() => open3D(lab.id)}>
+                  <span className="sb-porthole"><span><img src={lab.image} alt="" loading="lazy" /></span></span>
+                  <span className="sb-exp-title">{lab.label}</span>
+                  <span className="sb-mono sb-exp-formula">{lab.formula || lab.badge}</span>
+                </button>
+              ))}
             </div>
           </div>
+        </section>
+      )}
 
-          {filtered2dVisualizations.length > 0 ? (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-              gap: 24
-            }}>
-              {filtered2dVisualizations.map((vis) => {
-                const isHovered = hovered2dCard === vis.id
-                const labPath = vis.internalPath || `/sim-2d?lab=${vis.id.replace('vis-', '').replace('phet-', '')}`
-                return (
-                  <div
-                    key={vis.id}
-                    onMouseEnter={() => setHovered2dCard(vis.id)}
-                    onMouseLeave={() => setHovered2dCard(null)}
-                    onClick={() => {
-                      trackVisualizationClick(vis.id)
-                      navigate(labPath)
-                    }}
-                    style={{
-                      background: '#FFFFFF',
-                      border: isHovered ? '1px solid #002B66' : '1px solid var(--color-border)',
-                      borderRadius: 0, // Strict sharp corners
-                      boxShadow: isHovered
-                        ? '0 16px 36px rgba(0, 43, 102, 0.14)'
-                        : '0 4px 16px rgba(18, 14, 11, 0.05)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      cursor: 'pointer',
-                      overflow: 'hidden',
-                      transform: isHovered ? 'translateY(-3px)' : 'none',
-                      transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
-                    }}
-                  >
-                    {/* ── IMAGE BOX CONTAINER ── */}
-                    <div
-                      title={`Click to launch ${vis.title} in VISIORA 2D Studio`}
-                      style={{
-                        position: 'relative',
-                        width: '100%',
-                        height: 205,
-                        background: '#FAF4E8',
-                        overflow: 'hidden',
-                        cursor: 'pointer',
-                        borderRadius: 0
-                      }}
-                    >
-                      <img
-                        src={vis.imageUrl || 'https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=800&q=80'}
-                        alt={vis.title}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                          transform: isHovered ? 'scale(1.06)' : 'scale(1)',
-                          transition: 'transform 0.4s ease'
-                        }}
-                      />
-
-                      {/* Subtle Dark Gradient Overlay for Readability */}
-                      <div
-                        style={{
-                          position: 'absolute',
-                          inset: 0,
-                          background: 'linear-gradient(180deg, rgba(14, 12, 11, 0.45) 0%, transparent 40%, rgba(14, 12, 11, 0.6) 100%)',
-                          pointerEvents: 'none'
-                        }}
-                      />
-
-                      {/* Top Left: Category Badge */}
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: 12,
-                          left: 12,
-                          zIndex: 2,
-                          background: 'rgba(14, 12, 11, 0.85)',
-                          color: '#FFF9F0',
-                          padding: '4px 10px',
-                          fontSize: 10,
-                          fontWeight: 700,
-                          letterSpacing: '0.06em',
-                          textTransform: 'uppercase',
-                          borderRadius: 0,
-                          boxShadow: '0 2px 6px rgba(0,0,0,0.3)'
-                        }}
-                      >
-                        {vis.category || '2D Simulation'}
-                      </div>
-
-                      {/* Top Right: Custom Badge */}
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: 12,
-                          right: 12,
-                          zIndex: 2
-                        }}
-                      >
-                        <span
-                          className="badge-gold"
-                          style={{
-                            borderRadius: 0,
-                            padding: '4px 10px',
-                            fontSize: 10.5,
-                            fontWeight: 700,
-                            boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
-                          }}
-                        >
-                          {vis.badge || 'Interactive 2D'}
-                        </span>
-                      </div>
-
-                      {/* Floating Hover Cue inside Image Box */}
-                      <div
-                        style={{
-                          position: 'absolute',
-                          bottom: 12,
-                          right: 12,
-                          zIndex: 2,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 6,
-                          padding: '6px 14px',
-                          background: isHovered ? '#002B66' : 'rgba(0, 43, 102, 0.85)',
-                          color: '#FFFFFF',
-                          fontSize: 11.5,
-                          fontWeight: 700,
-                          borderRadius: 0,
-                          boxShadow: '0 4px 12px rgba(0, 43, 102, 0.4)',
-                          transform: isHovered ? 'scale(1.03)' : 'scale(1)',
-                          transition: 'all 0.2s ease'
-                        }}
-                      >
-                        <span>Launch 2D Studio</span>
-                        <ArrowUpRight size={13} />
-                      </div>
-                    </div>
-
-                    {/* Content Section */}
-                    <div style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', flex: 1, gap: 12 }}>
-                      <div>
-                        <h3
-                          style={{
-                            margin: 0,
-                            fontSize: 17,
-                            fontFamily: 'var(--font-display)',
-                            fontWeight: 700,
-                            color: 'var(--obsidian-950)',
-                            letterSpacing: '-0.02em',
-                            lineHeight: 1.35
-                          }}
-                        >
-                          {vis.title}
-                        </h3>
-                        {vis.subtitle && (
-                          <p
-                            style={{
-                              margin: '8px 0 0 0',
-                              fontSize: 13,
-                              color: 'var(--color-text-muted)',
-                              lineHeight: 1.55
-                            }}
-                          >
-                            {vis.subtitle}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Footer Row */}
-                      <div
-                        style={{
-                          marginTop: 'auto',
-                          paddingTop: 14,
-                          borderTop: '1px solid var(--color-border)',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center'
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span className="mono" style={{ fontSize: 11.5, color: 'var(--color-text-faint)', fontWeight: 600 }}>
-                            {vis.clicks || 0} launches
-                          </span>
-                        </div>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              trackVisualizationClick(vis.id)
-                              window.open(vis.targetUrl, '_blank', 'noopener,noreferrer')
-                            }}
-                            title="Open external simulation in standalone new tab"
-                            style={{
-                              background: 'transparent',
-                              border: '1px solid #D1D5DB',
-                              padding: '6px 8px',
-                              borderRadius: 0,
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: '#4B5563'
-                            }}
-                          >
-                            <ExternalLink size={13} />
-                          </button>
-
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              trackVisualizationClick(vis.id)
-                              navigate(labPath)
-                            }}
-                            className="btn-navy-primary"
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: 6,
-                              padding: '7px 16px',
-                              background: '#002B66',
-                              color: '#FFFFFF',
-                              border: 'none',
-                              borderRadius: 0,
-                              fontSize: 12,
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              boxShadow: '0 2px 8px rgba(0, 43, 102, 0.25)',
-                              transition: 'all 0.15s ease'
-                            }}
-                          >
-                            <span>Launch 2D Lab</span>
-                            <ArrowUpRight size={13} />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
+      {/* 2D visualisations */}
+      {shown2D.length > 0 && (
+        <section className="sb-list-sec">
+          <div className="sb-wrap">
+            <div className="sb-list-head">
+              <h3><img className="sb-list-art" src={`${ART}boy-push.png`} alt="" loading="lazy" />2D visualisations</h3>
+              <a href="/sim-2d" onClick={go('/sim-2d')}>See all 2D labs →</a>
             </div>
-          ) : (
-            <div
-              style={{
-                padding: '36px 24px',
-                textAlign: 'center',
-                background: '#FFFFFF',
-                border: '1px solid var(--color-border)',
-                borderRadius: 0
-              }}
-            >
-              <p style={{ margin: '0 0 8px 0', fontSize: 15, fontWeight: 700, color: 'var(--obsidian-900)' }}>
-                No 2D simulations match &ldquo;{topicSearchQuery}&rdquo;
-              </p>
-              <p style={{ margin: 0, fontSize: 13, color: 'var(--color-text-muted)' }}>
-                Try searching for electromagnetic, wave mechanics, or ray optics concepts.
-              </p>
+            <div className="sb-list">
+              {shown2D.map(v => (
+                <button key={v.id} className="sb-list-item" onClick={() => open2D(v)}>
+                  <span className="sb-script">{v.badge || '2D lab'}</span>
+                  <span className="sb-list-title">{v.title}</span>
+                  <span className="sb-list-sub">{v.subtitle || v.category}</span>
+                </button>
+              ))}
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* ── GSAP SCROLLTRIGGER PINNED PARALLAX SHOWCASE (INDRIYA STYLE) ── */}
-      <PeriodicParallaxSection onLaunchLab={handleLaunchLab} />
-
-
-      {/* ── FOOTER ───────────────────────────────────────────────────────── */}
-      <footer style={{
-        position: 'relative',
-        zIndex: 5,
-        marginTop: 0,
-        padding: '48px 24px 60px 24px',
-        borderTop: '1px solid var(--color-border)',
-        background: '#F7F3EB',
-        textAlign: 'center'
-      }}>
-        <div style={{ maxWidth: 1240, margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <img 
-              src="/images/visiora_lotus_logo.png" 
-              alt="VISIORA Lotus Logo" 
-              style={{
-                width: 34,
-                height: 34,
-                borderRadius: '50%',
-                objectFit: 'cover',
-                display: 'block',
-                boxShadow: '0 2px 8px rgba(18, 14, 11, 0.1)'
-              }} 
-            />
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 18, color: 'var(--obsidian-950)', letterSpacing: '0.04em' }}>
-              VISIORA
-            </span>
           </div>
+        </section>
+      )}
 
-          <p style={{ margin: 0, fontSize: 14, color: 'var(--color-text-muted)', maxWidth: 500 }}>
-            An atelier for physics inquiry and interactive computation. Dedicated to making physical intuition palpable through real-time 3D simulations.
-          </p>
-
-          <div style={{ fontSize: 12, color: 'var(--color-text-faint)', marginTop: 8 }}>
-            &copy; {new Date().getFullYear()} VISIORA Atelier &bull; Classical &amp; Quantum Mechanics Edition
+      {/* Blog */}
+      {!q && posts.length > 0 && (
+        <section className="sb-list-sec">
+          <div className="sb-wrap">
+            <div className="sb-list-head">
+              <h3>From the notebook</h3>
+              <a href="/blog">All articles →</a>
+            </div>
+            <div className="sb-list">
+              {posts.map(p => (
+                <a key={p.slug} className="sb-list-item" href={`/blog/${p.slug}`}>
+                  <span className="sb-script">{(p.keywords?.[0] || 'physics').slice(0, 28)}</span>
+                  <span className="sb-list-title">{p.title}</span>
+                  <span className="sb-list-sub">{p.description}</span>
+                </a>
+              ))}
+            </div>
           </div>
+        </section>
+      )}
+
+      <footer className="sb-foot">
+        <span className="sb-foot-cap" />
+        <img className="sb-foot-boy" src={`${ART}boy-wave.png`} alt="" loading="lazy" />
+        <img className="sb-foot-seal" src={`${ART}seal.png`} alt="" loading="lazy" />
+        <div className="sb-foot-row">
+          <span className="sb-brand is-lg"><img src="/images/visiora_lotus_logo.png" alt="" width="36" height="36" /> visiora</span>
+          <span className="sb-foot-note">made for curious minds ✶</span>
+          <span className="sb-foot-streak">✹ {streak}-day streak</span>
         </div>
       </footer>
-
     </div>
   )
 }

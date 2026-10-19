@@ -135,11 +135,14 @@ export default function QuizScreen() {
   if (loadError) {
     return (
       <div style={{ minHeight: '100dvh', backgroundColor: 'var(--color-bg)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 'var(--space-4)', padding: 'var(--space-6)' }}>
-        <div style={{ fontSize: 40 }}>😕</div>
-        <p style={{ color: 'var(--color-text-muted)', textAlign: 'center' }}>{loadError}</p>
-        <button onClick={loadQuiz} style={{ padding: 'var(--space-3) var(--space-8)', background: 'var(--color-primary)', color: 'white', borderRadius: 'var(--radius-full)', fontWeight: 'var(--weight-bold)', boxShadow: 'var(--shadow-navy)' }}>
-          Try Again
-        </button>
+        <p className="hand" style={{ fontSize: 30, margin: 0 }}>oops — the quiz didn't load</p>
+        <p style={{ color: 'var(--color-text-muted)', textAlign: 'center', maxWidth: 420 }}>
+          {/fetch|network/i.test(String(loadError)) ? 'The quiz server is offline right now. Try a lab instead, or check back soon.' : loadError}
+        </p>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+          <button className="stk-btn is-pink" onClick={loadQuiz}>Try again</button>
+          <button className="stk-btn" onClick={() => navigate('/')}>Back to labs</button>
+        </div>
       </div>
     )
   }

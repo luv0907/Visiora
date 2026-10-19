@@ -11,6 +11,8 @@ import { useMediaQuery } from '../hooks/useMediaQuery'
 import { useAuthStore } from '../store/useAuthStore'
 import { Target, Award, Flame, BookOpen, Clock, Zap, Atom, Star, Compass, User, CheckCircle2 } from 'lucide-react'
 import LabIcon from '../components/common/LabIcon'
+import { useLabStore } from '../store/useLabStore'
+import { LAB_GROUPS } from '../data/labCatalog'
 
 const BADGE_DEFS = [
   { id: 'first_session',               label: 'First Step',     Icon: Star,      desc: 'Log your first session' },
@@ -60,17 +62,17 @@ function MasteryBar({ score, animate }) {
     }
   }, [pct, animate])
 
-  const color = pct >= 80 ? 'var(--color-primary)' : pct >= 40 ? 'var(--navy-300)' : 'var(--navy-200)'
+  const color = pct >= 80 ? 'var(--bubblegum)' : pct >= 40 ? 'var(--sunflower)' : 'var(--sky)'
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', width: '100%' }}>
-      <div style={{ flex: 1, height: 8, borderRadius: 'var(--radius-full)', background: 'var(--navy-50)', overflow: 'hidden' }}>
+      <div style={{ flex: 1, height: 14, borderRadius: 'var(--radius-full)', background: 'var(--paper)', border: '2.5px solid var(--ink)', overflow: 'hidden' }}>
         <div style={{
           height: '100%', width: `${width}%`,
           borderRadius: 'var(--radius-full)', background: color,
           transition: 'width 1s var(--ease-decelerate)',
         }} />
       </div>
-      <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', minWidth: 32, textAlign: 'right', fontWeight: 'var(--weight-semibold)' }}>
+      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--ink)', minWidth: 40, textAlign: 'right', fontWeight: 700 }}>
         {pct}%
       </span>
     </div>
@@ -87,6 +89,7 @@ export default function ProgressScreen() {
   const [editForm, setEditForm] = useState({ name: '', grade: '', avatar: '' })
   const [isSaving, setIsSaving] = useState(false)
   const [barsVisible, setBarsVisible] = useState(false)
+  const labWon = useLabStore(s => s.won)
 
   useEffect(() => {
     fetchProfile()
@@ -177,26 +180,25 @@ export default function ProgressScreen() {
 
         {isDesktop && (
           <div style={{ marginBottom: 'var(--space-6)', paddingTop: 'var(--space-8)' }}>
-            <h1 style={{ fontSize: 'var(--text-3xl)', fontWeight: 'var(--weight-extrabold)' }}>My Progress</h1>
+            <h1 style={{ font: '900 44px var(--font-display)', letterSpacing: '-0.04em' }}>My progress</h1>
             <p style={{ fontSize: 'var(--text-base)', color: 'var(--color-text-muted)' }}>Overview of your mastery and learning activity</p>
           </div>
         )}
 
-        <div className="card" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)', marginBottom: 'var(--space-5)' }}>
+        {/* Stat stickers */}
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${isDesktop ? 4 : 2}, minmax(0, 1fr))`, gap: 18, marginBottom: 28 }}>
           {[
-            { label: 'Overall Mastery', value: `${Math.min(100, Math.max(0, Math.round(avgMastery)))}%`, Icon: Target },
-            { label: 'Badges Earned', value: `${badges.length} / ${BADGE_DEFS.length}`, Icon: Award },
-            { label: 'Day Streak', value: `${streak} days`, Icon: Flame },
-            { label: 'Sessions Logged', value: recentSessions.length, Icon: BookOpen },
-          ].map(s => {
-            const SIcon = s.Icon
+            { label: 'Overall mastery', value: `${Math.min(100, Math.max(0, Math.round(avgMastery)))}%`, Icon: Target, bg: 'var(--sky)' },
+            { label: 'Badges earned', value: `${badges.length} / ${BADGE_DEFS.length}`, Icon: Award, bg: 'var(--sunflower)' },
+            { label: 'Day streak', value: `${streak} ${streak === 1 ? 'day' : 'days'}`, Icon: Flame, bg: 'var(--tangerine)' },
+            { label: 'Sessions logged', value: recentSessions.length, Icon: BookOpen, bg: 'var(--grape)' },
+          ].map((st, i) => {
+            const SIcon = st.Icon
             return (
-              <div key={s.label} style={{ textAlign: 'center', padding: 'var(--space-2)' }}>
-                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6, color: 'var(--gold-600)' }}>
-                  <SIcon size={20} strokeWidth={2} />
-                </div>
-                <div style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--weight-extrabold)', color: 'var(--color-primary)' }}>{s.value}</div>
-                <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{s.label}</div>
+              <div key={st.label} className="stk" style={{ '--stk-bg': st.bg, padding: '16px 18px', transform: `rotate(${i % 2 ? 1 : -1}deg)` }}>
+                <SIcon size={26} strokeWidth={2.4} aria-hidden="true" />
+                <div style={{ font: '900 26px var(--font-display)', letterSpacing: '-0.03em', marginTop: 6 }}>{st.value}</div>
+                <div style={{ fontSize: 13, fontWeight: 700 }}>{st.label}</div>
               </div>
             )
           })}
@@ -206,26 +208,35 @@ export default function ProgressScreen() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
             <div className="card">
+              <h2 className="section-header">Lab challenges</h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {LAB_GROUPS.flatMap(g => g.labs).filter(l => l.challenges).map(l => {
+                  const done = Math.min(l.challenges, (labWon[l.id] || []).length)
+                  return (
+                    <button key={l.id} onClick={() => navigate(l.path)} className="stk stk-sm"
+                      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', textAlign: 'left', cursor: 'pointer', font: 'inherit', '--stk-bg': done === l.challenges ? 'var(--sunflower)' : '#FFFFFF' }}>
+                      <span style={{ flex: 1, fontWeight: 700 }}>{l.title}<span style={{ display: 'block', fontSize: 12.5, fontWeight: 500, color: 'var(--ink-soft)' }}>{l.chapter}</span></span>
+                      <span aria-label={`${done} of ${l.challenges} challenges`} style={{ fontSize: 18, letterSpacing: 2 }}>{'★'.repeat(done)}{'☆'.repeat(l.challenges - done)}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="card">
               <h2 className="section-header">Topic Mastery</h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
                 {Object.values(SCENE_META).map(({ id, label, icon }) => (
                   <div key={id}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-2)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                        <span style={{ fontSize: 18 }}>{icon}</span>
-                        <span style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' }}>{label}</span>
+                        <LabIcon id={icon || id} name={label} size={22} strokeWidth={2} />
+                        <span style={{ fontSize: 15, fontWeight: 700 }}>{label}</span>
                       </div>
                       <button
                         onClick={() => navigate(`/quiz/${id}`)}
-                        style={{
-                          fontSize: '10px', fontWeight: 'var(--weight-bold)',
-                          color: 'var(--color-primary)',
-                          border: '1px solid var(--navy-200)',
-                          borderRadius: 'var(--radius-full)',
-                          padding: '3px 10px',
-                          background: 'var(--navy-50)',
-                          minHeight: 'unset',
-                        }}
+                        className="stk-chip"
+                        style={{ cursor: 'pointer', background: 'var(--sky)' }}
                       >
                         Quiz
                       </button>

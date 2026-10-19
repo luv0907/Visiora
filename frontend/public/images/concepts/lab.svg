@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="A science flask with bubbling liquid">
+  <rect width="400" height="300" fill="#E8F3E2"/>
+  <path d="M176 40 H224 M182 40 V118 L120 238 Q112 262 138 262 H262 Q288 262 280 238 L218 118 V40" fill="#FFFDF8" stroke="#6B4A2B" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M146 188 H254 L280 238 Q288 262 262 262 H138 Q112 262 120 238 Z" fill="#A8D8DE" stroke="#6B4A2B" stroke-width="5" stroke-linejoin="round"/>
+  <g fill="#FFFDF8" stroke="#6B4A2B" stroke-width="3"><circle cx="180" cy="222" r="8"/><circle cx="214" cy="206" r="6"/><circle cx="236" cy="236" r="9"/><circle cx="200" cy="160" r="6"/><circle cx="206" cy="94" r="7"/></g>
+  <g stroke="#E3B53A" stroke-width="4" stroke-linecap="round"><path d="M110 70 l14 10"/><path d="M290 70 l-14 10"/><path d="M300 130 h-16"/><path d="M100 130 h16"/></g>
+</svg>

@@ -1,0 +1,183 @@
+/* ============================================================
+   VISIORA — Sticker Notebook building blocks
+   Use these classes on page chrome (cards, buttons, panels).
+   Never on experiment canvases/scenes: those keep their own look.
+   ============================================================ */
+
+/* Notebook paper: faint blue lines + red margin line */
+.nb-paper {
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(90deg, transparent 63px, var(--margin) 63px, var(--margin) 65px, transparent 65px),
+    repeating-linear-gradient(180deg, transparent 0, transparent 35px, var(--rule) 35px, var(--rule) 36px);
+}
+.nb-grid {
+  background-color: #FFFDF7;
+  background-image:
+    linear-gradient(rgba(76, 201, 240, 0.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(76, 201, 240, 0.22) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Sticker card: ink outline + hard offset shadow */
+.stk {
+  border: 3px solid var(--ink);
+  border-radius: var(--radius-lg);
+  box-shadow: 5px 5px 0 var(--ink);
+  background: var(--stk-bg, #FFFFFF); /* screens set --stk-bg; avoids CSS load-order fights */
+  color: var(--ink);
+}
+.stk-sm { border-width: 2.5px; box-shadow: 3px 3px 0 var(--ink); border-radius: var(--radius-md); }
+a.stk, button.stk { text-decoration: none; transition: transform 0.14s var(--ease-standard), box-shadow 0.14s var(--ease-standard); }
+a.stk:hover, button.stk:hover { transform: translate(-2px, -3px) rotate(0deg) !important; box-shadow: 8px 8px 0 var(--ink); color: var(--ink); }
+a.stk:active, button.stk:active { transform: translate(2px, 2px) !important; box-shadow: 2px 2px 0 var(--ink); }
+
+/* Chunky pill button */
+.stk-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 50px;
+  padding: 0 24px;
+  border: 3px solid var(--ink);
+  border-radius: var(--radius-full);
+  box-shadow: 4px 4px 0 var(--ink);
+  background: var(--stk-bg, #FFFFFF);
+  color: var(--ink);
+  font: 800 15px var(--font-display);
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.12s var(--ease-standard), box-shadow 0.12s var(--ease-standard);
+}
+.stk-btn:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); color: var(--ink); }
+.stk-btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+.stk-btn:disabled { opacity: 0.5; cursor: default; transform: none; box-shadow: 4px 4px 0 var(--ink); }
+.stk-btn.is-pink { background: var(--bubblegum); }
+.stk-btn.is-sun { background: var(--sunflower); }
+.stk-btn.is-sky { background: var(--sky); }
+.stk-btn.is-ink { background: var(--ink); color: var(--paper); box-shadow: 4px 4px 0 var(--bubblegum); }
+.stk-btn.is-ink:hover { color: var(--paper); box-shadow: 6px 6px 0 var(--bubblegum); }
+
+/* Label chip */
+.stk-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 2.5px solid var(--ink);
+  border-radius: var(--radius-full);
+  background: #FFFFFF;
+  font: 700 12.5px var(--font-body);
+  color: var(--ink);
+}
+
+/* Section label: ink tag, slightly tilted */
+.stk-tag {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 10px;
+  background: var(--ink);
+  color: var(--paper);
+  font: 800 14px var(--font-display);
+  letter-spacing: 0.04em;
+}
+
+/* Handwritten margin note */
+.hand { font-family: var(--font-hand); color: var(--grape-ink); }
+/* Formula sticker text */
+.formula { font-family: var(--font-mono); font-weight: 700; letter-spacing: -0.01em; }
+
+/* Strip of tape holding a card down */
+.tape {
+  position: absolute;
+  width: 92px;
+  height: 26px;
+  background: rgba(255, 210, 63, 0.78);
+  border-left: 2px dashed rgba(27, 19, 64, 0.16);
+  border-right: 2px dashed rgba(27, 19, 64, 0.16);
+  pointer-events: none;
+}
+
+/* Highlighter swash behind a word */
+.swash {
+  display: inline-block;
+  padding: 0 0.18em;
+  border: 3px solid var(--ink);
+  border-radius: 0.28em;
+  box-shadow: 4px 4px 0 var(--ink);
+  background: var(--sunflower);
+  transform: rotate(-2deg);
+}
+
+/* ── Shared screen classes (used by Progress, Quiz, …) ───────── */
+.screen-container {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 32px 24px calc(var(--bottom-nav-height) + 24px);
+}
+.card {
+  position: relative;
+  padding: 22px;
+  margin-bottom: 22px;
+  border: 3px solid var(--ink);
+  border-radius: var(--radius-lg);
+  box-shadow: 5px 5px 0 var(--ink);
+  background: #FFFFFF;
+  color: var(--ink);
+}
+.section-header {
+  margin: 0 0 16px;
+  font: 900 22px/1.2 var(--font-display);
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+.desktop-two-col {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.shimmer {
+  background: linear-gradient(90deg, var(--paper-deep) 0%, #FFFFFF 50%, var(--paper-deep) 100%);
+  background-size: 200% 100%;
+  border: 3px solid rgba(27, 19, 64, 0.15);
+  animation: shimmer 1.4s linear infinite;
+}
+@keyframes shimmer { to { background-position: -200% 0; } }
+.slide-up { animation: slide-up 0.35s var(--ease-spring) both; }
+@keyframes slide-up { from { opacity: 0; transform: translateY(14px); } }
+.spinner {
+  width: 32px; height: 32px;
+  border: 4px solid var(--paper-deep);
+  border-top-color: var(--bubblegum);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (max-width: 900px) {
+  .desktop-two-col { grid-template-columns: 1fr; }
+  .screen-container { padding: 20px 16px calc(var(--bottom-nav-height) + 20px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shimmer, .slide-up, .spinner { animation: none; }
+}
+
+/* On phones the margin line would cut through text: keep only the ruled lines. */
+@media (max-width: 700px) {
+  .nb-paper {
+    background-image: repeating-linear-gradient(180deg, transparent 0, transparent 35px, var(--rule) 35px, var(--rule) 36px);
+  }
+}
+
+/* Visible keyboard focus everywhere */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--grape-ink);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  a.stk, button.stk, .stk-btn { transition: none; }
+}

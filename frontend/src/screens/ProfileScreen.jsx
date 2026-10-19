@@ -2,7 +2,7 @@
  * VISIORA — ProfileScreen.jsx
  * 
  * Clean, professional, and fully functional Science Scholar Profile.
- * Cohesive Light Cream (#FAF8F5), Deep Navy Blue (#002B66), and Pure White (#FFFFFF) palette.
+ * Cohesive Light Cream (#FAF8F5), Deep Navy Blue (var(--ink)), and Pure White (#FFFFFF) palette.
  * 
  * Features:
  *  - Scholar Identity card with interactive avatar selector, academic grade, school name
@@ -156,8 +156,8 @@ export default function ProfileScreen() {
   return (
     <div style={{
       minHeight: '100dvh',
-      backgroundColor: '#FAF8F5', // Light Cream canvas
-      color: '#0A192F',           // Deep Navy typography
+      backgroundColor: 'var(--paper)', // Light Cream canvas
+      color: '#2A2158',           // Deep Navy typography
       padding: '24px 20px 80px',
       fontFamily: 'var(--font-body)'
     }}>
@@ -172,7 +172,7 @@ export default function ProfileScreen() {
           fontWeight: 700, 
           letterSpacing: '0.08em', 
           textTransform: 'uppercase', 
-          color: '#002B66',
+          color: 'var(--ink)',
           marginBottom: 16
         }}>
           <span onClick={() => navigate('/')} style={{ cursor: 'pointer', opacity: 0.7 }}>Home</span>
@@ -183,9 +183,9 @@ export default function ProfileScreen() {
         {/* ── HERO PROFILE IDENTIFICATION CARD ─────────────────────── */}
         <div style={{
           backgroundColor: '#FFFFFF',
-          border: '1px solid rgba(0, 43, 102, 0.14)',
-          borderRadius: 8,
-          boxShadow: '0 4px 20px rgba(0, 43, 102, 0.05)',
+          border: '3px solid var(--ink)',
+          borderRadius: 22,
+          boxShadow: '5px 5px 0 var(--ink)',
           padding: '28px 32px',
           display: 'flex',
           flexWrap: 'wrap',
@@ -200,13 +200,13 @@ export default function ProfileScreen() {
               width: 76,
               height: 76,
               borderRadius: 8,
-              backgroundColor: '#FAF8F5',
-              border: '2px solid #002B66',
+              backgroundColor: 'var(--paper)',
+              border: '2px solid var(--ink)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#002B66',
-              boxShadow: '0 4px 14px rgba(0, 43, 102, 0.12)',
+              color: 'var(--ink)',
+              boxShadow: '0 4px 14px rgba(27, 19, 64, 0.12)',
               position: 'relative',
               flexShrink: 0,
               overflow: 'hidden'
@@ -225,7 +225,7 @@ export default function ProfileScreen() {
                     position: 'absolute',
                     bottom: 2,
                     right: 2,
-                    backgroundColor: '#002B66',
+                    backgroundColor: 'var(--ink)',
                     color: '#FFFFFF',
                     borderRadius: 4,
                     padding: '2px 5px',
@@ -245,20 +245,20 @@ export default function ProfileScreen() {
                 <h1 style={{
                   fontSize: 24,
                   fontWeight: 800,
-                  color: '#0A192F',
+                  color: '#2A2158',
                   margin: 0,
                   fontFamily: 'var(--font-display)'
                 }}>
                   {displayName || 'Science Scholar'}
                 </h1>
                 <span style={{
-                  backgroundColor: 'rgba(0, 43, 102, 0.08)',
-                  color: '#002B66',
+                  backgroundColor: 'rgba(27, 19, 64, 0.08)',
+                  color: 'var(--ink)',
                   fontSize: 11,
                   fontWeight: 700,
                   padding: '3px 10px',
                   borderRadius: 4,
-                  border: '1px solid rgba(0, 43, 102, 0.2)',
+                  border: '1px solid rgba(27, 19, 64, 0.2)',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 4
@@ -268,18 +268,18 @@ export default function ProfileScreen() {
                 </span>
               </div>
 
-              <div style={{ fontSize: 13, color: '#4A5568', marginTop: 4, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
                 <span>{user?.email || 'scholar@visiora.edu'}</span>
                 <span>&bull;</span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <GraduationCap size={14} color="#002B66" />
+                  <GraduationCap size={14} color="var(--ink)" />
                   {grade}
                 </span>
                 {schoolName && (
                   <>
                     <span>&bull;</span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <School size={14} color="#002B66" />
+                      <School size={14} color="var(--ink)" />
                       {schoolName}
                     </span>
                   </>
@@ -291,28 +291,28 @@ export default function ProfileScreen() {
           {/* Quick Telemetry Pills */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{
-              backgroundColor: '#FAF8F5',
-              border: '1px solid rgba(0, 43, 102, 0.15)',
+              backgroundColor: 'var(--paper)',
+              border: '1px solid rgba(27, 19, 64, 0.15)',
               padding: '8px 16px',
               borderRadius: 6,
               textAlign: 'center'
             }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#4A5568', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Streak</div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: '#002B66', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Streak</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
                 <Flame size={16} color="#E28743" fill="#E28743" />
                 {streak} Days
               </div>
             </div>
 
             <div style={{
-              backgroundColor: '#FAF8F5',
-              border: '1px solid rgba(0, 43, 102, 0.15)',
+              backgroundColor: 'var(--paper)',
+              border: '1px solid rgba(27, 19, 64, 0.15)',
               padding: '8px 16px',
               borderRadius: 6,
               textAlign: 'center'
             }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#4A5568', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Labs Verified</div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: '#002B66' }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Labs Verified</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--ink)' }}>
                 3 / 6
               </div>
             </div>
@@ -323,7 +323,7 @@ export default function ProfileScreen() {
         <div style={{
           display: 'flex',
           gap: 8,
-          borderBottom: '2px solid rgba(0, 43, 102, 0.12)',
+          borderBottom: '2px solid rgba(27, 19, 64, 0.12)',
           marginBottom: 24
         }}>
           {[
@@ -344,10 +344,10 @@ export default function ProfileScreen() {
                   gap: 8,
                   padding: '12px 18px',
                   backgroundColor: isActive ? '#FFFFFF' : 'transparent',
-                  color: isActive ? '#002B66' : '#4A5568',
-                  borderTop: isActive ? '3px solid #002B66' : '3px solid transparent',
-                  borderLeft: isActive ? '1px solid rgba(0, 43, 102, 0.15)' : '1px solid transparent',
-                  borderRight: isActive ? '1px solid rgba(0, 43, 102, 0.15)' : '1px solid transparent',
+                  color: isActive ? 'var(--ink)' : 'var(--ink-soft)',
+                  borderTop: isActive ? '3px solid var(--ink)' : '3px solid transparent',
+                  borderLeft: isActive ? '1px solid rgba(27, 19, 64, 0.15)' : '1px solid transparent',
+                  borderRight: isActive ? '1px solid rgba(27, 19, 64, 0.15)' : '1px solid transparent',
                   borderBottom: isActive ? '2px solid #FFFFFF' : '2px solid transparent',
                   marginBottom: -2,
                   fontWeight: isActive ? 800 : 600,
@@ -368,19 +368,19 @@ export default function ProfileScreen() {
         {activeTab === 'identity' && (
           <div style={{
             backgroundColor: '#FFFFFF',
-            border: '1px solid rgba(0, 43, 102, 0.14)',
-            borderRadius: 8,
-            boxShadow: '0 4px 20px rgba(0, 43, 102, 0.04)',
+            border: '3px solid var(--ink)',
+            borderRadius: 22,
+            boxShadow: '5px 5px 0 var(--ink)',
             padding: 32
           }}>
-            <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0A192F', marginBottom: 20 }}>
+            <h2 style={{ fontSize: 18, fontWeight: 800, color: '#2A2158', marginBottom: 20 }}>
               Scholar Information & Scientific Persona
             </h2>
 
             <form onSubmit={handleSaveProfile}>
               {/* Avatar Selector Grid */}
               <div style={{ marginBottom: 28 }}>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#002B66', marginBottom: 10 }}>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--ink)', marginBottom: 10 }}>
                   Select Scientific Avatar & Specialty
                 </label>
                 <div style={{
@@ -395,8 +395,8 @@ export default function ProfileScreen() {
                         key={av.id}
                         onClick={() => setSelectedAvatar(av.id)}
                         style={{
-                          border: isSelected ? '2px solid #002B66' : '1px solid rgba(0, 43, 102, 0.15)',
-                          backgroundColor: isSelected ? 'rgba(0, 43, 102, 0.06)' : '#FAF8F5',
+                          border: isSelected ? '2px solid var(--ink)' : '1px solid rgba(27, 19, 64, 0.15)',
+                          backgroundColor: isSelected ? 'rgba(27, 19, 64, 0.06)' : 'var(--paper)',
                           borderRadius: 6,
                           padding: '12px 10px',
                           cursor: 'pointer',
@@ -413,16 +413,16 @@ export default function ProfileScreen() {
                           height: 40,
                           borderRadius: 6,
                           backgroundColor: '#FFFFFF',
-                          border: isSelected ? '1.5px solid #002B66' : '1px solid rgba(0, 43, 102, 0.2)',
+                          border: isSelected ? '1.5px solid var(--ink)' : '1px solid rgba(27, 19, 64, 0.2)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          color: '#002B66'
+                          color: 'var(--ink)'
                         }}>
                           <LabIcon id={av.icon} size={22} />
                         </div>
-                        <div style={{ fontSize: 12.5, fontWeight: 700, color: '#0A192F' }}>{av.name}</div>
-                        <div style={{ fontSize: 10, color: '#4A5568', fontWeight: 500 }}>{av.field}</div>
+                        <div style={{ fontSize: 12.5, fontWeight: 700, color: '#2A2158' }}>{av.name}</div>
+                        <div style={{ fontSize: 10, color: 'var(--ink-soft)', fontWeight: 500 }}>{av.field}</div>
                       </div>
                     )
                   })}
@@ -432,7 +432,7 @@ export default function ProfileScreen() {
               {/* Input Fields */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#002B66', marginBottom: 6 }}>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--ink)', marginBottom: 6 }}>
                     Scholar Display Name
                   </label>
                   <input
@@ -443,10 +443,10 @@ export default function ProfileScreen() {
                       width: '100%',
                       padding: '10px 14px',
                       borderRadius: 6,
-                      border: '1.5px solid rgba(0, 43, 102, 0.25)',
-                      backgroundColor: '#FAF8F5',
+                      border: '1.5px solid rgba(27, 19, 64, 0.25)',
+                      backgroundColor: 'var(--paper)',
                       fontSize: 14,
-                      color: '#0A192F',
+                      color: '#2A2158',
                       outline: 'none'
                     }}
                     placeholder="Your Name or Alias"
@@ -454,7 +454,7 @@ export default function ProfileScreen() {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#002B66', marginBottom: 6 }}>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--ink)', marginBottom: 6 }}>
                     Academic Level / Grade
                   </label>
                   <select
@@ -464,10 +464,10 @@ export default function ProfileScreen() {
                       width: '100%',
                       padding: '10px 14px',
                       borderRadius: 6,
-                      border: '1.5px solid rgba(0, 43, 102, 0.25)',
-                      backgroundColor: '#FAF8F5',
+                      border: '1.5px solid rgba(27, 19, 64, 0.25)',
+                      backgroundColor: 'var(--paper)',
                       fontSize: 14,
-                      color: '#0A192F',
+                      color: '#2A2158',
                       outline: 'none',
                       cursor: 'pointer'
                     }}
@@ -480,7 +480,7 @@ export default function ProfileScreen() {
               </div>
 
               <div style={{ marginBottom: 28 }}>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#002B66', marginBottom: 6 }}>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--ink)', marginBottom: 6 }}>
                   School or Institution Name (Optional)
                 </label>
                 <input
@@ -491,10 +491,10 @@ export default function ProfileScreen() {
                     width: '100%',
                     padding: '10px 14px',
                     borderRadius: 6,
-                    border: '1.5px solid rgba(0, 43, 102, 0.25)',
-                    backgroundColor: '#FAF8F5',
+                    border: '1.5px solid rgba(27, 19, 64, 0.25)',
+                    backgroundColor: 'var(--paper)',
                     fontSize: 14,
-                    color: '#0A192F',
+                    color: '#2A2158',
                     outline: 'none'
                   }}
                   placeholder="e.g. Delhi Public School, National Science Academy"
@@ -511,14 +511,14 @@ export default function ProfileScreen() {
                     alignItems: 'center',
                     gap: 8,
                     padding: '10px 24px',
-                    backgroundColor: '#002B66',
+                    backgroundColor: 'var(--ink)',
                     color: '#FFFFFF',
                     border: 'none',
                     borderRadius: 6,
                     fontSize: 13.5,
                     fontWeight: 700,
                     cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(0, 43, 102, 0.25)'
+                    boxShadow: '0 4px 12px rgba(27, 19, 64, 0.25)'
                   }}
                 >
                   <Save size={15} />
@@ -540,17 +540,17 @@ export default function ProfileScreen() {
         {activeTab === 'history' && (
           <div style={{
             backgroundColor: '#FFFFFF',
-            border: '1px solid rgba(0, 43, 102, 0.14)',
-            borderRadius: 8,
-            boxShadow: '0 4px 20px rgba(0, 43, 102, 0.04)',
+            border: '3px solid var(--ink)',
+            borderRadius: 22,
+            boxShadow: '5px 5px 0 var(--ink)',
             padding: 32
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
               <div>
-                <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0A192F', margin: 0 }}>
+                <h2 style={{ fontSize: 18, fontWeight: 800, color: '#2A2158', margin: 0 }}>
                   Recent Experiment Trials & Proofs
                 </h2>
-                <p style={{ fontSize: 13, color: '#4A5568', margin: '4px 0 0' }}>
+                <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '4px 0 0' }}>
                   Complete experimental ledger tracking formulas, measurements, and verification proofs.
                 </p>
               </div>
@@ -560,7 +560,7 @@ export default function ProfileScreen() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: 6,
-                  backgroundColor: '#002B66',
+                  backgroundColor: 'var(--ink)',
                   color: '#FFFFFF',
                   padding: '8px 16px',
                   borderRadius: 6,
@@ -580,8 +580,8 @@ export default function ProfileScreen() {
                 <div
                   key={item.id}
                   style={{
-                    backgroundColor: '#FAF8F5',
-                    border: '1px solid rgba(0, 43, 102, 0.14)',
+                    backgroundColor: 'var(--paper)',
+                    border: '1px solid rgba(27, 19, 64, 0.14)',
                     borderRadius: 6,
                     padding: '16px 20px',
                     display: 'flex',
@@ -597,11 +597,11 @@ export default function ProfileScreen() {
                       height: 44,
                       borderRadius: 6,
                       backgroundColor: '#FFFFFF',
-                      border: '1.5px solid rgba(0, 43, 102, 0.2)',
+                      border: '1.5px solid rgba(27, 19, 64, 0.2)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: '#002B66',
+                      color: 'var(--ink)',
                       flexShrink: 0
                     }}>
                       <LabIcon id={item.id} size={24} />
@@ -609,12 +609,12 @@ export default function ProfileScreen() {
 
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontSize: 15, fontWeight: 800, color: '#0A192F' }}>{item.title}</span>
+                        <span style={{ fontSize: 15, fontWeight: 800, color: '#2A2158' }}>{item.title}</span>
                         <span style={{
                           fontSize: 10,
                           fontWeight: 700,
-                          backgroundColor: 'rgba(0, 43, 102, 0.08)',
-                          color: '#002B66',
+                          backgroundColor: 'rgba(27, 19, 64, 0.08)',
+                          color: 'var(--ink)',
                           padding: '2px 8px',
                           borderRadius: 4
                         }}>
@@ -622,8 +622,8 @@ export default function ProfileScreen() {
                         </span>
                       </div>
 
-                      <div style={{ fontSize: 12, color: '#4A5568', marginTop: 4 }}>
-                        Target: <b style={{ color: '#002B66' }}>{item.formula}</b> &bull; {item.stat}
+                      <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 4 }}>
+                        Target: <b style={{ color: 'var(--ink)' }}>{item.formula}</b> &bull; {item.stat}
                       </div>
                     </div>
                   </div>
@@ -650,8 +650,8 @@ export default function ProfileScreen() {
                       style={{
                         padding: '6px 14px',
                         backgroundColor: '#FFFFFF',
-                        border: '1px solid #002B66',
-                        color: '#002B66',
+                        border: '1px solid var(--ink)',
+                        color: 'var(--ink)',
                         borderRadius: 4,
                         fontSize: 12,
                         fontWeight: 700,
@@ -671,12 +671,12 @@ export default function ProfileScreen() {
         {activeTab === 'mastery' && (
           <div style={{
             backgroundColor: '#FFFFFF',
-            border: '1px solid rgba(0, 43, 102, 0.14)',
-            borderRadius: 8,
-            boxShadow: '0 4px 20px rgba(0, 43, 102, 0.04)',
+            border: '3px solid var(--ink)',
+            borderRadius: 22,
+            boxShadow: '5px 5px 0 var(--ink)',
             padding: 32
           }}>
-            <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0A192F', marginBottom: 20 }}>
+            <h2 style={{ fontSize: 18, fontWeight: 800, color: '#2A2158', marginBottom: 20 }}>
               Curriculum Mastery & Science Honors
             </h2>
 
@@ -696,8 +696,8 @@ export default function ProfileScreen() {
                 <div
                   key={idx}
                   style={{
-                    backgroundColor: badge.earned ? '#FFFFFF' : '#FAF8F5',
-                    border: `1.5px solid ${badge.earned ? '#002B66' : 'rgba(0, 43, 102, 0.15)'}`,
+                    backgroundColor: badge.earned ? '#FFFFFF' : 'var(--paper)',
+                    border: `1.5px solid ${badge.earned ? 'var(--ink)' : 'rgba(27, 19, 64, 0.15)'}`,
                     borderRadius: 8,
                     padding: 18,
                     display: 'flex',
@@ -712,19 +712,19 @@ export default function ProfileScreen() {
                     width: 52,
                     height: 52,
                     borderRadius: 8,
-                    backgroundColor: badge.earned ? '#FAF8F5' : '#EFE8DC',
-                    border: `1.5px solid ${badge.earned ? '#002B66' : 'rgba(0, 43, 102, 0.2)'}`,
+                    backgroundColor: badge.earned ? 'var(--paper)' : 'var(--paper-deep)',
+                    border: `1.5px solid ${badge.earned ? 'var(--ink)' : 'rgba(27, 19, 64, 0.2)'}`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: badge.earned ? '#002B66' : '#6A5F54'
+                    color: badge.earned ? 'var(--ink)' : 'var(--ink-soft)'
                   }}>
                     <LabIcon id={badge.icon} size={28} />
                   </div>
 
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: '#0A192F' }}>{badge.title}</div>
-                    <div style={{ fontSize: 11, color: '#4A5568', marginTop: 4 }}>{badge.desc}</div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: '#2A2158' }}>{badge.title}</div>
+                    <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 4 }}>{badge.desc}</div>
                   </div>
 
                   <span style={{
@@ -732,8 +732,8 @@ export default function ProfileScreen() {
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
-                    color: badge.earned ? '#1B7F53' : '#6A5F54',
-                    backgroundColor: badge.earned ? '#F0F9F4' : '#EFE8DC',
+                    color: badge.earned ? '#1B7F53' : 'var(--ink-soft)',
+                    backgroundColor: badge.earned ? '#F0F9F4' : 'var(--paper-deep)',
                     padding: '2px 8px',
                     borderRadius: 4
                   }}>
@@ -749,12 +749,12 @@ export default function ProfileScreen() {
         {activeTab === 'settings' && (
           <div style={{
             backgroundColor: '#FFFFFF',
-            border: '1px solid rgba(0, 43, 102, 0.14)',
-            borderRadius: 8,
-            boxShadow: '0 4px 20px rgba(0, 43, 102, 0.04)',
+            border: '3px solid var(--ink)',
+            borderRadius: 22,
+            boxShadow: '5px 5px 0 var(--ink)',
             padding: 32
           }}>
-            <h2 style={{ fontSize: 18, fontWeight: 800, color: '#0A192F', marginBottom: 20 }}>
+            <h2 style={{ fontSize: 18, fontWeight: 800, color: '#2A2158', marginBottom: 20 }}>
               Platform Preferences & Security
             </h2>
 
@@ -765,15 +765,15 @@ export default function ProfileScreen() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '14px 18px',
-                backgroundColor: '#FAF8F5',
-                border: '1px solid rgba(0, 43, 102, 0.12)',
+                backgroundColor: 'var(--paper)',
+                border: '1px solid rgba(27, 19, 64, 0.12)',
                 borderRadius: 6
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  {soundEnabled ? <Volume2 size={20} color="#002B66" /> : <VolumeX size={20} color="#6A5F54" />}
+                  {soundEnabled ? <Volume2 size={20} color="var(--ink)" /> : <VolumeX size={20} color="#6A5F54" />}
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#0A192F' }}>Laboratory Audio & Physical Effects</div>
-                    <div style={{ fontSize: 11.5, color: '#4A5568' }}>Meter clicks, switch contacts, and fluid motion audio.</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: '#2A2158' }}>Laboratory Audio & Physical Effects</div>
+                    <div style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>Meter clicks, switch contacts, and fluid motion audio.</div>
                   </div>
                 </div>
 
@@ -781,9 +781,9 @@ export default function ProfileScreen() {
                   onClick={() => setSoundEnabled(!soundEnabled)}
                   style={{
                     padding: '6px 14px',
-                    backgroundColor: soundEnabled ? '#002B66' : '#FFFFFF',
-                    color: soundEnabled ? '#FFFFFF' : '#002B66',
-                    border: '1.5px solid #002B66',
+                    backgroundColor: soundEnabled ? 'var(--ink)' : '#FFFFFF',
+                    color: soundEnabled ? '#FFFFFF' : 'var(--ink)',
+                    border: '1.5px solid var(--ink)',
                     borderRadius: 4,
                     fontSize: 12,
                     fontWeight: 700,
@@ -800,15 +800,15 @@ export default function ProfileScreen() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '14px 18px',
-                backgroundColor: '#FAF8F5',
-                border: '1px solid rgba(0, 43, 102, 0.12)',
+                backgroundColor: 'var(--paper)',
+                border: '1px solid rgba(27, 19, 64, 0.12)',
                 borderRadius: 6
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <RefreshCw size={20} color="#002B66" />
+                  <RefreshCw size={20} color="var(--ink)" />
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#0A192F' }}>Clear Local Simulation Ledger</div>
-                    <div style={{ fontSize: 11.5, color: '#4A5568' }}>Resets trial observations and regression tables back to clean slate.</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: '#2A2158' }}>Clear Local Simulation Ledger</div>
+                    <div style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>Resets trial observations and regression tables back to clean slate.</div>
                   </div>
                 </div>
 
@@ -841,16 +841,16 @@ export default function ProfileScreen() {
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '16px 20px',
-              backgroundColor: 'rgba(0, 43, 102, 0.04)',
-              border: '1.5px solid rgba(0, 43, 102, 0.18)',
+              backgroundColor: 'rgba(27, 19, 64, 0.04)',
+              border: '1.5px solid rgba(27, 19, 64, 0.18)',
               borderRadius: 6,
               marginBottom: 16
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <ShieldCheck size={22} color="#002B66" />
+                <ShieldCheck size={22} color="var(--ink)" />
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: '#002B66' }}>Visiora Executive Admin Studio</div>
-                  <div style={{ fontSize: 12, color: '#4A5568' }}>Manage 3D/2D virtual laboratories, customize home banners & review scholar analytics.</div>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--ink)' }}>Visiora Executive Admin Studio</div>
+                  <div style={{ fontSize: 12, color: 'var(--ink-soft)' }}>Manage 3D/2D virtual laboratories, customize home banners & review scholar analytics.</div>
                 </div>
               </div>
 
@@ -861,7 +861,7 @@ export default function ProfileScreen() {
                   alignItems: 'center',
                   gap: 6,
                   padding: '8px 16px',
-                  backgroundColor: '#002B66',
+                  backgroundColor: 'var(--ink)',
                   color: '#FFFFFF',
                   border: 'none',
                   borderRadius: 4,
@@ -876,7 +876,7 @@ export default function ProfileScreen() {
             </div>
 
             {/* Logout Section */}
-            <div style={{ borderTop: '1px solid rgba(0, 43, 102, 0.12)', paddingTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
+            <div style={{ borderTop: '1px solid rgba(27, 19, 64, 0.12)', paddingTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
               <button
                 onClick={handleLogout}
                 style={{

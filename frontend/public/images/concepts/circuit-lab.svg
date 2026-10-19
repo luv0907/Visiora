@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="A lab bench with a voltmeter, an ammeter and a resistor">
+  <rect width="400" height="300" fill="#3A4148"/>
+  <rect y="206" width="400" height="94" fill="#B9843D"/>
+  <path d="M0 206 H400" stroke="#6B4A2B" stroke-width="5"/>
+  <path d="M0 226 H400 M0 262 H400" stroke="#A3712F" stroke-width="3"/>
+  <g stroke="#6B4A2B" stroke-width="4">
+    <rect x="70" y="78" width="118" height="104" rx="12" fill="#FFFDF8"/>
+    <rect x="212" y="78" width="118" height="104" rx="12" fill="#FFFDF8"/>
+  </g>
+  <g fill="none" stroke="#3A4148" stroke-width="3"><path d="M90 150 A40 40 0 0 1 168 150"/><path d="M232 150 A40 40 0 0 1 310 150"/></g>
+  <g stroke="#3A4148" stroke-width="2.5"><path d="M94 134 l6 4 M129 110 v7 M164 134 l-6 4 M236 134 l6 4 M271 110 v7 M306 134 l-6 4"/></g>
+  <path d="M129 150 L152 118" stroke="#D0482B" stroke-width="4" stroke-linecap="round"/>
+  <path d="M271 150 L254 116" stroke="#D0482B" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="129" cy="150" r="6" fill="#3A4148"/><circle cx="271" cy="150" r="6" fill="#3A4148"/>
+  <text x="129" y="174" fill="#3A4148" font-family="ui-monospace, Menlo, monospace" font-size="18" font-weight="700" text-anchor="middle">V</text>
+  <text x="271" y="174" fill="#3A4148" font-family="ui-monospace, Menlo, monospace" font-size="18" font-weight="700" text-anchor="middle">A</text>
+  <path d="M110 182 C110 230 150 236 160 240" stroke="#D0482B" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <path d="M290 182 C290 230 250 236 240 240" stroke="#1E1E1E" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <path d="M160 240 h12 l6 -10 l10 20 l10 -20 l10 20 l10 -20 l6 10 h16" stroke="#E3B53A" stroke-width="5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+  <text x="200" y="50" fill="#FFF4D6" font-family="ui-monospace, Menlo, monospace" font-size="24" font-weight="700" text-anchor="middle">V = I · R</text>
+</svg>

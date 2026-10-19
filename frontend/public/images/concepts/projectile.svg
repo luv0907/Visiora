@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" role="img" aria-label="A ball launched at an angle following a parabolic path">
+  <defs>
+    <marker id="o" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#F08A3C"/></marker>
+    <marker id="y" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#C99A1E"/></marker>
+  </defs>
+  <rect width="400" height="300" fill="#FFF4D6"/>
+  <rect y="240" width="400" height="60" fill="#8DBF8B"/>
+  <path d="M0 240 H400" stroke="#6B4A2B" stroke-width="4"/>
+  <path d="M85 215 Q200 -20 330 240" stroke="#6B4A2B" stroke-width="3" stroke-dasharray="4 9" fill="none" stroke-linecap="round"/>
+  <g stroke="#6B4A2B" stroke-width="3" fill="#F08A3C"><circle cx="143" cy="128" r="10" opacity=".35"/><circle cx="204" cy="104" r="10" opacity=".55"/><circle cx="266" cy="141" r="12"/></g>
+  <g transform="translate(70 226) rotate(-62)"><rect x="-6" y="-14" width="46" height="28" rx="8" fill="#3A4148" stroke="#6B4A2B" stroke-width="4"/></g>
+  <circle cx="70" cy="232" r="16" fill="#D9A55B" stroke="#6B4A2B" stroke-width="4"/><circle cx="70" cy="232" r="5" fill="#6B4A2B"/>
+  <path d="M96 196 L120 148" stroke="#F08A3C" stroke-width="5" stroke-linecap="round" marker-end="url(#o)"/>
+  <path d="M96 196 H140" stroke="#C99A1E" stroke-width="4" stroke-linecap="round" marker-end="url(#y)"/>
+  <text x="128" y="140" fill="#C9661F" font-family="ui-monospace, Menlo, monospace" font-size="18" font-weight="700">v₀</text>
+  <path d="M330 240 V196" stroke="#6B4A2B" stroke-width="4"/>
+  <path d="M330 196 L356 206 L330 216 Z" fill="#D0482B" stroke="#6B4A2B" stroke-width="3" stroke-linejoin="round"/>
+</svg>
