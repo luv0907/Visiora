@@ -3,6 +3,10 @@ import { usePhysicsStore } from '../../store/usePhysicsStore'
 
 export default function ProjectileDiagram({ formulaState }) {
   if (!formulaState) return null
+  return <ProjectileDiagramContent formulaState={formulaState} />
+}
+
+function ProjectileDiagramContent({ formulaState }) {
 
   const { values, graphSeries } = formulaState
   const R = values.R || 10
