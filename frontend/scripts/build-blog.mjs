@@ -32,12 +32,12 @@ const BRAND = 'Visiora'
 
 // Labs a post can point readers to, matched by words in its title and keywords.
 const LABS = [
-  { path: '/gravity', name: 'Gravity Lab', blurb: 'Drop and throw balls on Earth, the Moon, Mars and Jupiter.', words: ['gravity', 'free fall', 'falling', 'projectile', 'galileo', 'acceleration due to gravity'] },
-  { path: '/motion', name: 'Motion Lab', blurb: 'Drive a car and watch its distance–time and speed–time graphs draw live.', words: ['motion', 'velocity', 'speed', 'distance', 'acceleration', 'kinematics', 'graph'] },
-  { path: '/force', name: 'Force Lab', blurb: 'Push a box against friction and see F = ma happen.', words: ['force', 'friction', 'newton', 'laws of motion', 'inertia', 'mass'] },
-  { path: '/light', name: 'Light Lab', blurb: 'Bend a laser through water, glass and diamond.', words: ['light', 'refraction', 'reflection', 'snell', 'lens', 'optics', 'total internal reflection'] },
-  { path: '/electricity', name: 'Electricity Lab', blurb: 'Build series and parallel circuits with a live ammeter and voltmeter.', words: ['electricity', 'circuit', 'ohm', 'current', 'voltage', 'resistance', 'resistor'] },
-  { path: '/board', name: 'Graph Board', blurb: 'Type any formula and see it plotted with sliders.', words: ['formula', 'equation', 'vector', 'function', 'plot'] },
+  { path: '/gravity', topic: 'Gravitation', name: 'Gravity Lab', blurb: 'Drop and throw balls on Earth, the Moon, Mars and Jupiter.', words: ['gravity', 'free fall', 'falling', 'projectile', 'galileo', 'acceleration due to gravity'] },
+  { path: '/motion', topic: 'Motion', name: 'Motion Lab', blurb: 'Drive a car and watch its distance–time and speed–time graphs draw live.', words: ['motion', 'velocity', 'speed', 'distance', 'acceleration', 'kinematics', 'graph'] },
+  { path: '/force', topic: 'Force & laws of motion', name: 'Force Lab', blurb: 'Push a box against friction and see F = ma happen.', words: ['force', 'friction', 'newton', 'laws of motion', 'inertia', 'mass'] },
+  { path: '/light', topic: 'Light', name: 'Light Lab', blurb: 'Bend a laser through water, glass and diamond.', words: ['light', 'refraction', 'reflection', 'snell', 'lens', 'optics', 'total internal reflection'] },
+  { path: '/electricity', topic: 'Electricity', name: 'Electricity Lab', blurb: 'Build series and parallel circuits with a live ammeter and voltmeter.', words: ['electricity', 'circuit', 'ohm', 'current', 'voltage', 'resistance', 'resistor'] },
+  { path: '/board', topic: 'Graphs & formulas', name: 'Graph Board', blurb: 'Type any formula and see it plotted with sliders.', words: ['formula', 'equation', 'vector', 'function', 'plot'] },
 ]
 
 // ── helpers ──────────────────────────────────────────────────
@@ -91,6 +91,11 @@ function loadPosts() {
   return posts.filter(p => p.date <= today).sort((a, b) => (a.date < b.date ? 1 : -1))
 }
 
+// Plain text from an HTML fragment: drop tags, decode the common entities.
+function decodeText(fragment) {
+  return String(fragment).replace(/<[^>]+>/g, ' ').replace(/&#39;|&apos;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim()
+}
+
 function renderMarkdown(md) {
   const toc = []
   const used = new Set()
@@ -99,14 +104,12 @@ function renderMarkdown(md) {
     renderer: {
       heading({ tokens, depth }) {
         const text = this.parser.parseInline(tokens)
-        // Plain text for the anchor and table of contents: drop tags, decode entities.
-        const plain = text.replace(/<[^>]+>/g, '').replace(/&#39;|&apos;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')
+        const plain = decodeText(text)
         let id = slugify(plain) || 'section'
         while (used.has(id)) id += '-x'
         used.add(id)
         // The page already has the title as its only <h1>; demote any h1 in the body.
         const level = Math.max(2, depth)
-        if (level === 2) toc.push({ id, text: plain })
         return `<h${level} id="${id}">${text}</h${level}>\n`
       },
       image({ href, title, text }) {
@@ -119,8 +122,20 @@ function renderMarkdown(md) {
       },
     },
   })
-  const html = marked.parse(md)
-  const words = md.replace(/[#>*_`~[\]()!-]/g, ' ').split(/\s+/).filter(Boolean).length
+  // Articles from the n8n workflow arrive as raw HTML, which marked passes through
+  // untouched. Give those headings anchors too (demoting any <h1>, since the page
+  // title is the only one), then build the table of contents from every <h2> in
+  // document order, whichever way it was written.
+  let html = marked.parse(md).replace(/<h([1-3])(\s[^>]*)?>([\s\S]*?)<\/h\1>/gi, (whole, lvl, attrs = '', inner) => {
+    const level = Math.max(2, Number(lvl))
+    if (/\sid\s*=/.test(attrs)) return level === Number(lvl) ? whole : `<h${level}${attrs}>${inner}</h${level}>`
+    let id = slugify(decodeText(inner)) || 'section'
+    while (used.has(id)) id += '-x'
+    used.add(id)
+    return `<h${level} id="${id}"${attrs}>${inner}</h${level}>`
+  })
+  for (const m of html.matchAll(/<h2\b[^>]*\sid="([^"]+)"[^>]*>([\s\S]*?)<\/h2>/gi)) toc.push({ id: m[1], text: decodeText(m[2]) })
+  const words = decodeText(md).replace(/[#>*_`~[\]()!-]/g, ' ').split(/\s+/).filter(Boolean).length
   return { html, toc, minutes: Math.max(1, Math.round(words / 200)) }
 }
 
@@ -143,6 +158,12 @@ function related(post, all) {
     .sort((a, b) => b.score - a.score || (a.p.date < b.p.date ? 1 : -1))
     .slice(0, 3)
     .map(x => x.p)
+}
+
+// Short topic label shown above titles: frontmatter `category`, else the matching
+// lab's chapter, else the first keyword.
+function topicOf(post) {
+  return post.category || labFor(post)?.topic || post.keywords[0] || 'Physics'
 }
 
 // ── page shell ───────────────────────────────────────────────
@@ -261,7 +282,7 @@ ${body}
 function card(p) {
   const r = renderMarkdown(p.body)
   return `<a class="card" href="/blog/${p.slug}">
-<div class="thumb">${p.image ? `<img src="${esc(p.image)}" alt="${esc(p.imageAlt || p.title)}" loading="lazy" decoding="async" width="640" height="360">` : `<div class="cover" aria-hidden="true"><span>${esc(p.keywords[0] || 'Physics')}</span></div>`}</div>
+<div class="thumb">${p.image ? `<img src="${esc(p.image)}" alt="${esc(p.imageAlt || p.title)}" loading="lazy" decoding="async" width="640" height="360">` : `<div class="cover" aria-hidden="true"><span>${esc(topicOf(p))}</span></div>`}</div>
 <div class="body"><h3>${esc(p.title)}</h3><p>${esc(p.description)}</p>
 <div class="meta"><time datetime="${p.date}">${fmtDate(p.date)}</time><span>·</span><span>${r.minutes} min read</span></div></div>
 </a>`
@@ -300,7 +321,7 @@ function postPage(post, all) {
   const body = `<article class="wrap">
 <nav class="crumbs" aria-label="Breadcrumb"><a href="/">${BRAND}</a> › <a href="/blog">Blog</a> › <span>${esc(post.title)}</span></nav>
 <div class="post-head">
-${post.keywords[0] ? `<span class="kicker">${esc(post.keywords[0])}</span>` : ''}
+<span class="kicker">${esc(topicOf(post))}</span>
 <h1>${esc(post.title)}</h1>
 <p class="lede">${esc(post.description)}</p>
 <div class="meta"><span>By ${esc(post.author || `${BRAND} team`)}</span><span>·</span><time datetime="${post.date}">${fmtDate(post.date)}</time>${post.updated !== post.date ? `<span>·</span><span>Updated <time datetime="${post.updated}">${fmtDate(post.updated)}</time></span>` : ''}<span>·</span><span>${minutes} min read</span></div>
