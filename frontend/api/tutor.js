@@ -4,7 +4,7 @@
  * Calls Google Gemini on the server so the API key never reaches the browser.
  * Env (Vercel project settings, NOT prefixed with VITE_):
  *   GEMINI_API_KEY   required — from aistudio.google.com/apikey
- *   GEMINI_MODEL     optional — defaults to gemini-2.5-flash
+ *   GEMINI_MODEL     optional — defaults to gemini-3.8-flash (2.5 models are closed to new API keys)
  *
  * Body: { message: string, history?: [{ role: 'user'|'assistant', content }] }
  * Reply: { data } with the normalized answer (see src/ai/tutorCore.js), or { error }.
@@ -45,7 +45,7 @@ export default async function handler(req, res) {
   if (!message) return res.status(400).json({ error: 'Please type a question.' })
   if (message.length > MAX_MESSAGE) return res.status(400).json({ error: `Please keep questions under ${MAX_MESSAGE} characters.` })
 
-  const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash'
+  const model = process.env.GEMINI_MODEL || 'gemini-3.8-flash'
   try {
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
       method: 'POST',
