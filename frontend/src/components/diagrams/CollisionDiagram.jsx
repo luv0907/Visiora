@@ -3,6 +3,10 @@ import { usePhysicsStore } from '../../store/usePhysicsStore'
 
 export default function CollisionDiagram({ formulaState }) {
   if (!formulaState) return null
+  return <CollisionDiagramContent formulaState={formulaState} />
+}
+
+function CollisionDiagramContent({ formulaState }) {
 
   const { values } = formulaState
   const { m1, m2, u1, u2, v1, v2, p_before, p_after } = values
