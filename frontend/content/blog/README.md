@@ -28,7 +28,8 @@ Don't add a # title — the page already shows `title` as its heading.
 | `title` | yes | Used for the page title and heading. |
 | `description` | yes | Meta description and social preview text. |
 | `date` | yes | `YYYY-MM-DD`. Posts dated in the future stay hidden until that day. |
-| `keywords` | no | `[a, b, c]` or `a, b, c`. The first one is shown as the category; they drive related posts and which lab is suggested. |
+| `keywords` | no | `[a, b, c]` or `a, b, c`. They drive related posts and which lab is suggested. |
+| `category` | no | Short label above the title (e.g. `Gravitation`). Defaults to the matching lab's chapter. |
 | `slug` | no | Defaults to the file name. |
 | `image` | no | Put the file in `public/blog/images/` and reference it as `/blog/images/<file>`. Prefer WebP or JPEG under ~300 KB. |
 | `imageAlt` | no | Describe the image for screen readers and Google Images. |
