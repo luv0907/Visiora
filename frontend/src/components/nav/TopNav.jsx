@@ -1,8 +1,7 @@
 /**
- * VISIORA — TopNav
- * Desktop top navigation bar in creamy luxury editorial style.
- * All menu buttons provide floating dropdown menus showing all visualizations,
- * quizzes, and mastery dashboards with sharp architectural corners.
+ * VISIORA — TopNav ("Storybook" design)
+ * Desktop header: streak chip, logo tile, profile, and a lettered nav row.
+ * 3D Simulator, 2D Labs, Mastery and Quiz open dropdown menus.
  */
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
@@ -10,24 +9,8 @@ import { useProgressStore } from '../../store/useProgressStore'
 import { useAuthStore } from '../../store/useAuthStore'
 import { useUIStore } from '../../store/useUIStore'
 import LabIcon from '../common/LabIcon'
-import { 
-  Flame, 
-  Sparkles, 
-  User, 
-  ChevronDown, 
-  ArrowUpRight, 
-  Award, 
-  Target, 
-  Compass, 
-  BookOpen, 
-  HelpCircle,
-  ShieldCheck,
-  Globe,
-  ExternalLink,
-  Zap,
-  Activity,
-  Sliders
-} from 'lucide-react'
+import './topnav.css'
+import { Flame, Sparkles, ChevronDown, ArrowUpRight, Award, Target, Compass, Zap, Activity, Sliders } from 'lucide-react'
 import { useAdminStore } from '../../store/useAdminStore'
 
 // ── 3D SIMULATOR VISUALIZATIONS ──────────────────────────────────────
@@ -177,19 +160,9 @@ export default function TopNav() {
   const active2DExperiments = (get2DExperiments ? get2DExperiments(true) : [])
   const display2DList = active2DExperiments.length > 0 ? active2DExperiments : []
 
-  const [isScrolled, setIsScrolled] = useState(false)
   const [openDropdown, setOpenDropdown] = useState(null) // 'sim' | 'progress' | 'quiz' | null
   const navContainerRef = useRef(null)
   const hoverTimeoutRef = useRef(null)
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 15)
-    }
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    handleScroll()
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
 
   // Close dropdown on outside click or Escape key
   useEffect(() => {
@@ -300,766 +273,113 @@ export default function TopNav() {
     navigate(path)
   }
 
-  return (
-    <nav
-      role="navigation"
-      style={{
-        position: 'sticky',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 'var(--z-header)',
-        backgroundColor: isScrolled ? 'rgba(255, 247, 232, 0.97)' : 'var(--paper)',
-        borderBottom: isScrolled ? '3px solid var(--ink)' : '3px solid transparent',
-        height: '72px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        transition: 'background-color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease, backdrop-filter 0.35s ease'
-      }}
-    >
-      <div 
-        ref={navContainerRef}
-        style={{
-          width: '100%',
-          maxWidth: '1240px',
-          padding: '0 24px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          height: '100%',
-          boxSizing: 'border-box'
-        }}
-      >
-        {/* Left: Logo */}
-        <div 
-          onClick={() => {
-            setOpenDropdown(null)
-            navigate('/')
-          }}
-          style={{ 
-            fontFamily: 'var(--font-display)', 
-            fontSize: 24, 
-            fontWeight: 900,
-            color: 'var(--ink)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            letterSpacing: '-0.03em'
-          }}
-        >
-          <img 
-            src="/images/visiora_lotus_logo.png" 
-            alt="VISIORA Lotus Logo" 
-            style={{
-              width: 42,
-              height: 42,
-              borderRadius: '50%',
-              objectFit: 'cover',
-              display: 'block'
-            }} 
-          />
-          visiora
-        </div>
+  const keepOpen = () => { if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current) }
 
-        {/* Center: Nav Tabs with Dropdown Anchors */}
-        <div style={{
-          display: 'flex',
-          gap: 4,
-          background: 'transparent',
-          padding: 4
-        }}>
-          {TABS.map(tab => {
-            const active = activeTab === tab.id
-            const isOpen = openDropdown === tab.id
-
-            return (
-              <div 
-                key={tab.id} 
-                style={{ position: 'relative' }}
-                onMouseEnter={() => handleTabMouseEnter(tab)}
-                onMouseLeave={handleTabMouseLeave}
-              >
-                <button
-                  onClick={() => handleTabClick(tab)}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    minHeight: 42,
-                    padding: '0 16px',
-                    borderRadius: 999,
-                    fontFamily: 'var(--font-body)',
-                    fontSize: 14,
-                    fontWeight: 700,
-                    color: active || isOpen ? 'var(--paper)' : 'var(--ink)',
-                    backgroundColor: active || isOpen ? 'var(--ink)' : (tab.isSpecial ? 'var(--sunflower)' : 'transparent'),
-                    border: active || isOpen || tab.isSpecial ? '2.5px solid var(--ink)' : '2.5px solid transparent',
-                    transition: 'all var(--duration-fast)',
-                    boxShadow: active || isOpen ? '3px 3px 0 var(--bubblegum)' : (tab.isSpecial ? '3px 3px 0 var(--ink)' : 'none'),
-                    cursor: 'pointer'
-                  }}
-                >
-                  {tab.isSpecial && <Sparkles size={15} strokeWidth={2.5} color={active || isOpen ? 'var(--sunflower)' : 'var(--ink)'} />}
-                  <span>{tab.label}</span>
-                  {tab.hasDropdown && (
-                    <ChevronDown
-                      size={13}
-                      style={{
-                        transform: isOpen ? 'rotate(180deg)' : 'none',
-                        transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                        opacity: active || isOpen ? 0.9 : 0.6
-                      }}
-                    />
-                  )}
-                </button>
-
-                {/* Invisible hover bridge ensuring smooth cursor transition to dropdown */}
-                {isOpen && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '100%',
-                      left: -20,
-                      right: -20,
-                      height: 12,
-                      zIndex: 999
-                    }}
-                  />
-                )}
-
-                {/* ── 3D & 2D SIMULATOR DROPDOWN (ALL VISUALIZATIONS) ── */}
-                {isOpen && tab.id === 'sim' && (
-                  <div
-                    onMouseEnter={() => { if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current) }}
-                    onMouseLeave={handleTabMouseLeave}
-                    data-lenis-prevent="true"
-                    style={{
-                      position: 'absolute',
-                      top: 'calc(100% + 8px)',
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      width: 390,
-                      maxHeight: '480px',
-                      overflowY: 'auto',
-                      overscrollBehavior: 'contain',
-                      borderRadius: 14,
-                      background: '#FAF8F5',
-                      border: '1px solid rgba(27, 19, 64, 0.18)',
-                      borderTop: '3px solid var(--ink)',
-                      boxShadow: '0 16px 40px rgba(27, 19, 64, 0.15)',
-                      zIndex: 1000,
-                      padding: '6px 0',
-                      animation: 'fadeIn 0.15s ease-out'
-                    }}
-                  >
-                    {/* Header: 3D Labs */}
-                    <div
-                      style={{
-                        padding: '10px 16px',
-                        fontSize: 10.5,
-                        fontWeight: 800,
-                        letterSpacing: '0.1em',
-                        textTransform: 'uppercase',
-                        color: 'var(--ink)',
-                        borderBottom: '1px solid rgba(27, 19, 64, 0.12)',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        background: 'rgba(27, 19, 64, 0.05)'
-                      }}
-                    >
-                      <span>3D Physics Engines</span>
-                      <span style={{ fontSize: 10, color: 'var(--ink)', fontWeight: 700, background: 'rgba(27, 19, 64, 0.08)', padding: '2px 6px' }}>
-                        {display3DList.length} Real-Time Labs
-                      </span>
-                    </div>
-
-                    {/* 3D Simulation List */}
-                    <div style={{ padding: '6px' }}>
-                      {display3DList.map(sim => {
-                        const simLabel = sim.label || sim.title
-                        const simDesc = sim.desc || sim.subtitle || sim.formula || 'Interactive 3D Simulation'
-                        const simBadge = sim.badge || '3D Lab'
-                        const simIcon = sim.icon || 'ohmslaw'
-
-                        return (
-                        <div
-                          key={sim.id}
-                          onClick={() => {
-                            trackExperimentClick(sim.id)
-                            handleLaunchSim(sim)
-                          }}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '10px 12px',
-                            borderRadius: 14,
-                            cursor: 'pointer',
-                            transition: 'all 0.15s ease',
-                            border: '1px solid transparent',
-                            marginBottom: 2
-                          }}
-                          onMouseEnter={e => {
-                            e.currentTarget.style.background = '#FFFFFF'
-                            e.currentTarget.style.borderColor = 'rgba(27, 19, 64, 0.22)'
-                            e.currentTarget.style.transform = 'translateX(3px)'
-                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(27, 19, 64, 0.08)'
-                          }}
-                          onMouseLeave={e => {
-                            e.currentTarget.style.background = 'transparent'
-                            e.currentTarget.style.borderColor = 'transparent'
-                            e.currentTarget.style.transform = 'none'
-                            e.currentTarget.style.boxShadow = 'none'
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                            <div
-                              style={{
-                                width: 36,
-                                height: 36,
-                                borderRadius: 14,
-                                background: '#FFFFFF',
-                                border: '1px solid rgba(27, 19, 64, 0.2)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: 'var(--ink)',
-                                flexShrink: 0
-                              }}
-                            >
-                              <LabIcon id={sim.id} name={simIcon} size={18} />
-                            </div>
-                            <div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <span style={{ fontSize: 13.5, fontWeight: 700, color: '#2A2158' }}>
-                                  {simLabel}
-                                </span>
-                                <span style={{ 
-                                  fontSize: 9.5, 
-                                  fontWeight: 700, 
-                                  color: 'var(--ink)', 
-                                  background: 'rgba(27, 19, 64, 0.08)',
-                                  border: '1px solid rgba(27, 19, 64, 0.15)',
-                                  padding: '1px 6px',
-                                  borderRadius: 14,
-                                }}>
-                                  {simBadge}
-                                </span>
-                              </div>
-                              <div style={{ fontSize: 11, color: '#4A5568', marginTop: 2, fontWeight: 500, lineHeight: 1.25 }}>
-                                {simDesc}
-                              </div>
-                            </div>
-                          </div>
-
-                          <ArrowUpRight size={15} color="var(--ink)" style={{ flexShrink: 0, marginLeft: 8 }} />
-                        </div>
-                      )})}
-                    </div>
-
-                    {/* Footer Shortcut to 2D Studios */}
-                    <div style={{ padding: '8px 12px', borderTop: '1px solid rgba(27, 19, 64, 0.1)', background: '#F4EFE6' }}>
-                      <div
-                        onClick={() => {
-                          setOpenDropdown(null)
-                          navigate('/sim-2d')
-                        }}
-                        style={{
-                          fontSize: 11.5,
-                          fontWeight: 700,
-                          color: 'var(--ink)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          cursor: 'pointer',
-                          padding: '4px 6px'
-                        }}
-                      >
-                        <span>Looking for 2D Interactive Studios?</span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                          Explore 2D Labs <ArrowUpRight size={13} />
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* ── 2D LABORATORIES DROPDOWN ── */}
-                {isOpen && tab.id === 'sim2d' && (
-                  <div
-                    onMouseEnter={() => { if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current) }}
-                    onMouseLeave={handleTabMouseLeave}
-                    data-lenis-prevent="true"
-                    style={{
-                      position: 'absolute',
-                      top: 'calc(100% + 8px)',
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      width: 420,
-                      maxHeight: '480px',
-                      overflowY: 'auto',
-                      overscrollBehavior: 'contain',
-                      borderRadius: 14,
-                      background: '#FAF8F5',
-                      border: '1px solid rgba(27, 19, 64, 0.18)',
-                      borderTop: '3px solid var(--ink)',
-                      boxShadow: '0 16px 40px rgba(27, 19, 64, 0.15)',
-                      zIndex: 1000,
-                      padding: '6px 0',
-                      animation: 'fadeIn 0.15s ease-out'
-                    }}
-                  >
-                    {/* Header */}
-                    <div
-                      style={{
-                        padding: '10px 16px',
-                        fontSize: 10.5,
-                        fontWeight: 800,
-                        letterSpacing: '0.1em',
-                        textTransform: 'uppercase',
-                        color: 'var(--ink)',
-                        borderBottom: '1px solid rgba(27, 19, 64, 0.12)',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        background: 'rgba(27, 19, 64, 0.05)'
-                      }}
-                    >
-                      <span>Native 2D Physics Laboratories</span>
-                      <span style={{ fontSize: 10, color: 'var(--ink)', fontWeight: 700, background: 'rgba(27, 19, 64, 0.08)', padding: '2px 6px' }}>
-                        Atelier 2D Engine
-                      </span>
-                    </div>
-
-                    {/* Labs List */}
-                    <div style={{ padding: '6px' }}>
-                      {display2DList.map(vis => {
-                        return (
-                          <div
-                            key={vis.id}
-                            onClick={() => {
-                              trackExperimentClick(vis.id)
-                              handleLaunch2DLab(vis)
-                            }}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              padding: '10px 12px',
-                              borderRadius: 14,
-                              cursor: 'pointer',
-                              transition: 'all 0.15s ease',
-                              border: '1px solid transparent',
-                              marginBottom: 2
-                            }}
-                            onMouseEnter={e => {
-                              e.currentTarget.style.background = '#FFFFFF'
-                              e.currentTarget.style.borderColor = 'rgba(27, 19, 64, 0.22)'
-                              e.currentTarget.style.transform = 'translateX(3px)'
-                              e.currentTarget.style.boxShadow = '0 2px 8px rgba(27, 19, 64, 0.08)'
-                            }}
-                            onMouseLeave={e => {
-                              e.currentTarget.style.background = 'transparent'
-                              e.currentTarget.style.borderColor = 'transparent'
-                              e.currentTarget.style.transform = 'none'
-                              e.currentTarget.style.boxShadow = 'none'
-                            }}
-                          >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                              <div
-                                style={{
-                                  width: 36,
-                                  height: 36,
-                                  borderRadius: 14,
-                                  background: 'var(--ink)',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  color: '#FFFFFF',
-                                  flexShrink: 0
-                                }}
-                              >
-                                {vis.id.includes('energy') ? (
-                                  <Flame size={17} strokeWidth={2} />
-                                ) : vis.id.includes('circuit') ? (
-                                  <Zap size={17} strokeWidth={2} />
-                                ) : vis.id.includes('wave') ? (
-                                  <Activity size={17} strokeWidth={2} />
-                                ) : (
-                                  <Sliders size={17} strokeWidth={2} />
-                                )}
-                              </div>
-                              <div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                  <span style={{ fontSize: 13.5, fontWeight: 700, color: '#2A2158' }}>
-                                    {vis.title.split(':')[0]}
-                                  </span>
-                                  <span style={{
-                                    fontSize: 9.5,
-                                    fontWeight: 700,
-                                    color: 'var(--ink)',
-                                    background: 'rgba(27, 19, 64, 0.08)',
-                                    border: '1px solid rgba(27, 19, 64, 0.15)',
-                                    padding: '1px 6px',
-                                    borderRadius: 14,
-                                  }}>
-                                    {vis.badge || '2D Studio'}
-                                  </span>
-                                </div>
-                                <div style={{ fontSize: 11, color: '#4A5568', marginTop: 2, fontWeight: 500, lineHeight: 1.25 }}>
-                                  {vis.category} &bull; Interactive Studio Workbench
-                                </div>
-                              </div>
-                            </div>
-
-                            <ArrowUpRight size={15} color="var(--ink)" style={{ flexShrink: 0, marginLeft: 8 }} />
-                          </div>
-                        )
-                      })}
-                    </div>
-
-                    {/* Footer Launch Atelier Link */}
-                    <div style={{ padding: '8px 12px', borderTop: '1px solid rgba(0,43,102,0.1)', background: '#F4EFE6' }}>
-                      <button
-                        onClick={() => handleLaunch2DLab('/sim-2d?lab=energy-forms-and-changes')}
-                        style={{
-                          width: '100%',
-                          padding: '9px 14px',
-                          background: 'var(--ink)',
-                          color: '#FFFFFF',
-                          border: 'none',
-                          borderRadius: 14,
-                          fontSize: 12,
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: 6,
-                          boxShadow: '0 2px 8px rgba(27, 19, 64, 0.25)'
-                        }}
-                      >
-                        <span>Open 2D Atelier Studio</span>
-                        <ArrowUpRight size={13} />
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* ── QUIZ DROPDOWN (ALL TOPIC QUIZZES) ── */}
-                {isOpen && tab.id === 'quiz' && (
-                  <div
-                    onMouseEnter={() => { if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current) }}
-                    onMouseLeave={handleTabMouseLeave}
-                    data-lenis-prevent="true"
-                    style={{
-                      position: 'absolute',
-                      top: 'calc(100% + 8px)',
-                      right: 0,
-                      width: 370,
-                      maxHeight: '480px',
-                      overflowY: 'auto',
-                      overscrollBehavior: 'contain',
-                      borderRadius: 14,
-                      background: '#FAF8F5',
-                      border: '1px solid rgba(27, 19, 64, 0.18)',
-                      borderTop: '3px solid var(--ink)',
-                      boxShadow: '0 16px 40px rgba(27, 19, 64, 0.15)',
-                      zIndex: 1000,
-                      padding: '6px 0',
-                      animation: 'fadeIn 0.15s ease-out'
-                    }}
-                  >
-                    {/* Header */}
-                    <div
-                      style={{
-                        padding: '10px 16px',
-                        fontSize: 10.5,
-                        fontWeight: 800,
-                        letterSpacing: '0.1em',
-                        textTransform: 'uppercase',
-                        color: 'var(--ink)',
-                        borderBottom: '1px solid rgba(27, 19, 64, 0.12)',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        background: 'rgba(27, 19, 64, 0.05)'
-                      }}
-                    >
-                      <span>Physics Topic Quizzes</span>
-                      <span style={{ fontSize: 10, color: 'var(--ink)', fontWeight: 700, background: 'rgba(27, 19, 64, 0.08)', padding: '2px 6px' }}>
-                        {QUIZ_TOPICS.length} Challenges
-                      </span>
-                    </div>
-
-                    {/* Quiz List */}
-                    <div style={{ padding: '6px' }}>
-                      {QUIZ_TOPICS.map(quiz => (
-                        <div
-                          key={quiz.id}
-                          onClick={() => handleSelectQuiz(quiz.id)}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '10px 12px',
-                            borderRadius: 14,
-                            cursor: 'pointer',
-                            transition: 'all 0.15s ease',
-                            border: '1px solid transparent',
-                            marginBottom: 2
-                          }}
-                          onMouseEnter={e => {
-                            e.currentTarget.style.background = '#FFFFFF'
-                            e.currentTarget.style.borderColor = 'rgba(27, 19, 64, 0.22)'
-                            e.currentTarget.style.transform = 'translateX(3px)'
-                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(27, 19, 64, 0.08)'
-                          }}
-                          onMouseLeave={e => {
-                            e.currentTarget.style.background = 'transparent'
-                            e.currentTarget.style.borderColor = 'transparent'
-                            e.currentTarget.style.transform = 'none'
-                            e.currentTarget.style.boxShadow = 'none'
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                            <div
-                              style={{
-                                width: 36,
-                                height: 36,
-                                borderRadius: 14,
-                                background: '#FFFFFF',
-                                border: '1px solid rgba(27, 19, 64, 0.2)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: 'var(--ink)',
-                                flexShrink: 0
-                              }}
-                            >
-                              <LabIcon id={quiz.id} name={quiz.icon} size={18} />
-                            </div>
-                            <div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <span style={{ fontSize: 13.5, fontWeight: 700, color: '#2A2158' }}>
-                                  {quiz.label}
-                                </span>
-                                <span style={{ 
-                                  fontSize: 9.5, 
-                                  fontWeight: 700, 
-                                  color: 'var(--ink)', 
-                                  background: 'rgba(27, 19, 64, 0.08)',
-                                  border: '1px solid rgba(27, 19, 64, 0.15)',
-                                  padding: '1px 6px',
-                                  borderRadius: 14,
-                                }}>
-                                  {quiz.badge}
-                                </span>
-                              </div>
-                              <div style={{ fontSize: 11, color: '#4A5568', marginTop: 2, fontWeight: 500, lineHeight: 1.25 }}>
-                                {quiz.desc}
-                              </div>
-                            </div>
-                          </div>
-
-                          <ArrowUpRight size={15} color="var(--ink)" style={{ flexShrink: 0, marginLeft: 8 }} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* ── MASTERY DROPDOWN (DASHBOARD & BADGES) ── */}
-                {isOpen && tab.id === 'progress' && (
-                  <div
-                    onMouseEnter={() => { if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current) }}
-                    onMouseLeave={handleTabMouseLeave}
-                    data-lenis-prevent="true"
-                    style={{
-                      position: 'absolute',
-                      top: 'calc(100% + 8px)',
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      width: 350,
-                      maxHeight: '480px',
-                      overflowY: 'auto',
-                      overscrollBehavior: 'contain',
-                      borderRadius: 14,
-                      background: '#FAF8F5',
-                      border: '1px solid rgba(27, 19, 64, 0.18)',
-                      borderTop: '3px solid var(--ink)',
-                      boxShadow: '0 16px 40px rgba(27, 19, 64, 0.15)',
-                      zIndex: 1000,
-                      padding: '6px 0',
-                      animation: 'fadeIn 0.15s ease-out'
-                    }}
-                  >
-                    {/* Header */}
-                    <div
-                      style={{
-                        padding: '10px 16px',
-                        fontSize: 10.5,
-                        fontWeight: 800,
-                        letterSpacing: '0.1em',
-                        textTransform: 'uppercase',
-                        color: 'var(--ink)',
-                        borderBottom: '1px solid rgba(27, 19, 64, 0.12)',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        background: 'rgba(27, 19, 64, 0.05)'
-                      }}
-                    >
-                      <span>Physicist Mastery</span>
-                      <span style={{ fontSize: 10, color: 'var(--ink)', fontWeight: 700, background: 'rgba(27, 19, 64, 0.08)', padding: '2px 6px' }}>Overview</span>
-                    </div>
-
-                    {/* Mastery Options */}
-                    <div style={{ padding: '6px' }}>
-                      {MASTERY_SECTIONS.map(item => (
-                        <div
-                          key={item.id}
-                          onClick={() => handleSelectMastery(item.path)}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '10px 12px',
-                            borderRadius: 14,
-                            cursor: 'pointer',
-                            transition: 'all 0.15s ease',
-                            border: '1px solid transparent',
-                            marginBottom: 2
-                          }}
-                          onMouseEnter={e => {
-                            e.currentTarget.style.background = '#FFFFFF'
-                            e.currentTarget.style.borderColor = 'rgba(27, 19, 64, 0.22)'
-                            e.currentTarget.style.transform = 'translateX(3px)'
-                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(27, 19, 64, 0.08)'
-                          }}
-                          onMouseLeave={e => {
-                            e.currentTarget.style.background = 'transparent'
-                            e.currentTarget.style.borderColor = 'transparent'
-                            e.currentTarget.style.transform = 'none'
-                            e.currentTarget.style.boxShadow = 'none'
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                            <div
-                              style={{
-                                width: 36,
-                                height: 36,
-                                borderRadius: 14,
-                                background: '#FFFFFF',
-                                border: '1px solid rgba(27, 19, 64, 0.2)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: 'var(--ink)',
-                                flexShrink: 0
-                              }}
-                            >
-                              {item.id === 'overview' && <Target size={17} />}
-                              {item.id === 'concepts' && <Compass size={17} />}
-                              {item.id === 'badges' && <Award size={17} />}
-                            </div>
-                            <div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <span style={{ fontSize: 13.5, fontWeight: 700, color: '#2A2158' }}>
-                                  {item.label}
-                                </span>
-                                <span style={{ 
-                                  fontSize: 9.5, 
-                                  fontWeight: 700, 
-                                  color: 'var(--ink)', 
-                                  background: 'rgba(27, 19, 64, 0.08)',
-                                  border: '1px solid rgba(27, 19, 64, 0.15)',
-                                  padding: '1px 6px',
-                                  borderRadius: 14,
-                                }}>
-                                  {item.badge}
-                                </span>
-                              </div>
-                              <div style={{ fontSize: 11, color: '#4A5568', marginTop: 2, fontWeight: 500, lineHeight: 1.25 }}>
-                                {item.desc}
-                              </div>
-                            </div>
-                          </div>
-
-                          <ArrowUpRight size={15} color="var(--ink)" style={{ flexShrink: 0, marginLeft: 8 }} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
-
-        {/* Right: Stats & Profile */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ 
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            backgroundColor: 'var(--sunflower)',
-            height: 40,
-            padding: '0 14px',
-            borderRadius: 999,
-            border: '2.5px solid var(--ink)',
-            boxShadow: '3px 3px 0 var(--ink)'
-          }} title={`${streak}-day streak`}>
-            <Flame size={16} strokeWidth={2.5} color="var(--ink)" fill="var(--tangerine)" />
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 800, color: 'var(--ink)' }}>
-              {streak}d
+  // One dropdown menu: a header row and a list of items.
+  const renderMenu = (title, count, items, align = 'center', footer = null) => (
+    <div className={`tn-menu is-${align}`} onMouseEnter={keepOpen} onMouseLeave={handleTabMouseLeave} data-lenis-prevent="true">
+      <div className="tn-menu-head"><span>{title}</span>{count && <span className="tn-menu-count">{count}</span>}</div>
+      <div className="tn-menu-list">
+        {items.map(it => (
+          <button key={it.key} className="tn-item" onClick={it.onClick}>
+            <span className="tn-item-icon">{it.icon}</span>
+            <span className="tn-item-text">
+              <span className="tn-item-title">{it.title}{it.badge && <span className="tn-item-badge">{it.badge}</span>}</span>
+              <span className="tn-item-desc">{it.desc}</span>
             </span>
-          </div>
-          
-          <div 
-            onClick={() => {
-              setOpenDropdown(null)
-              navigate('/profile')
-            }}
-            title={user?.displayName ? `Signed in as ${user.displayName}` : "View Physicist Profile"}
-            style={{
-              width: 42,
-              height: 42,
-              borderRadius: '50%',
-              overflow: 'hidden',
-              background: activeTab === 'profile' ? '#2A2158' : 'var(--bubblegum)',
-              border: '2.5px solid var(--ink)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#FFFFFF',
-              cursor: 'pointer',
-              boxShadow: '3px 3px 0 var(--ink)',
-              transition: 'transform 0.15s ease'
-            }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-1px, -2px)' }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'none' }}
-          >
-            {user?.photoURL ? (
-              <img
-                src={user.photoURL}
-                alt={user.displayName || 'Google Profile'}
-                referrerPolicy="no-referrer"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            ) : user?.displayName ? (
-              <span style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 900, color: 'var(--ink)' }}>
-                {user.displayName.charAt(0).toUpperCase()}
-              </span>
-            ) : (
-              <User size={18} strokeWidth={2.2} />
-            )}
-          </div>
+            <ArrowUpRight size={15} className="tn-item-arrow" />
+          </button>
+        ))}
+      </div>
+      {footer}
+    </div>
+  )
+
+  const simItems = display3DList.map(sim => ({
+    key: sim.id,
+    title: sim.label || sim.title,
+    badge: sim.badge || '3D Lab',
+    desc: sim.desc || sim.subtitle || sim.formula || 'Interactive 3D simulation',
+    icon: <LabIcon id={sim.id} name={sim.icon || 'ohmslaw'} size={18} />,
+    onClick: () => { trackExperimentClick(sim.id); handleLaunchSim(sim) }
+  }))
+  const visItems = display2DList.map(vis => ({
+    key: vis.id,
+    title: vis.title.split(':')[0],
+    badge: vis.badge || '2D Studio',
+    desc: vis.category,
+    icon: vis.id.includes('energy') ? <Flame size={17} /> : vis.id.includes('circuit') ? <Zap size={17} /> : vis.id.includes('wave') ? <Activity size={17} /> : <Sliders size={17} />,
+    onClick: () => { trackExperimentClick(vis.id); handleLaunch2DLab(vis) }
+  }))
+  const quizItems = QUIZ_TOPICS.map(quiz => ({
+    key: quiz.id, title: quiz.label, badge: quiz.badge, desc: quiz.desc,
+    icon: <LabIcon id={quiz.id} name={quiz.icon} size={18} />,
+    onClick: () => handleSelectQuiz(quiz.id)
+  }))
+  const masteryItems = MASTERY_SECTIONS.map(item => ({
+    key: item.id, title: item.label, badge: item.badge, desc: item.desc,
+    icon: item.id === 'overview' ? <Target size={17} /> : item.id === 'concepts' ? <Compass size={17} /> : <Award size={17} />,
+    onClick: () => handleSelectMastery(item.path)
+  }))
+
+  const initial = (user?.displayName || profile?.name || 'V').charAt(0).toUpperCase()
+
+  return (
+    <header className="tn" ref={navContainerRef}>
+      <div className="tn-top">
+        <div className="tn-left">
+          <span className="tn-chip" title={`${streak}-day streak`}><span className="tn-chip-glyph" aria-hidden="true">✹</span> {streak}-day streak</span>
+        </div>
+        <a className="tn-logo" href="/" onClick={e => { e.preventDefault(); setOpenDropdown(null); navigate('/') }} aria-label="Visiora home">
+          <span className="tn-logo-tile"><img src="/images/visiora_lotus_logo.png" alt="" width="52" height="52" /></span>
+          <span className="tn-logo-word">visiora</span>
+        </a>
+        <div className="tn-right">
+          <a className={`tn-profile${activeTab === 'profile' ? ' is-active' : ''}`} href="/profile" onClick={e => { e.preventDefault(); setOpenDropdown(null); navigate('/profile') }}>Profile</a>
+          <button className="tn-avatar" onClick={() => { setOpenDropdown(null); navigate('/profile') }}
+            title={user?.displayName ? `Signed in as ${user.displayName}` : 'Your profile'} aria-label="Your profile">
+            {user?.photoURL
+              ? <img src={user.photoURL} alt="" referrerPolicy="no-referrer" />
+              : <span>{initial}</span>}
+          </button>
         </div>
       </div>
-    </nav>
+
+      <nav className="tn-nav" aria-label="Main">
+        {TABS.map(tab => {
+          const active = activeTab === tab.id
+          const isOpen = openDropdown === tab.id
+          return (
+            <div key={tab.id} className="tn-tab-wrap" onMouseEnter={() => handleTabMouseEnter(tab)} onMouseLeave={handleTabMouseLeave}>
+              <button className={`tn-tab${active ? ' is-active' : ''}${isOpen ? ' is-open' : ''}`} onClick={() => handleTabClick(tab)}
+                aria-current={active ? 'page' : undefined} aria-expanded={tab.hasDropdown ? isOpen : undefined}>
+                {tab.isSpecial && <Sparkles size={13} strokeWidth={2.5} />}
+                <span>{tab.label}</span>
+                {tab.hasDropdown && <ChevronDown size={13} strokeWidth={2.5} className="tn-caret" />}
+              </button>
+              {isOpen && <div className="tn-bridge" />}
+
+              {isOpen && tab.id === 'sim' && renderMenu('3D experiments', `${display3DList.length} labs`, simItems, 'center',
+                <div className="tn-menu-foot">
+                  <button className="tn-foot-link" onClick={() => { setOpenDropdown(null); navigate('/sim-2d') }}>
+                    <span>Looking for 2D labs?</span><span>Explore 2D labs <ArrowUpRight size={13} /></span>
+                  </button>
+                </div>)}
+
+              {isOpen && tab.id === 'sim2d' && renderMenu('2D labs', null, visItems, 'center',
+                <div className="tn-menu-foot">
+                  <button className="tn-foot-btn" onClick={() => handleLaunch2DLab('/sim-2d?lab=energy-forms-and-changes')}>
+                    Open the 2D studio <ArrowUpRight size={13} />
+                  </button>
+                </div>)}
+
+              {isOpen && tab.id === 'quiz' && renderMenu('Topic quizzes', `${QUIZ_TOPICS.length} quizzes`, quizItems, 'right')}
+
+              {isOpen && tab.id === 'progress' && renderMenu('Mastery', null, masteryItems)}
+            </div>
+          )
+        })}
+      </nav>
+    </header>
   )
 }
