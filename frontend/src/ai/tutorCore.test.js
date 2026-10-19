@@ -80,3 +80,22 @@ describe('RESPONSE_SCHEMA', () => {
     expect(RESPONSE_SCHEMA.required).toEqual(expect.arrayContaining(['formulas', 'steps', 'final_answer', 'key_points', 'lab_reason']))
   })
 })
+
+describe('verify with the final answer as fallback', () => {
+  const parallel = { type: 'parallel_resistance', resistors: [6, 6, 6], quantity: 'resistance' }
+  it('verifies when the number is only in the final answer', () => {
+    expect(verify(parallel, 'Rp = 2 Ω').status).toBe('verified')
+    expect(verify({ type: 'free_fall_drop', h: 19.6, g: 9.8, quantity: 'time' }, 't = 2.0 s').status).toBe('verified')
+  })
+  it('corrects a wrong number in the final answer', () => {
+    const v = verify(parallel, 'Rp = 18 Ω')
+    expect(v.status).toBe('corrected')
+    expect(v.expected).toBeCloseTo(2)
+  })
+  it('stays unchecked when no number is given anywhere', () => {
+    expect(verify(parallel, 'about two ohms').status).toBe('unchecked')
+  })
+  it('ignores exponents in units', () => {
+    expect(verify({ type: 'uniform_acceleration', u: 0, a: 4, t: 5, quantity: 'final_velocity' }, 'v = 20 m/s²').status).toBe('verified')
+  })
+})
