@@ -12,14 +12,14 @@ const isDedicatedAdmin =
     new URLSearchParams(window.location.search).get('admin') === 'true'
   ))
 import {
-  Compass,
   Sparkles,
   Layers,
   ShieldCheck,
   Atom,
   Mail,
   GraduationCap,
-  AlertCircle
+  AlertCircle,
+  KeyRound
 } from 'lucide-react'
 
 // ── Google Brand Icon ────────────────────────────────────────────────
@@ -166,29 +166,17 @@ export default function OnboardingScreen() {
       style={{
         minHeight: '100dvh',
         width: '100vw',
-        backgroundColor: '#FAF8F5',
+        backgroundColor: 'var(--paper)',
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
         fontFamily: 'var(--font-body, Inter, sans-serif)',
-        color: '#0A192F',
+        color: '#2A2158',
         overflowX: 'hidden'
       }}
     >
-      {/* ── Blueprint Grid Background ── */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          backgroundImage: `
-            linear-gradient(to right, rgba(0, 43, 102, 0.04) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(0, 43, 102, 0.04) 1px, transparent 1px)
-          `,
-          backgroundSize: '32px 32px',
-          pointerEvents: 'none',
-          zIndex: 0
-        }}
-      />
+      {/* ── Notebook paper background ── */}
+      <div className="nb-paper" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0 }} />
 
       {/* Floating Mathematical Constants in watermark */}
       <div
@@ -218,38 +206,17 @@ export default function OnboardingScreen() {
           alignItems: 'center',
           position: 'relative',
           zIndex: 10,
-          borderBottom: '1px solid rgba(0, 43, 102, 0.08)'
+          borderBottom: '1px solid rgba(27, 19, 64, 0.08)'
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div
-            style={{
-              width: 38,
-              height: 38,
-              background: '#002B66',
-              color: '#FFFFFF',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(0, 43, 102, 0.25)'
-            }}
-          >
-            <Compass size={22} color="#D97706" />
-          </div>
+          <img src="/images/visiora_lotus_logo.png" alt="" width="46" height="46" style={{ borderRadius: '50%', display: 'block' }} />
           <div>
-            <div
-              style={{
-                fontSize: 17,
-                fontWeight: 850,
-                color: '#002B66',
-                letterSpacing: '0.04em',
-                fontFamily: 'var(--font-display, serif)'
-              }}
-            >
-              VISIORA
+            <div style={{ fontSize: 24, fontWeight: 900, color: 'var(--ink)', letterSpacing: '-0.03em', fontFamily: 'var(--font-display)' }}>
+              visiora
             </div>
-            <div style={{ fontSize: 10, color: '#64748B', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              Physics Atelier
+            <div style={{ fontFamily: 'var(--font-hand)', fontSize: 17, color: 'var(--grape-ink)', lineHeight: 1 }}>
+              physics you can play with
             </div>
           </div>
         </div>
@@ -259,10 +226,10 @@ export default function OnboardingScreen() {
             style={{
               fontSize: 11,
               fontWeight: 700,
-              color: '#002B66',
-              background: 'rgba(0, 43, 102, 0.07)',
+              color: 'var(--ink)',
+              background: 'rgba(27, 19, 64, 0.07)',
               padding: '4px 10px',
-              border: '1px solid rgba(0, 43, 102, 0.15)'
+              border: '1px solid rgba(27, 19, 64, 0.15)'
             }}
           >
             {isDedicatedAdmin ? 'ADMIN CONSOLE' : 'ACADEMIC EDITION'}
@@ -299,9 +266,9 @@ export default function OnboardingScreen() {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 8,
-                background: '#FEF3C7',
-                border: '1px solid #FDE68A',
-                color: '#92400E',
+                background: 'var(--sunflower)',
+                border: '2.5px solid var(--ink)',
+                color: 'var(--ink)',
                 padding: '4px 12px',
                 fontSize: 11.5,
                 fontWeight: 800,
@@ -310,35 +277,35 @@ export default function OnboardingScreen() {
                 alignSelf: 'flex-start'
               }}
             >
-              <Sparkles size={13} color="#D97706" />
-              <span>Interactive Scientific Workbench</span>
+              <Sparkles size={13} color="var(--ink)" />
+              <span>Class 8–10 · free</span>
             </div>
 
             <h1
               style={{
                 fontFamily: 'var(--font-display, serif)',
                 fontSize: 'clamp(28px, 4.5vw, 44px)',
-                fontWeight: 850,
-                color: '#002B66',
+                fontWeight: 900,
+                color: 'var(--ink)',
                 lineHeight: 1.18,
                 letterSpacing: '-0.02em',
                 margin: 0
               }}
             >
-              Master Physics by Touching the Formulas.
+              Physics you can <span className="swash">play</span> with.
             </h1>
 
             <p
               style={{
                 fontSize: 15,
-                color: '#475569',
+                color: 'var(--ink)',
                 lineHeight: 1.65,
                 margin: 0,
                 maxWidth: 480
               }}
             >
-              Step into an architectural learning laboratory. Seamlessly experiment with kinetic trajectories,
-              electromagnetic induction, and buoyancy in real-time, accompanied by an intelligent visual physics tutor.
+              Drop things on the Moon, bend lasers through diamonds and wire up circuits. Every number comes from
+              the real equations — and the AI tutor explains it step by step.
             </p>
 
             {/* 3 Core Highlights */}
@@ -357,7 +324,7 @@ export default function OnboardingScreen() {
                 {
                   icon: Sparkles,
                   title: 'AI Visual Physics Tutor',
-                  desc: 'Dynamic Claude-inspired visual reasoning and generative physics diagrams'
+                  desc: 'Explains step by step, with every number checked by our physics engine'
                 }
               ].map((item, idx) => {
                 const Icon = item.icon
@@ -369,29 +336,32 @@ export default function OnboardingScreen() {
                       alignItems: 'flex-start',
                       gap: 14,
                       background: '#FFFFFF',
-                      border: '1px solid rgba(0, 43, 102, 0.12)',
+                      border: '2.5px solid var(--ink)',
+                      borderRadius: 16,
                       padding: '12px 16px',
-                      boxShadow: '0 2px 8px rgba(0, 43, 102, 0.04)'
+                      boxShadow: '3px 3px 0 var(--ink)',
+                      transform: `rotate(${idx % 2 ? 0.6 : -0.6}deg)`
                     }}
                   >
                     <div
                       style={{
-                        width: 32,
-                        height: 32,
-                        background: '#FAF8F5',
-                        border: '1px solid rgba(0, 43, 102, 0.2)',
+                        width: 36,
+                        height: 36,
+                        borderRadius: 12,
+                        background: ['var(--sky)', 'var(--sunflower)', 'var(--bubblegum)'][idx % 3],
+                        border: '2.5px solid var(--ink)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        color: '#002B66',
+                        color: 'var(--ink)',
                         flexShrink: 0
                       }}
                     >
-                      <Icon size={16} />
+                      <Icon size={18} strokeWidth={2.4} />
                     </div>
                     <div>
-                      <div style={{ fontSize: 13.5, fontWeight: 800, color: '#002B66' }}>{item.title}</div>
-                      <div style={{ fontSize: 12, color: '#64748B', lineHeight: 1.4, marginTop: 2 }}>{item.desc}</div>
+                      <div style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--ink)' }}>{item.title}</div>
+                      <div style={{ fontSize: 12, color: 'var(--ink-soft)', lineHeight: 1.4, marginTop: 2 }}>{item.desc}</div>
                     </div>
                   </div>
                 )
@@ -403,13 +373,14 @@ export default function OnboardingScreen() {
           <div
             style={{
               background: '#FFFFFF',
-              border: '1px solid rgba(0, 43, 102, 0.2)',
-              borderTop: '5px solid #002B66',
+              border: '3px solid var(--ink)',
+              borderRadius: 26,
               padding: '36px 32px',
-              boxShadow: '0 20px 50px rgba(0, 43, 102, 0.12)',
+              boxShadow: '7px 7px 0 var(--ink)',
               position: 'relative'
             }}
           >
+            <div className="tape" style={{ left: 40, top: -14, transform: 'rotate(-4deg)' }} />
             {step === 'auth' ? (
               <div>
                 <div style={{ marginBottom: 24 }}>
@@ -417,7 +388,7 @@ export default function OnboardingScreen() {
                     style={{
                       fontSize: 10.5,
                       fontWeight: 800,
-                      color: '#D97706',
+                      color: 'var(--tangerine)',
                       letterSpacing: '0.08em',
                       textTransform: 'uppercase',
                       marginBottom: 6
@@ -430,13 +401,13 @@ export default function OnboardingScreen() {
                       fontFamily: 'var(--font-display, serif)',
                       fontSize: 24,
                       fontWeight: 800,
-                      color: '#002B66',
+                      color: 'var(--ink)',
                       margin: 0
                     }}
                   >
-                    {isDedicatedAdmin ? 'Enter Admin Dashboard' : 'Enter the Physics Atelier'}
+                    {isDedicatedAdmin ? 'Enter Admin Dashboard' : 'Jump in!'}
                   </h2>
-                  <p style={{ fontSize: 13, color: '#64748B', marginTop: 6, lineHeight: 1.5, margin: '6px 0 0 0' }}>
+                  <p style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 6, lineHeight: 1.5, margin: '6px 0 0 0' }}>
                     {isDedicatedAdmin
                       ? 'Sign in with an authorized Google account to configure curriculum parameters and manage simulations.'
                       : 'Sign in with your Google account to automatically synchronize your physics mastery, active streak, and experiment notes.'}
@@ -475,7 +446,7 @@ export default function OnboardingScreen() {
                             }}
                             style={{
                               background: '#FFFFFF',
-                              color: '#002B66',
+                              color: 'var(--ink)',
                               border: '1px solid #CBD5E1',
                               padding: '5px 12px',
                               fontSize: 11.5,
@@ -496,7 +467,7 @@ export default function OnboardingScreen() {
                               }
                             }}
                             style={{
-                              background: '#002B66',
+                              background: 'var(--ink)',
                               color: '#FFFFFF',
                               border: 'none',
                               padding: '5px 12px',
@@ -520,7 +491,7 @@ export default function OnboardingScreen() {
                               }
                             }}
                             style={{
-                              background: '#002B66',
+                              background: 'var(--ink)',
                               color: '#FFFFFF',
                               border: 'none',
                               padding: '4px 10px',
@@ -548,8 +519,9 @@ export default function OnboardingScreen() {
                       width: '100%',
                       padding: '13px 20px',
                       background: '#FFFFFF',
-                      color: '#002B66',
-                      border: '1.5px solid rgba(0, 43, 102, 0.3)',
+                      color: 'var(--ink)',
+                      border: '3px solid var(--ink)',
+                      borderRadius: 999,
                       fontWeight: 700,
                       fontSize: 14.5,
                       cursor: loading ? 'wait' : 'pointer',
@@ -557,15 +529,15 @@ export default function OnboardingScreen() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: 12,
-                      boxShadow: '0 4px 14px rgba(0, 43, 102, 0.08)',
+                      boxShadow: '4px 4px 0 var(--ink)',
                       transition: 'all 0.15s ease'
                     }}
                     onMouseEnter={e => {
-                      e.currentTarget.style.borderColor = '#002B66'
-                      e.currentTarget.style.background = '#FAF8F5'
+                      e.currentTarget.style.borderColor = 'var(--ink)'
+                      e.currentTarget.style.background = 'var(--paper)'
                     }}
                     onMouseLeave={e => {
-                      e.currentTarget.style.borderColor = 'rgba(0, 43, 102, 0.3)'
+                      e.currentTarget.style.borderColor = 'rgba(27, 19, 64, 0.3)'
                       e.currentTarget.style.background = '#FFFFFF'
                     }}
                   >
@@ -582,24 +554,26 @@ export default function OnboardingScreen() {
                       style={{
                         width: '100%',
                         padding: '13px 20px',
-                        background: '#002B66',
-                        color: '#FFFFFF',
-                        border: 'none',
-                        fontWeight: 700,
+                        background: 'var(--bubblegum)',
+                        color: 'var(--ink)',
+                        border: '3px solid var(--ink)',
+                        borderRadius: 999,
+                        fontFamily: 'var(--font-display)',
+                        fontWeight: 800,
                         fontSize: 14.5,
                         cursor: loading ? 'wait' : 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: 10,
-                        boxShadow: '0 4px 16px rgba(0, 43, 102, 0.3)',
+                        boxShadow: '4px 4px 0 var(--ink)',
                         transition: 'background 0.15s ease'
                       }}
-                      onMouseEnter={e => e.currentTarget.style.background = '#0A192F'}
-                      onMouseLeave={e => e.currentTarget.style.background = '#002B66'}
+                      onMouseEnter={e => e.currentTarget.style.background = '#FF7DB5'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'var(--bubblegum)'}
                     >
-                      <Sparkles size={16} color="#F59E0B" />
-                      <span>✦ Instant Scholar Access (1-Click Entry)</span>
+                      <Sparkles size={16} color="var(--ink)" />
+                      <span>Jump in as a guest</span>
                     </button>
                   ) : (
                     <button
@@ -609,7 +583,7 @@ export default function OnboardingScreen() {
                       style={{
                         width: '100%',
                         padding: '13px 20px',
-                        background: '#002B66',
+                        background: 'var(--ink)',
                         color: '#FFFFFF',
                         border: 'none',
                         fontWeight: 700,
@@ -619,13 +593,13 @@ export default function OnboardingScreen() {
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: 10,
-                        boxShadow: '0 4px 16px rgba(0, 43, 102, 0.3)',
+                        boxShadow: '0 4px 16px rgba(27, 19, 64, 0.3)',
                         transition: 'background 0.15s ease'
                       }}
-                      onMouseEnter={e => e.currentTarget.style.background = '#0A192F'}
-                      onMouseLeave={e => e.currentTarget.style.background = '#002B66'}
+                      onMouseEnter={e => e.currentTarget.style.background = '#2A2158'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'var(--ink)'}
                     >
-                      <ShieldCheck size={16} color="#F59E0B" />
+                      <ShieldCheck size={16} color="var(--sunflower)" />
                       <span>✦ Switch to Verified Admin (Dev Mode)</span>
                     </button>
                   )}
@@ -642,11 +616,11 @@ export default function OnboardingScreen() {
                         margin: '22px 0 16px 0'
                       }}
                     >
-                      <div style={{ flex: 1, height: 1, background: 'rgba(0, 43, 102, 0.12)' }} />
-                      <span style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', letterSpacing: '0.08em' }}>
+                      <div style={{ flex: 1, height: 1, background: 'rgba(27, 19, 64, 0.12)' }} />
+                      <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-soft)', letterSpacing: '0.08em' }}>
                         OR INSTITUTIONAL ID
                       </span>
-                      <div style={{ flex: 1, height: 1, background: 'rgba(0, 43, 102, 0.12)' }} />
+                      <div style={{ flex: 1, height: 1, background: 'rgba(27, 19, 64, 0.12)' }} />
                     </div>
 
                     {mode === 'google' ? (
@@ -656,7 +630,7 @@ export default function OnboardingScreen() {
                     style={{
                       background: 'none',
                       border: 'none',
-                      color: '#002B66',
+                      color: 'var(--ink)',
                       fontSize: 12.5,
                       fontWeight: 700,
                       cursor: 'pointer',
@@ -671,7 +645,7 @@ export default function OnboardingScreen() {
                 ) : (
                   <form onSubmit={handleEmailAuth} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: '#002B66', marginBottom: 4 }}>
+                      <label style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: 'var(--ink)', marginBottom: 4 }}>
                         Email Address
                       </label>
                       <div style={{ position: 'relative' }}>
@@ -686,8 +660,8 @@ export default function OnboardingScreen() {
                             width: '100%',
                             padding: '9px 12px 9px 34px',
                             fontSize: 13,
-                            border: '1px solid rgba(0, 43, 102, 0.25)',
-                            background: '#FAF8F5',
+                            border: '1px solid rgba(27, 19, 64, 0.25)',
+                            background: 'var(--paper)',
                             outline: 'none',
                             boxSizing: 'border-box'
                           }}
@@ -696,7 +670,7 @@ export default function OnboardingScreen() {
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: '#002B66', marginBottom: 4 }}>
+                      <label style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: 'var(--ink)', marginBottom: 4 }}>
                         Password
                       </label>
                       <div style={{ position: 'relative' }}>
@@ -711,8 +685,8 @@ export default function OnboardingScreen() {
                             width: '100%',
                             padding: '9px 12px 9px 34px',
                             fontSize: 13,
-                            border: '1px solid rgba(0, 43, 102, 0.25)',
-                            background: '#FAF8F5',
+                            border: '1px solid rgba(27, 19, 64, 0.25)',
+                            background: 'var(--paper)',
                             outline: 'none',
                             boxSizing: 'border-box'
                           }}
@@ -727,7 +701,7 @@ export default function OnboardingScreen() {
                         style={{
                           flex: 1,
                           padding: '10px 14px',
-                          background: '#002B66',
+                          background: 'var(--ink)',
                           color: '#FFFFFF',
                           border: 'none',
                           fontWeight: 700,
@@ -743,11 +717,11 @@ export default function OnboardingScreen() {
                         onClick={() => setIsSignUp(!isSignUp)}
                         style={{
                           background: 'transparent',
-                          border: '1px solid rgba(0, 43, 102, 0.2)',
+                          border: '1px solid rgba(27, 19, 64, 0.2)',
                           padding: '10px 14px',
                           fontSize: 12,
                           fontWeight: 700,
-                          color: '#002B66',
+                          color: 'var(--ink)',
                           cursor: 'pointer'
                         }}
                       >
@@ -761,7 +735,7 @@ export default function OnboardingScreen() {
                       style={{
                         background: 'none',
                         border: 'none',
-                        color: '#64748B',
+                        color: 'var(--ink-soft)',
                         fontSize: 12,
                         cursor: 'pointer',
                         textAlign: 'center',
@@ -779,12 +753,12 @@ export default function OnboardingScreen() {
                   style={{
                     marginTop: 24,
                     paddingTop: 16,
-                    borderTop: '1px solid rgba(0, 43, 102, 0.08)',
+                    borderTop: '1px solid rgba(27, 19, 64, 0.08)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: 6,
-                    color: '#64748B',
+                    color: 'var(--ink-soft)',
                     fontSize: 12
                   }}
                 >
@@ -800,7 +774,7 @@ export default function OnboardingScreen() {
                     style={{
                       width: 56,
                       height: 56,
-                      background: '#002B66',
+                      background: 'var(--ink)',
                       color: '#FFFFFF',
                       display: 'flex',
                       alignItems: 'center',
@@ -808,7 +782,7 @@ export default function OnboardingScreen() {
                       margin: '0 auto 16px auto'
                     }}
                   >
-                    <GraduationCap size={28} color="#D97706" />
+                    <GraduationCap size={28} color="var(--ink)" />
                   </div>
 
                   <h2
@@ -816,14 +790,14 @@ export default function OnboardingScreen() {
                       fontFamily: 'var(--font-display, serif)',
                       fontSize: 22,
                       fontWeight: 800,
-                      color: '#002B66',
+                      color: 'var(--ink)',
                       margin: '0 0 8px 0'
                     }}
                   >
                     Academic Class Code
                   </h2>
 
-                  <p style={{ fontSize: 13.5, color: '#64748B', lineHeight: 1.5, margin: 0 }}>
+                  <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5, margin: 0 }}>
                     Enter your school or university cohort code to link homework assignments, or proceed directly to the workbench.
                   </p>
                 </div>
@@ -842,8 +816,8 @@ export default function OnboardingScreen() {
                       letterSpacing: '0.1em',
                       textAlign: 'center',
                       textTransform: 'uppercase',
-                      border: '1.5px solid rgba(0, 43, 102, 0.25)',
-                      background: '#FAF8F5',
+                      border: '1.5px solid rgba(27, 19, 64, 0.25)',
+                      background: 'var(--paper)',
                       boxSizing: 'border-box'
                     }}
                   />
@@ -859,7 +833,7 @@ export default function OnboardingScreen() {
                     style={{
                       width: '100%',
                       padding: '12px 20px',
-                      background: '#002B66',
+                      background: 'var(--ink)',
                       color: '#FFFFFF',
                       border: 'none',
                       fontWeight: 700,
@@ -876,7 +850,7 @@ export default function OnboardingScreen() {
                     style={{
                       background: 'none',
                       border: 'none',
-                      color: '#64748B',
+                      color: 'var(--ink-soft)',
                       fontSize: 13,
                       cursor: 'pointer',
                       textAlign: 'center',
@@ -898,13 +872,13 @@ export default function OnboardingScreen() {
           padding: '16px 32px',
           textAlign: 'center',
           fontSize: 12,
-          color: '#94A3B8',
-          borderTop: '1px solid rgba(0, 43, 102, 0.06)',
+          color: 'var(--ink-soft)',
+          borderTop: '1px solid rgba(27, 19, 64, 0.06)',
           position: 'relative',
           zIndex: 10
         }}
       >
-        VISIORA Atelier © 2026 · Interactive Physics Laboratories &amp; Visual Reasoning
+        Visiora © 2026 · made for curious minds
       </footer>
     </div>
   )

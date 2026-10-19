@@ -64,21 +64,21 @@ export default function SimulatorScreen() {
       display: 'flex',
       height: '100dvh',
       width: '100vw',
-      background: '#FAF8F5',
+      background: 'var(--paper)',
       overflow: 'hidden'
     }}>
       {/* ── LEFT NAVY ARCHITECTURAL RAIL ────────────────────────────────────────── */}
       <aside style={{
         width: 'var(--rail-width)',
         height: '100%',
-        background: '#07152B',
-        borderRight: '1px solid rgba(0, 43, 102, 0.2)',
+        background: 'var(--ink)',
+        borderRight: '3px solid var(--ink)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         padding: '16px 0',
         zIndex: 40,
-        boxShadow: '4px 0 24px rgba(7, 21, 43, 0.4)'
+        boxShadow: 'none'
       }}>
         {/* Logo / Home Button */}
         <button
@@ -87,14 +87,14 @@ export default function SimulatorScreen() {
           style={{
             width: 46,
             height: 46,
-            borderRadius: 0,
-            background: '#002B66',
+            borderRadius: '50%',
+            background: '#FFFFFF',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             padding: 6,
             marginBottom: 20,
-            boxShadow: '0 4px 16px rgba(0, 43, 102, 0.5)',
+            boxShadow: '3px 3px 0 var(--bubblegum)',
             border: '1px solid rgba(255, 255, 255, 0.15)',
             cursor: 'pointer'
           }}
@@ -124,32 +124,32 @@ export default function SimulatorScreen() {
                 style={{
                   width: 54,
                   height: 52,
-                  borderRadius: 0,
-                  background: isActive ? '#002B66' : 'transparent',
-                  border: `1.5px solid ${isActive ? '#3B82F6' : 'transparent'}`,
+                  borderRadius: 14,
+                  background: isActive ? 'var(--sunflower)' : 'transparent',
+                  border: `2.5px solid ${isActive ? 'var(--paper)' : 'transparent'}`,
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: 2,
-                  color: isActive ? '#FFFFFF' : '#94A3B8',
+                  color: isActive ? 'var(--ink)' : '#C7B2FF',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
-                  boxShadow: isActive ? '0 2px 10px rgba(0, 43, 102, 0.4)' : 'none'
+                  boxShadow: isActive ? '3px 3px 0 var(--bubblegum)' : 'none'
                 }}
               >
                 <LabIcon 
                   id={lab.id} 
                   size={20} 
                   strokeWidth={isActive ? 2.2 : 1.75} 
-                  color={isActive ? '#FFFFFF' : '#94A3B8'} 
+                  color={isActive ? 'var(--ink)' : '#C7B2FF'} 
                 />
                 <span style={{
                   fontSize: 8.5,
                   fontWeight: 700,
                   letterSpacing: '0.02em',
                   fontFamily: 'var(--font-display)',
-                  color: isActive ? '#FFFFFF' : 'inherit',
+                  color: isActive ? 'var(--ink)' : 'inherit',
                   whiteSpace: 'nowrap'
                 }}>
                   {lab.shortLabel}
@@ -167,9 +167,9 @@ export default function SimulatorScreen() {
             style={{
               width: 42,
               height: 42,
-              borderRadius: 0,
+              borderRadius: 14,
               background: 'rgba(255, 255, 255, 0.08)',
-              color: '#CBD5E1',
+              color: '#E2D6FF',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -186,9 +186,9 @@ export default function SimulatorScreen() {
             style={{
               width: 42,
               height: 42,
-              borderRadius: 0,
+              borderRadius: 14,
               background: 'rgba(255, 255, 255, 0.08)',
-              color: '#CBD5E1',
+              color: '#E2D6FF',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -205,9 +205,9 @@ export default function SimulatorScreen() {
             style={{
               width: 42,
               height: 42,
-              borderRadius: 0,
+              borderRadius: 14,
               background: 'rgba(255, 255, 255, 0.08)',
-              color: '#CBD5E1',
+              color: '#E2D6FF',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -243,10 +243,10 @@ export default function SimulatorScreen() {
         }}>
           <div style={{
             padding: '7px 18px',
-            borderRadius: 0,
+            borderRadius: 14,
             background: 'rgba(250, 248, 245, 0.95)',
-            border: '1px solid rgba(0, 43, 102, 0.18)',
-            boxShadow: '0 4px 16px rgba(0, 43, 102, 0.1)',
+            border: '3px solid var(--ink)',
+            boxShadow: '4px 4px 0 var(--ink)',
             display: 'flex',
             alignItems: 'center',
             gap: 10,
@@ -256,7 +256,7 @@ export default function SimulatorScreen() {
               onClick={() => navigate('/')}
               style={{
                 fontSize: 12,
-                color: '#002B66',
+                color: 'var(--ink)',
                 fontWeight: 700,
                 display: 'flex',
                 alignItems: 'center',
@@ -269,18 +269,18 @@ export default function SimulatorScreen() {
               <Home size={14} />
               Home
             </button>
-            <ChevronRight size={13} color="rgba(0, 43, 102, 0.4)" />
-            <span style={{ fontSize: 12.5, fontWeight: 700, color: '#0A192F' }}>
+            <ChevronRight size={13} color="var(--ink-soft)" />
+            <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink)', fontFamily: 'var(--font-display)' }}>
               {currentMeta?.label} 3D Lab
             </span>
             <span style={{ 
               fontSize: 10, 
               padding: '2px 8px',
-              borderRadius: 0,
-              background: 'rgba(0, 43, 102, 0.08)',
-              color: '#002B66',
+              borderRadius: 14,
+              background: 'var(--sunflower)',
+              color: 'var(--ink)',
               fontWeight: 700,
-              border: '1px solid rgba(0, 43, 102, 0.16)'
+              border: '2px solid var(--ink)'
             }}>
               {currentMeta?.badge}
             </span>
