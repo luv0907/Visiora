@@ -19,6 +19,8 @@
   color: var(--obsidian-950);
 }
 .lb-head p { margin: 6px 0 0; font-size: 14px; color: var(--color-text-muted); max-width: 520px; }
+.lb-blog { display: inline-block; margin-top: 8px; font-size: 14px; font-weight: 700; color: var(--navy-900); text-decoration: none; }
+.lb-blog:hover { text-decoration: underline; }
 
 .lb-total {
   display: grid;
