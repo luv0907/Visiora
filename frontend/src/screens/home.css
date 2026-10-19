@@ -1,0 +1,104 @@
+/* VISIORA — Home, Sticker Notebook design */
+
+.hm { min-height: 100%; color: var(--ink); font-family: var(--font-body); padding-bottom: 40px; }
+.hm .hm-wrap { max-width: 1240px; margin: 0 auto; padding: 0 32px; }
+.hm .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Phone header */
+.hm .hm-mobilebar { display: none; }
+@media (max-width: 1023px) {
+  .hm .hm-mobilebar { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px 0; }
+  .hm .hm-streak { background: var(--sunflower); font-family: var(--font-display); font-weight: 800; box-shadow: 2px 2px 0 var(--ink); }
+  .hm .hm-hero { padding-top: 34px; }
+  .hm .hm-note { font-size: 24px; }
+}
+
+/* Hero */
+.hm .hm-hero { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px; align-items: center; padding-top: 44px; padding-bottom: 20px; }
+.hm .hm-hero-copy { padding-left: 56px; }
+.hm .hm-note { margin: 0 0 8px; font-size: 28px; transform: rotate(-3deg); transform-origin: left; }
+.hm .hm-title { margin: 0; font: 900 clamp(44px, 5.6vw, 76px)/0.98 var(--font-display); letter-spacing: -0.045em; color: var(--ink); }
+.hm .hm-title-sm { font-size: clamp(34px, 3.8vw, 52px); line-height: 1.04; }
+.hm .hm-lede { margin: 24px 0 0; font-size: 19px; line-height: 1.55; max-width: 520px; color: var(--ink); }
+.hm .hm-cta { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 28px; }
+.hm .hm-cta .stk-btn { min-height: 56px; font-size: 16px; }
+.hm .hm-facts { display: flex; gap: 14px; flex-wrap: wrap; margin: 20px 0 0; font-size: 15px; font-weight: 600; }
+.hm .hm-collage { position: relative; height: 500px; }
+.hm .hm-poster { position: absolute; left: 60px; top: 24px; width: 320px; height: 370px; --stk-bg: var(--grape); transform: rotate(-5deg); overflow: hidden; }
+.hm .hm-poster::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(rgba(27,19,64,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(27,19,64,.12) 1px, transparent 1px); background-size: 28px 28px; }
+.hm .hm-poster-art { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hm .hm-poster-label { position: absolute; left: 22px; bottom: 16px; font: 900 30px var(--font-display); color: var(--paper); -webkit-text-stroke: 1.5px var(--ink); }
+.hm .hm-f1 { position: absolute; right: 30px; top: 6px; padding: 16px 20px; --stk-bg: var(--sky); font-size: 28px; transform: rotate(7deg); }
+.hm .hm-f2 { position: absolute; right: 6px; top: 196px; padding: 14px 18px; font-size: 21px; transform: rotate(-4deg); border-radius: 6px; }
+.hm .hm-bolt { position: absolute; left: 6px; bottom: 26px; width: 116px; height: 116px; border-radius: 50%; --stk-bg: var(--sunflower); display: grid; place-items: center; transform: rotate(-10deg); }
+.hm .hm-which { position: absolute; right: 40px; bottom: 40px; margin: 0; font-size: 26px; transform: rotate(-4deg); }
+
+/* Mission + search */
+.hm .hm-row { display: flex; gap: 22px; flex-wrap: wrap; align-items: stretch; padding-top: 28px; }
+.hm .hm-mission { position: relative; flex: 3 1 560px; display: flex; align-items: center; gap: 22px; padding: 22px 26px; flex-wrap: wrap; }
+.hm .hm-mission-icon { width: 64px; height: 64px; flex: none; border: 3px solid var(--ink); border-radius: 18px; background: var(--bubblegum); display: grid; place-items: center; }
+.hm .hm-mission-text { flex: 1 1 260px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.hm .hm-kicker { font: 800 12.5px var(--font-display); letter-spacing: 0.06em; text-transform: uppercase; color: var(--grape-ink); }
+.hm .hm-mission-title { font: 800 21px/1.25 var(--font-display); }
+.hm .hm-mission-sub { font-size: 14.5px; color: var(--ink-soft); }
+.hm .hm-search { flex: 2 1 320px; display: flex; align-items: center; gap: 12px; padding: 0 20px; min-height: 64px; cursor: text; }
+.hm .hm-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: 500 16px var(--font-body); color: var(--ink); }
+.hm .hm-search input::placeholder { color: #6F6890; }
+.hm .hm-search:focus-within { outline: 3px solid var(--grape-ink); outline-offset: 3px; }
+.hm .hm-empty { font-size: 24px; padding-top: 30px; }
+
+/* Sections */
+.hm .hm-section { padding-top: 56px; }
+.hm .hm-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+.hm .hm-head h2 { margin: 0; font: 900 clamp(32px, 3.4vw, 44px) var(--font-display); letter-spacing: -0.04em; }
+.hm .hm-head .hand { margin: 0; font-size: 25px; transform: rotate(-2deg); }
+.hm .hm-more { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--ink); text-decoration: none; }
+.hm .hm-group + .hm-group { margin-top: 30px; }
+.hm .hm-group > .stk-tag { margin: 6px 0 16px; }
+.hm .hm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 24px; }
+.hm .hm-grid-3 { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+.hm .hm-card { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-height: 220px; padding: 22px; text-align: left; font-family: var(--font-body); cursor: pointer; }
+.hm .hm-card-title { font: 900 19px/1.15 var(--font-display); letter-spacing: -0.02em; }
+.hm .hm-card-text { font-size: 14.5px; line-height: 1.45; }
+.hm .hm-card-meta { margin-top: auto; font-size: 13px; font-weight: 700; }
+.hm .hm-card-dark { --stk-bg: var(--ink); color: var(--paper) !important; box-shadow: 5px 5px 0 var(--bubblegum); }
+.hm .hm-card-dark:hover { box-shadow: 8px 8px 0 var(--bubblegum) !important; color: var(--paper) !important; }
+
+/* AI tutor teaser */
+.hm .hm-tutor { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px; align-items: center; padding-top: 72px; }
+.hm .hm-tutor > div:first-child { padding-left: 56px; }
+.hm .hm-tutor .stk-btn { margin-top: 24px; }
+.hm .hm-chat { display: flex; flex-direction: column; gap: 18px; padding-right: 24px; }
+.hm .hm-bubble-q { align-self: flex-end; max-width: 380px; padding: 16px 20px; --stk-bg: var(--sky); border-radius: 22px 22px 6px 22px; font-weight: 600; transform: rotate(1deg); }
+.hm .hm-bubble-a { position: relative; max-width: 460px; padding: 20px 22px; display: flex; flex-direction: column; gap: 8px; border-radius: 22px 22px 22px 6px; transform: rotate(-1deg); font-size: 17px; }
+.hm .hm-bubble-a mark { background: var(--sunflower); padding: 0 6px; color: var(--ink); }
+.hm .hm-stamp { position: absolute; right: -14px; bottom: -20px; padding: 7px 12px; border: 3px solid var(--stamp); border-radius: 10px; color: var(--stamp); background: var(--paper); font: 800 12px var(--font-display); text-transform: uppercase; transform: rotate(-9deg); }
+
+/* Blog */
+.hm .hm-post { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 22px; min-height: 190px; }
+.hm .hm-post-title { font: 800 19px/1.3 var(--font-display); }
+
+/* Footer */
+.hm .hm-foot { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; padding-top: 70px; font-size: 15px; }
+.hm .hm-foot .hand { font-size: 22px; }
+.hm .hm-foot-brand { display: inline-flex; align-items: center; gap: 10px; font: 900 20px var(--font-display); }
+.hm .hm-foot-streak { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
+
+/* Phones and tablets */
+@media (max-width: 900px) {
+.hm .hm-wrap { padding: 0 18px; }
+.hm .hm-hero, .hm .hm-tutor { grid-template-columns: 1fr; }
+.hm .hm-hero-copy, .hm .hm-tutor > div:first-child { padding-left: 0; }
+.hm .hm-collage { height: 360px; transform: scale(0.82); transform-origin: top center; margin-bottom: -60px; }
+.hm .hm-poster { left: 50%; margin-left: -200px; }
+.hm .hm-chat { padding-right: 0; }
+.hm .hm-section { padding-top: 40px; }
+}
+@media (max-width: 520px) {
+.hm .hm-collage { display: none; }
+.hm .hm-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.hm .hm-card { min-height: 170px; padding: 16px; }
+.hm .hm-card-title { font-size: 17px; }
+.hm .hm-card-text { display: none; }
+.hm .hm-mission { padding: 18px; }
+}

@@ -1,124 +1,137 @@
 /* ============================================================
-   VISIORA DESIGN SYSTEM — EDITORIAL CREAM & OBSIDIAN THEME
-   Palette: Warm Cream Parchment + Deep Espresso Obsidian + Gilded Brass
-   Typography: Playfair Display & Plus Jakarta Sans + JetBrains Mono
+   VISIORA DESIGN SYSTEM — "STICKER NOTEBOOK"
+   Notebook paper, deep-ink outlines, candy-coloured stickers.
+   Type: Unbounded (display) · Lexend (reading) · Gochi Hand (notes) · Space Mono (formulas)
+   Variable names are kept from the previous theme so every screen restyles at once.
+   Experiment visualisations draw with their own colours and are not affected.
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Bricolage+Grotesque:opsz,wght@12..96,400;500;600;700;800&family=Alex+Brush&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700;800;900&family=Lexend:wght@300;400;500;600;700;800&family=Gochi+Hand&family=Space+Mono:wght@400;700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* ── CREAM PARCHMENT PALETTE ─────────────────────────────── */
-  --cream-50:   #FCFAF7;
-  --cream-100:  #F7F3EB;
-  --cream-200:  #EFE8DC;
-  --cream-300:  #E2D6C3;
-  --cream-400:  #CFC0A7;
-  --cream-500:  #B5A285;
+  /* ── STICKER NOTEBOOK PALETTE ───────────────────────────── */
+  --ink:        #1B1340;  /* outlines, text */
+  --ink-soft:   #4B4470;  /* secondary text (passes 4.5:1 on paper) */
+  --paper:      #FFF7E8;
+  --paper-deep: #FFEFD6;
+  --rule:       #D6E6FF;  /* notebook lines */
+  --margin:     #FF9B93;  /* notebook margin line */
+  --bubblegum:  #FF5FA2;
+  --sunflower:  #FFD23F;
+  --sky:        #4CC9F0;
+  --tangerine:  #FF8C42;
+  --grape:      #9B6BFF;
+  --grape-ink:  #6B3FE0;  /* grape that is readable as text */
+  --stamp:      #C01E50;
 
-  /* ── OBSIDIAN / DARK ESPRESSO (Sidebar, Dark UI, Accents) ── */
-  --obsidian-950: #0E0C0B;
-  --obsidian-900: #151210;
-  --obsidian-850: #1B1714;
-  --obsidian-800: #241F1B;
-  --obsidian-700: #332C26;
-  --obsidian-600: #483E36;
+  /* Old names, re-mapped to the new palette */
+  --cream-50:   #FFFDF7;
+  --cream-100:  var(--paper);
+  --cream-200:  var(--paper-deep);
+  --cream-300:  #F1DEC0;
+  --cream-400:  #D9C29E;
+  --cream-500:  #B39B78;
 
-  /* ── GILDED BRASS / GOLD PALETTE (Warm Atelier Gold Text & Accents) ── */
-  --gold-300:   #F0DDA8;
-  --gold-400:   #E2C17D;
-  --gold-500:   #CBA358;
-  --gold-600:   #B8860B;
-  --gold-700:   #936C06;
+  --obsidian-950: #0F0A26;
+  --obsidian-900: var(--ink);
+  --obsidian-850: #221A4D;
+  --obsidian-800: #2A2158;
+  --obsidian-700: #3A2F70;
+  --obsidian-600: #4B4470;
 
-  /* ── NAVY BLUE PALETTE (Signature Buttons & CTA) ─────────── */
-  --navy-950:   #001838;
-  --navy-900:   #002B66; /* Exact Home Page Navy Button */
-  --navy-850:   #012255;
-  --navy-800:   #022E71;
-  --navy-700:   #0B3F94; /* Navy Hover */
-  --navy-600:   #1251B8;
-  --navy-500:   #1E62D0;
-  --navy-400:   #3B82F6;
-  --navy-300:   #93B8FC;
-  --navy-200:   #BFDBFE;
-  --navy-100:   #EBF2FF;
-  --navy-50:    #F4F7FC;
+  --gold-300:   #FFE68A;
+  --gold-400:   #FFD23F;
+  --gold-500:   #FFB800;
+  --gold-600:   #6B3FE0;  /* was gold text → now readable grape */
+  --gold-700:   #5A2FCC;
+
+  --navy-950:   #0F0A26;
+  --navy-900:   var(--ink);
+  --navy-850:   #221A4D;
+  --navy-800:   #2A2158;
+  --navy-700:   #3A2F70;
+  --navy-600:   #5A2FCC;
+  --navy-500:   #6B3FE0;
+  --navy-400:   #9B6BFF;
+  --navy-300:   #C7B2FF;
+  --navy-200:   #E2D6FF;
+  --navy-100:   #F1EBFF;
+  --navy-50:    #F8F4FF;
 
   /* ── BUTTON TOKENS ───────────────────────────────────────── */
-  --btn-navy-bg:        var(--navy-900); /* #002B66 */
-  --btn-navy-hover:     var(--navy-700); /* #0B3F94 */
-  --btn-navy-active:    var(--navy-800); /* #022E71 */
+  --btn-navy-bg:        var(--ink);
+  --btn-navy-hover:     #2A2158;
+  --btn-navy-active:    #0F0A26;
   --btn-navy-text:      #FFFFFF;
-  --btn-navy-shadow:    0 4px 14px rgba(0, 43, 102, 0.4);
+  --btn-navy-shadow:    4px 4px 0 var(--bubblegum);
 
   /* ── SCIENTIFIC ACCENTS ──────────────────────────────────── */
-  --sci-cyan:   #0EA5E9;
-  --sci-teal:   #0D9488;
-  --sci-rose:   #E11D48;
-  --sci-amber:  #D97706;
-  --sci-emerald:#059669;
-  --sci-indigo: #4F46E5;
+  --sci-cyan:   var(--sky);
+  --sci-teal:   #12A3C7;
+  --sci-rose:   var(--bubblegum);
+  --sci-amber:  var(--tangerine);
+  --sci-emerald:#14A06B;
+  --sci-indigo: var(--grape-ink);
 
   /* ── SEMANTIC COLORS ─────────────────────────────────────── */
-  --color-bg:             var(--cream-100);
-  --color-bg-alt:         var(--cream-50);
+  --color-bg:             var(--paper);
+  --color-bg-alt:         #FFFDF7;
   --color-surface:        #FFFFFF;
-  --color-surface-warm:   #FCFBF9;
-  --color-surface-hover:  var(--cream-200);
+  --color-surface-warm:   #FFFDF7;
+  --color-surface-hover:  var(--paper-deep);
 
-  /* Primary Accent: Rich Espresso & Navy */
-  --color-primary:        var(--obsidian-900);
-  --color-primary-hover:  var(--obsidian-800);
-  --color-primary-bg:     var(--cream-200);
+  --color-primary:        var(--ink);
+  --color-primary-hover:  #2A2158;
+  --color-primary-bg:     var(--paper-deep);
 
-  /* Secondary Accent: Gilded Gold Accents */
-  --color-accent:         var(--gold-500);
-  --color-accent-hover:   var(--gold-600);
-  --color-accent-light:   rgba(203, 163, 88, 0.14);
-  --color-accent-border:  rgba(203, 163, 88, 0.35);
+  --color-accent:         var(--bubblegum);
+  --color-accent-hover:   #F2448F;
+  --color-accent-light:   rgba(255, 95, 162, 0.14);
+  --color-accent-border:  rgba(27, 19, 64, 0.9);
 
-  --color-secondary:      var(--navy-900);
-  --color-secondary-bg:   var(--navy-100);
+  --color-secondary:      var(--grape-ink);
+  --color-secondary-bg:   #F1EBFF;
 
   /* Text Hierarchy */
-  --color-text:           #1C1713;
-  --color-text-muted:     #6D6254;
-  --color-text-faint:     #A29482;
-  --color-text-gold:      var(--gold-600);
+  --color-text:           var(--ink);
+  --color-text-muted:     var(--ink-soft);
+  --color-text-faint:     #6F6890;
+  --color-text-gold:      var(--grape-ink);
 
-  /* Borders */
-  --color-border:         rgba(181, 162, 133, 0.24);
-  --color-border-hover:   rgba(181, 162, 133, 0.42);
-  --color-border-subtle:  rgba(181, 162, 133, 0.14);
+  /* Borders: sticker outlines are solid ink */
+  --color-border:         rgba(27, 19, 64, 0.22);
+  --color-border-hover:   rgba(27, 19, 64, 0.6);
+  --color-border-subtle:  rgba(27, 19, 64, 0.12);
 
   /* Dark Rail Tokens */
-  --rail-bg:              var(--obsidian-900);
-  --rail-border:          rgba(255, 255, 255, 0.07);
-  --rail-text:            #F5F0E6;
-  --rail-text-muted:      #8F8578;
-  --rail-active-bg:       rgba(0, 43, 102, 0.35);
-  --rail-active-text:     #BFDBFE;
+  --rail-bg:              var(--ink);
+  --rail-border:          rgba(255, 255, 255, 0.1);
+  --rail-text:            #FFF7E8;
+  --rail-text-muted:      #C7B2FF;
+  --rail-active-bg:       var(--sunflower);
+  --rail-active-text:     var(--ink);
 
   /* Status */
-  --color-error:          #C23B30;
-  --color-error-bg:       #FDF2F0;
-  --color-success:        #1B7F53;
-  --color-success-bg:     #F0F9F4;
-  --color-warning:        #B5771A;
-  --color-warning-bg:     #FEF9F0;
+  --color-error:          #C01E50;
+  --color-error-bg:       #FFE8EF;
+  --color-success:        #0E7A52;
+  --color-success-bg:     #E3F8EE;
+  --color-warning:        #A85400;
+  --color-warning-bg:     #FFF1E3;
 
   /* ── SHADOWS ─────────────────────────────────────────────── */
-  --shadow-xs: 0 1px 2px rgba(28, 23, 19, 0.04);
-  --shadow-sm: 0 2px 6px rgba(28, 23, 19, 0.05), 0 1px 2px rgba(28, 23, 19, 0.03);
-  --shadow-md: 0 8px 24px rgba(28, 23, 19, 0.07), 0 2px 6px rgba(28, 23, 19, 0.04);
-  --shadow-lg: 0 20px 48px rgba(28, 23, 19, 0.09), 0 6px 16px rgba(28, 23, 19, 0.04);
-  --shadow-gold: 0 4px 20px rgba(203, 163, 88, 0.25);
-  --shadow-dark: 0 16px 40px rgba(14, 12, 11, 0.35);
+  /* Hard "sticker" shadows: solid ink, offset down-right */
+  --shadow-xs: 2px 2px 0 rgba(27, 19, 64, 0.9);
+  --shadow-sm: 3px 3px 0 var(--ink);
+  --shadow-md: 5px 5px 0 var(--ink);
+  --shadow-lg: 7px 7px 0 var(--ink);
+  --shadow-gold: 4px 4px 0 var(--sunflower);
+  --shadow-dark: 0 16px 40px rgba(15, 10, 38, 0.35);
+  --sticker-border: 3px solid var(--ink);
 
   /* ── SCENE BACKGROUND ────────────────────────────────────── */
-  --scene-bg-start: #FBF9F5;
-  --scene-bg-end:   #F3EDE2;
+  --scene-bg-start: #FFFDF7;
+  --scene-bg-end:   #FFF1DA;
 
   /* ── TRANSITIONS ─────────────────────────────────────────── */
   --transition-fast:   150ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -132,12 +145,13 @@
   --duration-slow:    400ms;
 
   /* ── TYPOGRAPHY ──────────────────────────────────────────── */
-  --font-serif:     'Playfair Display', Georgia, serif;
-  --font-display:   'Bricolage Grotesque', 'Plus Jakarta Sans', system-ui, sans-serif;
-  --font-grotesque: 'Bricolage Grotesque', 'Plus Jakarta Sans', system-ui, sans-serif;
-  --font-signature: 'Alex Brush', cursive, serif;
-  --font-body:      'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-mono:      'JetBrains Mono', monospace;
+  --font-serif:     'Unbounded', system-ui, sans-serif;
+  --font-display:   'Unbounded', system-ui, sans-serif;
+  --font-grotesque: 'Unbounded', system-ui, sans-serif;
+  --font-signature: 'Gochi Hand', cursive;
+  --font-hand:      'Gochi Hand', cursive;
+  --font-body:      'Lexend', system-ui, -apple-system, sans-serif;
+  --font-mono:      'Space Mono', ui-monospace, monospace;
 
   --text-xs:   0.6875rem;  /* 11px */
   --text-sm:   0.8125rem;  /* 13px */
@@ -174,11 +188,11 @@
   --space-16: 4rem;
 
   /* ── BORDER RADIUS ───────────────────────────────────────── */
-  --radius-xs:   4px;
-  --radius-sm:   8px;
-  --radius-md:   14px;
-  --radius-lg:   20px;
-  --radius-xl:   28px;
+  --radius-xs:   6px;
+  --radius-sm:   10px;
+  --radius-md:   16px;
+  --radius-lg:   22px;
+  --radius-xl:   30px;
   --radius-full: 9999px;
 
   /* ── Z-INDEX ─────────────────────────────────────────────── */
@@ -194,5 +208,5 @@
   --rail-expanded:     240px;
   --panel-width:       380px;
   --top-bar-height:    60px;
-  --bottom-nav-height: 64px;
+  --bottom-nav-height: 84px; /* floating 64px bar + 10px gap + breathing room */
 }
