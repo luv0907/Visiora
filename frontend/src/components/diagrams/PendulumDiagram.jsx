@@ -3,6 +3,10 @@ import { usePhysicsStore } from '../../store/usePhysicsStore'
 
 export default function PendulumDiagram({ formulaState }) {
   if (!formulaState) return null
+  return <PendulumDiagramContent formulaState={formulaState} />
+}
+
+function PendulumDiagramContent({ formulaState }) {
 
   const { values } = formulaState
   const { L = 2, θ0 = Math.PI / 6, T_corrected = 2, m = 1 } = values

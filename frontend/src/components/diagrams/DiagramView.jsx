@@ -13,7 +13,10 @@ import AngularDiagram from './AngularDiagram'
 
 export default function DiagramView({ visible }) {
   if (!visible) return null
+  return <DiagramViewContent />
+}
 
+function DiagramViewContent() {
   const { activeScene, formulaState } = usePhysicsStore()
   const vars = SCENE_VARIABLES[activeScene] ?? []
 

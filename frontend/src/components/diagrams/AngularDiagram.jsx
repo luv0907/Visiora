@@ -3,6 +3,10 @@ import { usePhysicsStore } from '../../store/usePhysicsStore'
 
 export default function AngularDiagram({ formulaState }) {
   if (!formulaState) return null
+  return <AngularDiagramContent formulaState={formulaState} />
+}
+
+function AngularDiagramContent({ formulaState }) {
 
   const { values } = formulaState
   const { ω0, ω2, r1, r2, I1, I2, L } = values
