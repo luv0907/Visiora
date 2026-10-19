@@ -43,7 +43,6 @@ import {
   ChevronDown
 } from 'lucide-react'
 import { useAuthStore } from '../../store/useAuthStore'
-import { API_CONFIG } from '../../config/physics'
 import AIInteractiveCanvas from './AIInteractiveCanvas'
 
 // ── Visiora Lotus Avatar SVG ──────────────────────────────────────
@@ -61,34 +60,9 @@ function VisioraLotus({ size = 20, color = '#002B66' }) {
 
 // ── Model Options ────────────────────────────────────────────────
 const MODEL_OPTIONS = [
-  { id: 'qwen', label: 'Qwen 2.5 72B', badge: 'Default', desc: 'Powerful open weights via OpenRouter' },
-  { id: 'gemini', label: 'Gemini 2.0 Flash', badge: 'Google AI', desc: 'Ultra-fast multimodal reasoning' },
-  { id: 'groq', label: 'Groq Llama 3.3', badge: 'Low Latency', desc: 'Sub-second real-time inference' },
-  { id: 'offline', label: 'Deterministic Engine', badge: 'Offline', desc: 'Visiora local mathematical physics' }
+  { id: 'gemini', label: 'Gemini', badge: 'Free', desc: 'Google Gemini, with numerical answers checked by Visiora\'s physics engine' }
 ]
 
-// ── Default Artifact Spec ────────────────────────────────────────
-const DEFAULT_ARTIFACT = {
-  topic: 'Projectile Motion',
-  concept: 'Two-Dimensional Parabolic Trajectory Under Gravity',
-  visualType: 'projectile',
-  formula: 'R = v₀² · sin(2θ) / g,  Hₘₐₓ = v₀² · sin²(θ) / (2g)',
-  sliders: [
-    { id: 'launchVelocity', label: 'Launch Velocity (v₀)', min: 5, max: 50, step: 1, default: 24, unit: 'm/s' },
-    { id: 'launchAngle', label: 'Launch Angle (θ)', min: 10, max: 85, step: 1, default: 45, unit: '°' },
-    { id: 'gravity', label: 'Gravity (g)', min: 1.6, max: 25.0, step: 0.2, default: 9.8, unit: 'm/s²' },
-    { id: 'airDrag', label: 'Air Drag (k)', min: 0.0, max: 0.15, step: 0.01, default: 0.0, unit: '' }
-  ],
-  telemetryMetrics: [
-    { id: 'range', label: 'Range', unit: 'm' },
-    { id: 'maxHeight', label: 'Max Height', unit: 'm' },
-    { id: 'timeOfFlight', label: 'Flight Time', unit: 's' }
-  ],
-  takeaways: [
-    '45° launch angle maximizes horizontal distance in a vacuum.',
-    'Horizontal velocity remains constant while vertical velocity changes constantly.'
-  ]
-}
 
 // ── Clean LaTeX to Readable Unicode ──────────────────────────────
 function cleanFormula(raw) {
@@ -109,21 +83,6 @@ function cleanFormula(raw) {
     .replace(/\{/g, '').replace(/\}/g, '')
     .replace(/\\/g, '')
     .trim()
-}
-
-function inferVisualType(prompt, topic, concept, rawType) {
-  const text = `${prompt || ''} ${topic || ''} ${concept || ''}`.toLowerCase()
-  if (/balloon|buoy|float|sink|archimedes|fluid density|displace|submerge|water tank|boat|ship/i.test(text)) return 'buoyancy'
-  if (/spring|hooke|elasticity|stiffness/i.test(text)) return 'spring'
-  if (/collision|momentum|collide|impulse|billiard|restitution|bounce|drop height/i.test(text)) return 'collision'
-  if (/orbit|satellite|kepler|gravity|planetary|solar system|weightless|space station/i.test(text)) return 'gravity'
-  if (/wave|sound|ripple|wavelength|frequency|sinusoid|guitar string/i.test(text)) return 'wave'
-  if (/snell|refract|optics|lens|prism|reflection|tir|index of refraction/i.test(text)) return 'refraction'
-  if (/circuit|resistor|voltage|current|ohm|battery|ampere/i.test(text)) return 'circuit'
-  if (/pendulum|shm|swinging bob/i.test(text)) return 'pendulum'
-  const valid = ['projectile', 'pendulum', 'refraction', 'circuit', 'buoyancy', 'wave', 'spring', 'collision', 'gravity']
-  if (rawType && valid.includes(rawType)) return rawType
-  return 'projectile'
 }
 
 // ── Markdown Parser with Inline Formatting ───────────────────────
@@ -416,14 +375,14 @@ export default function AITutorStudio({ onClose, isModal = false }) {
     return [{
       id: `chat-${Date.now()}`,
       title: 'New Conversation',
-      model: 'qwen',
+      model: 'gemini',
       updatedAt: new Date().toISOString(),
       messages: []
     }]
   })
 
   const [activeChatId, setActiveChatId] = useState(() => conversations[0]?.id || `chat-${Date.now()}`)
-  const [selectedModel, setSelectedModel] = useState('qwen')
+  const [selectedModel, setSelectedModel] = useState('gemini')
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
   const [input, setInput] = useState('')
@@ -578,148 +537,49 @@ export default function AITutorStudio({ onClose, isModal = false }) {
       content: m.content
     }))
 
+    // One call to our own server function: the Gemini key stays on the server,
+    // and numerical answers come back checked by Visiora's physics engine.
+    const addAssistant = msg =>
+      setConversations(prev =>
+        prev.map(c => c.id === activeChatId
+          ? { ...c, messages: [...c.messages, msg], updatedAt: new Date().toISOString() }
+          : c
+        )
+      )
     try {
-      let assistantData = null
-      const payload = {
-        prompt: text,
-        model: selectedModel,
-        messages: historyMessages
-      }
-
-      // 1. Try configured backend API
-      try {
-        const res = await fetch(`${API_CONFIG.BASE_URL}/api/v1/ai/visual-tutor`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        })
-        if (res.ok) {
-          const json = await res.json()
-          if (json.data && json.data.explanation) {
-            assistantData = json.data
-          }
-        }
-      } catch (err) {
-        console.warn('Backend direct fetch failed, trying proxy...', err)
-      }
-
-      // 2. If direct backend failed, try relative path (proxied by Vite)
-      if (!assistantData) {
-        try {
-          const resProxy = await fetch('/api/v1/ai/visual-tutor', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          })
-          if (resProxy.ok) {
-            const json = await resProxy.json()
-            if (json.data && json.data.explanation) {
-              assistantData = json.data
-            }
-          }
-        } catch (err) {
-          console.warn('Backend proxy fetch failed, trying direct OpenRouter...', err)
-        }
-      }
-
-      // 3. If backend is unavailable (e.g. deployed standalone on Vercel), call OpenRouter directly
-      if (!assistantData) {
-        try {
-          const openrouterKey = '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'
-          const directRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${openrouterKey}`,
-              'HTTP-Referer': window.location.origin || 'http://localhost:5173',
-              'X-Title': 'VISIORA'
-            },
-            body: JSON.stringify({
-              models: [
-                'meta-llama/llama-3.3-70b-instruct',
-                'deepseek/deepseek-chat',
-                'mistralai/mistral-small-24b-instruct-2501'
-              ],
-              messages: [
-                {
-                  role: 'system',
-                  content: 'You are VISIORA Atelier interactive physics tutor for high school students. Explain with intuition, analogies, formulas, and specify a 2D interactive canvas. Output strictly valid JSON with keys: topic, concept, explanation, formula, visualType (buoyancy|collision|spring|gravity|projectile|pendulum|refraction|circuit|wave), sliders (array of {id, label, min, max, step, default, unit}), telemetryMetrics (array of {id, label, unit}), takeaways (1-3 bullets).'
-                },
-                ...historyMessages,
-                { role: 'user', content: text }
-              ],
-              response_format: { type: 'json_object' }
-            })
-          })
-
-          if (directRes.ok) {
-            const directJson = await directRes.json()
-            const content = directJson.choices?.[0]?.message?.content
-            if (content) {
-              const cleaned = content.replace(/^```(?:json)?/m, '').replace(/```$/m, '').trim()
-              assistantData = JSON.parse(cleaned)
-            }
-          }
-        } catch (err) {
-          console.error('Direct OpenRouter call failed:', err)
-        }
-      }
-
-      if (!assistantData) {
-        assistantData = DEFAULT_ARTIFACT
-      }
-
-      const determinedVisualType = inferVisualType(text, assistantData.topic, assistantData.concept, assistantData.visualType)
-      const cleanedFormula = cleanFormula(assistantData.formula || '')
+      const res = await fetch('/api/tutor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, history: historyMessages })
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok || !json.data) throw new Error(json.error || 'The tutor could not answer right now. Please try again.')
+      const d = json.data
       const newMsgId = `a-${Date.now()}`
-      const fullExplanation = assistantData.explanation || 'Here is the interactive physics simulation.'
-
-      const assistantMsg = {
+      addAssistant({
         id: newMsgId,
         role: 'assistant',
-        content: fullExplanation,
-        formula: cleanedFormula,
-        topic: assistantData.topic || '',
-        concept: assistantData.concept || '',
-        takeaways: assistantData.takeaways || [],
-        artifact: {
-          topic: assistantData.topic || 'Physics Simulation',
-          concept: assistantData.concept || '',
-          visualType: determinedVisualType,
-          formula: cleanedFormula,
-          sliders: assistantData.sliders?.length > 0 ? assistantData.sliders : DEFAULT_ARTIFACT.sliders,
-          telemetryMetrics: assistantData.telemetryMetrics || DEFAULT_ARTIFACT.telemetryMetrics
-        },
+        content: d.explanation,
+        formula: d.formulas.join('   ·   '),
+        topic: d.kind === 'greeting' || d.kind === 'off_topic' ? '' : d.title,
+        takeaways: d.keyPoints,
+        steps: d.steps,
+        finalAnswer: d.finalAnswer,
+        verification: d.verification,
+        lab: d.lab,
         ts: new Date().toISOString()
-      }
-
-      // Add assistant message to store
-      setConversations(prev =>
-        prev.map(c => c.id === activeChatId
-          ? { ...c, messages: [...c.messages, assistantMsg], updatedAt: new Date().toISOString() }
-          : c
-        )
-      )
-
-      // Start word-by-word streaming effect
-      startStreaming(newMsgId, fullExplanation)
-    } catch {
-      const fallbackId = `a-${Date.now()}`
-      const fallbackMsg = {
-        id: fallbackId,
+      })
+      startStreaming(newMsgId, d.explanation)
+    } catch (err) {
+      addAssistant({
+        id: `a-${Date.now()}`,
         role: 'assistant',
-        content: 'I analyzed your physics question and prepared an interactive simulation.',
-        formula: DEFAULT_ARTIFACT.formula,
-        artifact: DEFAULT_ARTIFACT,
-        takeaways: DEFAULT_ARTIFACT.takeaways,
+        content: err?.message && !/fetch|network/i.test(err.message)
+          ? err.message
+          : 'I could not reach the tutor. Check your internet connection and try again.',
+        isError: true,
         ts: new Date().toISOString()
-      }
-      setConversations(prev =>
-        prev.map(c => c.id === activeChatId
-          ? { ...c, messages: [...c.messages, fallbackMsg], updatedAt: new Date().toISOString() }
-          : c
-        )
-      )
+      })
     } finally {
       setIsLoading(false)
     }
@@ -1299,6 +1159,39 @@ export default function AITutorStudio({ onClose, isModal = false }) {
                             {msg.formula}
                           </div>
                         </div>
+                      )}
+
+                      {/* Worked solution, checked final answer, and the real lab to try it in */}
+                      {msg.steps?.length > 0 && (
+                        <ol style={{ margin: '14px 0 0', paddingLeft: 22, display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14, color: '#1E293B', lineHeight: 1.55 }}>
+                          {msg.steps.map((step, idx) => <li key={idx} style={{ whiteSpace: 'pre-wrap' }}>{step}</li>)}
+                        </ol>
+                      )}
+                      {msg.finalAnswer && (
+                        <div style={{ marginTop: 12, padding: '10px 14px', borderRadius: 10, background: '#F4F7FC', border: '1px solid #DCE5F3' }}>
+                          <div style={{ fontSize: 11, fontWeight: 750, color: '#002B66', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Answer</div>
+                          <div style={{ fontSize: 15, fontWeight: 700, color: '#0F172A', marginTop: 2 }}>{msg.finalAnswer}</div>
+                        </div>
+                      )}
+                      {msg.verification?.status === 'verified' && (
+                        <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 650, color: '#047857' }}>
+                          <CheckCircle2 size={14} /> {msg.verification.detail}
+                        </div>
+                      )}
+                      {msg.verification?.status === 'corrected' && (
+                        <div role="alert" style={{ marginTop: 8, padding: '8px 12px', borderRadius: 8, background: '#FFF7ED', border: '1px solid #FED7AA', fontSize: 13, fontWeight: 600, color: '#9A3412' }}>
+                          {msg.verification.detail}
+                        </div>
+                      )}
+                      {msg.lab && (
+                        <a href={msg.lab.path} style={{ marginTop: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '12px 16px', borderRadius: 12, background: '#1C1713', color: '#F7F3EB', textDecoration: 'none' }}>
+                          <span>
+                            <span style={{ display: 'block', fontSize: 11, fontWeight: 750, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#E2C17D' }}>See it for yourself</span>
+                            <span style={{ display: 'block', fontSize: 15, fontWeight: 700 }}>Open the {msg.lab.name}</span>
+                            {msg.lab.reason && <span style={{ display: 'block', fontSize: 12.5, color: '#D9CDB8', marginTop: 2 }}>{msg.lab.reason}</span>}
+                          </span>
+                          <span aria-hidden="true" style={{ fontSize: 18 }}>→</span>
+                        </a>
                       )}
 
                       {/* ── INLINE 2D INTERACTIVE SIMULATION CANVAS ── */}
