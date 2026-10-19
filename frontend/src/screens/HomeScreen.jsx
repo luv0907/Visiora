@@ -15,6 +15,7 @@ import { useAdminStore } from '../store/useAdminStore'
 import { useLabStore } from '../store/useLabStore'
 import { SCENE_META } from '../config/physics'
 import { LAB_GROUPS } from '../data/labCatalog'
+import { greetingName } from '../utils/greetingName'
 import './home.css'
 
 // Characters decorate the page; concept illustrations sit on lab and experiment cards.
@@ -54,7 +55,7 @@ export default function HomeScreen() {
   const [posts, setPosts] = useState([])
 
   const q = query.trim().toLowerCase()
-  const firstName = (profile?.name && profile.name !== 'Scholar' ? profile.name : user?.displayName || '').split(' ')[0]
+  const firstName = greetingName(profile, user)
   const streak = profile?.streak || 1
 
   // Latest articles from the static blog (absent in local dev — then the list hides).
