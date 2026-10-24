@@ -12,7 +12,7 @@ imageAlt: Illustration showing a comparison of falling objects and gravity betwe
 <p>To understand why this happens, we first need to explore what gravitational acceleration actually means, how celestial bodies exert pull on objects, and how your weight changes when you leave our home planet.</p>
 
 <h3>What Does g Really Mean?</h3>
-<p>Whenever you drop an object from a height, it accelerates downward toward the ground. If you ignore air resistance, every falling object speeds up at a steady, uniform rate. This state is known as <a href="https://visiora-ten.vercel.app/blog/what-is-free-fall-class-9-notes-formula-examples">free fall</a>, and the steady acceleration experienced by any freely falling body is called the <strong>acceleration due to gravity</strong>, denoted by the small letter <strong>g</strong>.</p>
+<p>Whenever you drop an object from a height, it accelerates downward toward the ground. If you ignore air resistance, every falling object speeds up at a steady, uniform rate. This state is known as <a href="https://www.visiora.online/blog/what-is-free-fall-class-9-notes-formula-examples">free fall</a>, and the steady acceleration experienced by any freely falling body is called the <strong>acceleration due to gravity</strong>, denoted by the small letter <strong>g</strong>.</p>
 <p>On Earth, the standard average value of g near the surface is <strong>9.8 m/s²</strong>. This means that every single second an object falls freely on Earth, its downward speed increases by 9.8 meters per second. But gravity is not a universal constant everywhere you stand; it depends on the mass and size of the celestial body beneath your feet.</p>
 
 <h3>Mass vs. Weight: Clearing the Common Confusion</h3>
@@ -93,7 +93,7 @@ imageAlt: Illustration showing a comparison of falling objects and gravity betwe
 <p>How does this lower gravitational pull change everyday motion? The best way to understand the physics of gravity is to see it in action.</p>
 
 <h3>The Hammer and Feather Drop Moon Experiment</h3>
-<p>Back in 1589, Galileo famously reasoned that in the absence of air resistance, all objects fall at the exact same rate regardless of their mass. If you have ever wondered whether <a href="https://visiora-ten.vercel.app/blog/do-heavier-objects-fall-faster">heavier objects fall faster</a>, the answer is a firm no—air drag is the only reason a feather drifts down slowly on Earth while a stone plummets.</p>
+<p>Back in 1589, Galileo famously reasoned that in the absence of air resistance, all objects fall at the exact same rate regardless of their mass. If you have ever wondered whether <a href="https://www.visiora.online/blog/do-heavier-objects-fall-faster">heavier objects fall faster</a>, the answer is a firm no—air drag is the only reason a feather drifts down slowly on Earth while a stone plummets.</p>
 <p>In 1971, during the Apollo 15 mission, an astronaut performed the ultimate demonstration directly on the lunar surface. Holding a heavy 1.32 kg geological hammer in one hand and a light 0.03 kg falcon feather in the other, he released them simultaneously from a height of about 1.6 meters. Because the Moon has virtually no atmosphere to generate air resistance, both objects hit the lunar dirt at the exact same instant!</p>
 <p>This legendary <strong>hammer and feather drop moon experiment</strong> provided stunning visual confirmation of Galileo's insight and Newton's gravitational formula.</p>
 

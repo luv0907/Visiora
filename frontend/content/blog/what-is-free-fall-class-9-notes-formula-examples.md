@@ -165,7 +165,7 @@ imageAlt: A scientific diagram illustrating free fall showing two objects of dif
 
 <p>In 1971, astronaut David Scott recreated this test on the Moon during the Apollo 15 mission. Because the Moon has no atmosphere, he dropped a 1.32 kg geological hammer and a 0.03 kg falcon feather simultaneously. They struck the lunar dust together, offering clear visual proof that in the absence of air drag, all objects accelerate at the exact same rate under gravity.</p>
 
-<p>To understand the historical experiments that debunked earlier myths, read our detailed guide on <a href="https://visiora-ten.vercel.app/blog/do-heavier-objects-fall-faster">how Galileo explained why heavy and light objects fall at the same rate</a>. You can also explore these physics principles directly in the <strong>Visiora interactive lab</strong>, adjusting gravity, initial height, and atmospheric conditions in real time.</p>
+<p>To understand the historical experiments that debunked earlier myths, read our detailed guide on <a href="https://www.visiora.online/blog/do-heavier-objects-fall-faster">how Galileo explained why heavy and light objects fall at the same rate</a>. You can also explore these physics principles directly in the <strong>Visiora interactive lab</strong>, adjusting gravity, initial height, and atmospheric conditions in real time.</p>
 
 <h3>Try It at Home: The Two-Sheet Paper Experiment</h3>
 
