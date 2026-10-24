@@ -93,7 +93,7 @@ imageAlt: Diagram comparing speed as a scalar quantity and velocity as a vector 
   <li>The object slows down (magnitude changes).</li>
   <li>The object changes its direction of travel (even if the numerical speed remains perfectly constant).</li>
 </ol>
-<p>For example, when an apple falls toward Earth, its speed increases steadily under gravity. When exploring concepts like <a href="https://visiora-ten.vercel.app/blog/what-is-free-fall-class-9-notes-formula-examples">what is free fall</a>, we see that downward velocity increases every second because gravitational acceleration pulls it straight toward the center of the Earth.</p>
+<p>For example, when an apple falls toward Earth, its speed increases steadily under gravity. When exploring concepts like <a href="https://www.visiora.online/blog/what-is-free-fall-class-9-notes-formula-examples">what is free fall</a>, we see that downward velocity increases every second because gravitational acceleration pulls it straight toward the center of the Earth.</p>
 
 <h3>Uniform vs. Non-Uniform Velocity</h3>
 <p>An object moves with <strong>uniform velocity</strong> only when it covers equal displacements in equal intervals of time along an unswerving straight line. If either the speed changes or the direction bends, the velocity becomes <strong>non-uniform (accelerated)</strong>.</p>
@@ -114,7 +114,7 @@ imageAlt: Diagram comparing speed as a scalar quantity and velocity as a vector 
   <li>Their <strong>speed</strong> is constant at 5 m/s throughout the run.</li>
   <li>Their <strong>velocity</strong> is continuously changing at every single point because the direction of the tangent to the circle changes continually.</li>
 </ul>
-<p>Because the velocity vector changes direction at every fraction of a second, circular motion at constant speed is always an accelerated motion. Whether an object orbits the Earth or you drop stones to examine <a href="https://visiora-ten.vercel.app/blog/do-heavier-objects-fall-faster">whether heavier objects fall faster</a>, direction and acceleration dictate motion behavior.</p>
+<p>Because the velocity vector changes direction at every fraction of a second, circular motion at constant speed is always an accelerated motion. Whether an object orbits the Earth or you drop stones to examine <a href="https://www.visiora.online/blog/do-heavier-objects-fall-faster">whether heavier objects fall faster</a>, direction and acceleration dictate motion behavior.</p>
 
 <h2>Interactive Lab: Visualizing Speed and Velocity</h2>
 
@@ -134,7 +134,7 @@ imageAlt: Diagram comparing speed as a scalar quantity and velocity as a vector 
   <li>Open the 2D Motion module in the Visiora interactive lab.</li>
   <li>Turn on both the "Path Trajectory" (distance) and "Displacement Vector" toggles.</li>
   <li>Drive the test particle in a complete loop. Watch the scalar speed odometer keep climbing while the velocity vector collapses to zero length the moment you return home.</li>
-  <li>Compare this to objects falling under different gravitational fields, such as testing motion under the low pull of <a href="https://visiora-ten.vercel.app/blog/gravity-on-the-moon-value-formula-lab-class-9">gravity on the Moon</a>, where velocity changes at a steady rate of 1.62 m/s every second.</li>
+  <li>Compare this to objects falling under different gravitational fields, such as testing motion under the low pull of <a href="https://www.visiora.online/blog/gravity-on-the-moon-value-formula-lab-class-9">gravity on the Moon</a>, where velocity changes at a steady rate of 1.62 m/s every second.</li>
 </ol>
 
 <h2>CBSE Class 9 Solved Numericals</h2>

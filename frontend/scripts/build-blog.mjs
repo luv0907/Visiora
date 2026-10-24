@@ -23,11 +23,9 @@ import { Marked } from 'marked'
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const CONTENT = path.join(ROOT, 'content', 'blog')
 const DIST = path.join(ROOT, 'dist')
-const SITE = (
-  process.env.SITE_URL ||
-  (process.env.VERCEL_PROJECT_PRODUCTION_URL && `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`) ||
-  'https://visiora-ten.vercel.app'
-).replace(/\/$/, '')
+// The public domain. Canonical URLs, the sitemap and RSS must always name it,
+// even on preview builds, so search engines never index a *.vercel.app copy.
+const SITE = (process.env.SITE_URL || 'https://www.visiora.online').replace(/\/$/, '')
 const BRAND = 'Visiora'
 
 // Labs a post can point readers to, matched by words in its title and keywords.
