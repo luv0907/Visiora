@@ -17,6 +17,9 @@ import './physicsLab.css'
 const MODEL_URL = '/models/physics_lab.glb'
 const COLLIDERS_URL = '/models/physics_lab_colliders.json'
 const HDRI_URL = '/hdri/sunny_rose_garden_1k.hdr'
+const LIGHTMAP_DIR = '/models/lightmaps/'
+// Blender renders the lab with AgX at +1.1 stops; match it so the baked light reads the same.
+const EXPOSURE = 2 ** 1.1
 const TOWER = { x: 18.9, z: 0 } // browser floor coordinates of the tower plinth
 const PLINTH_TOP = 0.6
 const USE_DISTANCE = 3.4
@@ -40,56 +43,100 @@ function useKeys() {
 }
 
 // ── the hall ─────────────────────────────────────────────────────────────────
+// The scenery's light (sun, sky, lamps, bounce light) is baked in Blender into one lightmap
+// per area (blender/scripts/build_web_lab.py). Here each surface shows texture × baked light,
+// so the browser matches the Cycles renders without lighting the room in real time.
+function useLightmaps() {
+  const [maps, setMaps] = useState(null)
+  useEffect(() => {
+    let alive = true
+    fetch(LIGHTMAP_DIR + 'manifest.json').then(r => r.json()).then(man => {
+      const loader = new THREE.TextureLoader()
+      const out = { scale: man.scale, textures: {} }
+      Promise.all(Object.entries(man.maps).map(([name, file]) => loader.loadAsync(LIGHTMAP_DIR + file).then(tex => {
+        tex.flipY = false            // glTF UV convention
+        tex.channel = 1              // TEXCOORD_1 = the lightmap UVs
+        tex.colorSpace = THREE.SRGBColorSpace
+        tex.anisotropy = 4
+        out.textures[name] = tex
+      }))).then(() => { if (alive) setMaps(out) })
+    })
+    return () => { alive = false }
+  }, [])
+  return maps
+}
+
+const ownerName = o => {
+  for (let p = o; p; p = p.parent) if (p.name?.startsWith('Static_')) return p.name
+  return null
+}
+
+function bakedMaterial(m, lightMap, scale) {
+  const glow = m.emissive && (m.emissive.r + m.emissive.g + m.emissive.b) > 0.05 && (m.emissiveIntensity ?? 1) > 0
+  if (glow) {
+    // lamps, LEDs, the timer screen: stay bright, no baked shading
+    const c = m.emissive.clone().multiplyScalar(Math.min(4, m.emissiveIntensity ?? 1))
+    return new THREE.MeshBasicMaterial({ color: c, toneMapped: true })
+  }
+  if (m.metalness > 0.5) {
+    // Metals have no diffuse colour, so a diffuse light bake is black for them.
+    // Brass, steel and aluminium are shown by reflecting the sky instead.
+    const r = m.clone()
+    r.envMapIntensity = 1.4
+    r.roughness = Math.max(0.25, m.roughness)
+    r.vertexColors = false
+    return r
+  }
+  if (m.transmission > 0 || (m.transparent && m.opacity < 0.6)) {
+    return new THREE.MeshBasicMaterial({ color: m.color, transparent: true, opacity: 0.18, depthWrite: false })
+  }
+  return new THREE.MeshBasicMaterial({
+    map: m.map, color: m.color, lightMap, lightMapIntensity: scale,
+    transparent: m.transparent, opacity: m.opacity, alphaTest: m.alphaTest || (m.map && m.transparent ? 0.4 : 0),
+    side: m.side, vertexColors: false,
+  })
+}
+
 function LabModel({ onParts }) {
   const { scene } = useGLTF(MODEL_URL)
+  const maps = useLightmaps()
   useEffect(() => {
+    if (!maps) return
     scene.traverse(o => {
       if (!o.isMesh) return
-      o.castShadow = true
-      o.receiveShadow = true
-      const mats = Array.isArray(o.material) ? o.material : [o.material]
-      for (const m of mats) {
-        // Real transmission is costly on school laptops; a clear tinted surface reads the same here.
-        if (m.transmission > 0) {
-          m.transmission = 0
-          m.transparent = true
-          m.opacity = 0.22
-          m.roughness = 0.05
-          m.depthWrite = false
+      o.castShadow = false
+      o.receiveShadow = false
+      const owner = ownerName(o)
+      const lm = owner && maps.textures[owner]
+      if (lm) {
+        // replace once; keep the original so a remount doesn't re-wrap
+        o.userData.original = o.userData.original || o.material
+        const orig = o.userData.original
+        o.material = Array.isArray(orig) ? orig.map(m => bakedMaterial(m, lm, maps.scale)) : bakedMaterial(orig, lm, maps.scale)
+      } else {
+        // moving parts keep real-time materials; glass stays light and cheap
+        const mats = Array.isArray(o.material) ? o.material : [o.material]
+        for (const m of mats) {
+          if (m.transmission > 0) {
+            m.transmission = 0; m.transparent = true; m.opacity = 0.2; m.roughness = 0.05; m.depthWrite = false
+          }
         }
       }
-      if (/^FF_Tube/.test(o.name)) o.castShadow = false
     })
     const get = n => scene.getObjectByName(n)
     const parts = { ball: get('FF_SteelBall'), feather: get('FF_Feather'), needle: get('FF_GaugeNeedle') }
-    for (const p of Object.values(parts)) if (p) p.userData.base = { pos: p.position.clone(), rot: p.rotation.clone() }
+    for (const p of Object.values(parts)) if (p && !p.userData.base) p.userData.base = { pos: p.position.clone(), rot: p.rotation.clone() }
     onParts(parts)
-  }, [scene, onParts])
+  }, [scene, maps, onParts])
   return <primitive object={scene} />
 }
 
 function Lights() {
-  // Same afternoon sun as the Blender renders: travelling (0.45, −0.48, −0.78) in browser axes.
-  const dir = useMemo(() => new THREE.Vector3(0.45, -0.48, -0.78).normalize(), [])
-  const center = useMemo(() => new THREE.Vector3(4, 0, 0), [])
-  const sunPos = useMemo(() => center.clone().addScaledVector(dir, -45), [center, dir])
-  const target = useMemo(() => { const o = new THREE.Object3D(); o.position.copy(center); return o }, [center])
-  const lamps = useMemo(() => {
-    const out = []
-    for (const x of [-10.5, -4.5, 1.5, 7.5]) for (const y of [-3, 1.5]) out.push([x, 4.55, -y])
-    return out
-  }, [])
+  // Only the moving parts (ball, feather, gauge needle) are lit live; the room's light is baked.
   return (
     <>
-      <primitive object={target} />
-      <directionalLight
-        position={sunPos.toArray()} target={target} intensity={3.4} color="#FFE2B8" castShadow
-        shadow-mapSize={[4096, 4096]} shadow-bias={-0.0004} shadow-normalBias={0.03}
-        shadow-camera-left={-24} shadow-camera-right={24} shadow-camera-top={16} shadow-camera-bottom={-16}
-        shadow-camera-near={1} shadow-camera-far={110}
-      />
-      <hemisphereLight args={['#FFF3E2', '#8A6A4A', 0.55]} />
-      {lamps.map((p, i) => <pointLight key={i} position={p} intensity={9} distance={11} decay={2} color="#FFC98A" />)}
+      <directionalLight position={[-20, 25, 35]} intensity={1.6} color="#FFE2B8" />
+      <hemisphereLight args={['#FFF3E2', '#8A6A4A', 0.6]} />
     </>
   )
 }
@@ -319,13 +366,12 @@ export default function PhysicsLab({ onExit }) {
     <div className="pl-root">
       {spawn && (
         <Canvas
-          shadows="soft"
           dpr={[1, 1.5]}
           camera={{ fov: 70, near: 0.05, far: 200 }}
-          gl={{ antialias: true, toneMapping: THREE.AgXToneMapping, toneMappingExposure: 1.15 }}
+          gl={{ antialias: true, toneMapping: THREE.AgXToneMapping, toneMappingExposure: EXPOSURE }}
         >
           <Suspense fallback={null}>
-            <Environment files={HDRI_URL} background environmentIntensity={0.35} backgroundRotation={[0, Math.PI * 0.9, 0]} environmentRotation={[0, Math.PI * 0.9, 0]} />
+            <Environment files={HDRI_URL} background backgroundIntensity={0.45} environmentIntensity={0.55} backgroundRotation={[0, Math.PI * 0.9, 0]} environmentRotation={[0, Math.PI * 0.9, 0]} />
             <Lights />
             <LabModel onParts={setParts} />
             <TowerAnimator parts={parts} tower={tower} onTick={onTick} />
