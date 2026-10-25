@@ -75,6 +75,15 @@
 .pl-stick span { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; background: rgba(255, 253, 248, .85); }
 .pl-lookpad { position: absolute; right: 0; top: 70px; bottom: 0; width: 55%; }
 
+/* narrower screens: the panel docks at the bottom so the tower stays in view */
+@media (max-width: 900px) {
+  .pl-panel { left: 12px; right: 12px; top: auto; bottom: 12px; width: auto; max-height: 44vh; padding: 14px 16px; }
+  .pl-lede { display: none; }
+  .pl-panel-head h2 { font-size: 21px; }
+  .pl-table { font-size: 13px; }
+  .pl-table td { padding: 4px 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pl-gauge span, .pl-bar span { transition: none; }
 }

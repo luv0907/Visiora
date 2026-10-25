@@ -1,0 +1,14 @@
+{
+ "scale": 4.0,
+ "maps": {
+  "Static_Shell": "Static_Shell.webp",
+  "Static_Lab": "Static_Lab.webp",
+  "Static_Structure": "Static_Structure.webp",
+  "Static_Furniture": "Static_Furniture.webp",
+  "Static_Stations": "Static_Stations.webp",
+  "Static_Decor": "Static_Decor.webp",
+  "Static_Clutter": "Static_Clutter.webp",
+  "Static_Plants": "Static_Plants.webp",
+  "Static_Props": "Static_Props.webp"
+ }
+}
