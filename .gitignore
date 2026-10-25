@@ -55,3 +55,6 @@ UnityLab/*.csproj
 UnityLab/*.unityproj
 UnityLab/*.sln
 UnityLab/*.slnx
+
+# Blender auto-backups
+*.blend1
