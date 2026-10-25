@@ -1,0 +1,80 @@
+/* VISIORA — walk-in Physics Lab overlays (storybook palette, matches Home) */
+.pl-root {
+  --pl-brown: #6B4A2B;
+  --pl-slate: #3A4148;
+  --pl-orange: #F08A3C;
+  --pl-cream: #FFFDF8;
+  --pl-butter: #FFF4D6;
+  position: fixed;
+  inset: 0;
+  background: #A8D8DE;
+  color: var(--pl-slate);
+  font-family: 'Nunito', system-ui, sans-serif;
+  overflow: hidden;
+  user-select: none;
+}
+.pl-root canvas { touch-action: none; }
+.pl-script { font-family: 'Caveat Brush', cursive; font-size: 20px; color: #C9661F; }
+.pl-small { font-size: 13px; font-weight: 600; color: #5A4A40; margin: 0; }
+
+.pl-hud-top { position: absolute; top: 14px; left: 14px; right: 14px; display: flex; align-items: center; gap: 12px; pointer-events: none; }
+.pl-back { pointer-events: auto; padding: 9px 16px; border: 2px solid var(--pl-brown); background: var(--pl-cream); color: var(--pl-brown);
+  font: 700 12px 'Josefin Sans', sans-serif; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; box-shadow: 3px 3px 0 var(--pl-brown); }
+.pl-back:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--pl-brown); }
+.pl-title { padding: 7px 14px; background: rgba(255, 253, 248, .88); border: 2px solid var(--pl-brown); font: 900 16px 'Grandstander', cursive; }
+
+.pl-crosshair { position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%;
+  background: rgba(255, 253, 248, .9); box-shadow: 0 0 0 1.5px rgba(58, 65, 72, .55); pointer-events: none; }
+
+.pl-enter-wrap { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(42, 48, 54, .28); }
+.pl-enter { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 26px 34px; max-width: 460px;
+  background: var(--pl-cream); border: 3px solid var(--pl-brown); border-radius: 255px 18px 225px 18px / 18px 225px 18px 255px;
+  color: var(--pl-slate); cursor: pointer; text-align: center; box-shadow: 0 0 0 6px var(--pl-cream), 0 0 0 8px #E9C9B6; }
+.pl-enter strong { font: 900 26px 'Grandstander', cursive; color: var(--pl-brown); }
+
+.pl-prompt { position: absolute; left: 50%; bottom: 13%; transform: translateX(-50%); padding: 10px 18px; background: rgba(255, 253, 248, .94);
+  border: 2px solid var(--pl-brown); font: 700 14px 'Josefin Sans', sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--pl-brown); }
+.pl-prompt kbd { display: inline-block; min-width: 24px; padding: 2px 7px; margin-right: 8px; border: 2px solid var(--pl-brown); background: var(--pl-butter); font: 800 14px 'Nunito', sans-serif; text-align: center; }
+
+.pl-panel { position: absolute; right: 18px; top: 70px; width: min(420px, calc(100vw - 36px)); max-height: calc(100vh - 90px); overflow: auto;
+  padding: 20px 22px; background: var(--pl-cream); border: 3px solid var(--pl-brown); border-radius: 18px 24px 18px 22px; box-shadow: 4px 5px 0 #F3C9B2; }
+.pl-panel-head { position: relative; }
+.pl-panel-head h2 { margin: 0 0 6px; font: 700 26px 'Zilla Slab', Georgia, serif; color: var(--pl-slate); }
+.pl-x { position: absolute; right: -6px; top: -6px; width: 34px; height: 34px; border: 2px solid var(--pl-brown); background: var(--pl-butter); color: var(--pl-brown);
+  font: 800 20px 'Nunito', sans-serif; cursor: pointer; }
+.pl-lede { margin: 0 0 14px; font-size: 15px; font-weight: 600; line-height: 1.45; color: #3A3532; }
+.pl-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.pl-label { font: 700 12px 'Josefin Sans', sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--pl-brown); }
+.pl-pill { padding: 4px 10px; border: 2px solid var(--pl-brown); font-size: 13px; font-weight: 800; background: #fff; }
+.pl-pill.vacuum { background: #DDEFF1; }
+.pl-pill.pumping, .pl-pill.venting { background: var(--pl-butter); }
+.pl-gauge { height: 10px; margin: 10px 0 16px; border: 2px solid var(--pl-brown); background: #fff; }
+.pl-gauge span { display: block; height: 100%; background: #A8D8DE; transition: width .1s linear; }
+.pl-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+.pl-btn { padding: 11px 16px; border: 2px solid var(--pl-brown); background: #fff; color: var(--pl-slate);
+  font: 700 12.5px 'Josefin Sans', sans-serif; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; box-shadow: 3px 3px 0 var(--pl-brown); }
+.pl-btn.is-go { background: var(--pl-orange); color: #fff; }
+.pl-btn.is-ghost { box-shadow: none; }
+.pl-btn:disabled { opacity: .45; cursor: default; }
+.pl-btn:not(:disabled):active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--pl-brown); }
+.pl-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 14.5px; }
+.pl-table td { padding: 7px 0; border-bottom: 2px dotted #E9C9B6; }
+.pl-table td:last-child { text-align: right; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-weight: 700; }
+
+.pl-loading { position: absolute; inset: 0; display: grid; place-items: center; background: #A8D8DE; z-index: 5; }
+.pl-loading-card { width: min(360px, 80vw); padding: 22px; text-align: center; background: var(--pl-cream); border: 3px solid var(--pl-brown); }
+.pl-bar { height: 12px; margin: 10px 0 8px; border: 2px solid var(--pl-brown); background: #fff; }
+.pl-bar span { display: block; height: 100%; background: var(--pl-orange); transition: width .2s; }
+
+.pl-hint { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); padding: 6px 12px; background: rgba(255, 253, 248, .85);
+  border: 2px solid var(--pl-brown); font: 700 11px 'Josefin Sans', sans-serif; letter-spacing: .1em; text-transform: uppercase; pointer-events: none; }
+
+/* touch controls */
+.pl-stick { position: absolute; left: 22px; bottom: 26px; width: 130px; height: 130px; border-radius: 50%;
+  background: rgba(255, 253, 248, .35); border: 2px solid rgba(255, 253, 248, .8); }
+.pl-stick span { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; background: rgba(255, 253, 248, .85); }
+.pl-lookpad { position: absolute; right: 0; top: 70px; bottom: 0; width: 55%; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pl-gauge span, .pl-bar span { transition: none; }
+}

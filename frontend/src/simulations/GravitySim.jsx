@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo, useLayoutEffect, Suspense 
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, Text, Float, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
+import { createBall, stepBall, RESTITUTION } from '../engine/dropTower'
 import { Play, Pause, RotateCcw, Eye, ShieldAlert, Sparkles, Gauge, Compass, SlidersHorizontal, CheckCircle2 } from 'lucide-react'
 
 // ── 3D DROP SCENE ────────────────────────────────────────────────────────────
@@ -142,37 +143,26 @@ function DropChamber({
   const [impact2, setImpact2] = useState(null)
 
   // Physical dynamic states
-  const physRef = useRef({
+  // Ball 1 is the light beach ball, ball 2 the heavy ball (see engine/dropTower.js).
+  const makeRun = () => ({
     t: 0,
-    y1: height,
-    y2: height,
-    v1: 0,
-    v2: 0,
-    impactTime1: null,
-    impactTime2: null,
+    b1: createBall({ height, mass: ball1Props.mass, radius: ball1Props.radius, restitution: RESTITUTION.beachBall }),
+    b2: createBall({ height, mass: ball2Props.mass, radius: ball2Props.radius, restitution: RESTITUTION.heavyBall }),
     done: false,
-    trailTimer: 0
+    trailTimer: 0,
   })
+  const physRef = useRef(null)
+  if (!physRef.current) physRef.current = makeRun()
 
-  // Reset physics when simKey or height changes
+  // Reset physics when simKey or any input changes
   useEffect(() => {
-    physRef.current = {
-      t: 0,
-      y1: height,
-      y2: height,
-      v1: 0,
-      v2: 0,
-      impactTime1: null,
-      impactTime2: null,
-      done: false,
-      trailTimer: 0
-    }
+    physRef.current = makeRun()
     setT(0)
     setTrail1([])
     setTrail2([])
     setImpact1(null)
     setImpact2(null)
-  }, [simKey, height, gravity, airResistance, ball1Props.mass, ball2Props.mass])
+  }, [simKey, height, gravity, airResistance, ball1Props.mass, ball2Props.mass]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Ball nodes come from the Blender stage; the physics below moves them.
   const { stage, parts } = useFreeFallStage(height, airResistance)
@@ -193,68 +183,51 @@ function DropChamber({
     const state = physRef.current
     if (state.done) return
 
+    const t0 = state.t
     state.t += dt
     state.trailTimer += dt
 
-    const rho = airResistance ? 1.225 : 0 // Air density kg/m^3
-    const Cd = 0.47 // Sphere drag coefficient
+    // Exact engine: 1 ms steps, bounces with restitution, drag opposing motion.
+    const { b1, b2 } = state
+    stepBall(b1, dt, { g: gravity, air: airResistance, t0 })
+    stepBall(b2, dt, { g: gravity, air: airResistance, t0 })
+    if (b1.firstImpact && impact1 === null) setImpact1(b1.firstImpact.t)
+    if (b2.firstImpact && impact2 === null) setImpact2(b2.firstImpact.t)
 
-    // Ball 1 Physics
-    if (state.y1 > 0) {
-      const A1 = Math.PI * Math.pow(ball1Props.radius, 2)
-      const Fd1 = 0.5 * rho * Math.pow(state.v1, 2) * Cd * A1
-      const a1 = gravity - (Fd1 / ball1Props.mass)
-      state.v1 += a1 * dt
-      state.y1 -= state.v1 * dt
-      if (state.y1 <= 0) {
-        state.y1 = 0
-        state.impactTime1 = state.t
-        setImpact1(state.t)
-      }
+    // Move the Blender balls; a soft beach ball squashes briefly on each impact.
+    const place = (node, ball, softness) => {
+      if (!node) return
+      node.position.y = ball.y + ball.radius
+      const since = ball.lastImpact ? state.t - ball.lastImpact.t : Infinity
+      const squash = since < 0.09 ? Math.min(0.22, softness * ball.lastImpact.speed) * Math.sin((since / 0.09) * Math.PI) : 0
+      node.scale.set(1 + squash * 0.5, 1 - squash, 1 + squash * 0.5)
+      node.position.y -= ball.radius * squash
     }
-
-    // Ball 2 Physics
-    if (state.y2 > 0) {
-      const A2 = Math.PI * Math.pow(ball2Props.radius, 2)
-      const Fd2 = 0.5 * rho * Math.pow(state.v2, 2) * Cd * A2
-      const a2 = gravity - (Fd2 / ball2Props.mass)
-      state.v2 += a2 * dt
-      state.y2 -= state.v2 * dt
-      if (state.y2 <= 0) {
-        state.y2 = 0
-        state.impactTime2 = state.t
-        setImpact2(state.t)
-      }
-    }
-
-    // Update 3D meshes
-    if (mesh1Ref.current) {
-      mesh1Ref.current.position.y = state.y1 + ball1Props.radius
-    }
-    if (mesh2Ref.current) {
-      mesh2Ref.current.position.y = state.y2 + ball2Props.radius
-    }
+    place(mesh1Ref.current, b1, 0.012)
+    place(mesh2Ref.current, b2, 0.002)
 
     // Ghost trail positions at regular intervals
     if (state.trailTimer >= 0.15) {
       state.trailTimer = 0
-      if (state.y1 > 0) setTrail1(prev => [...prev.slice(-30), state.y1 + ball1Props.radius])
-      if (state.y2 > 0) setTrail2(prev => [...prev.slice(-30), state.y2 + ball2Props.radius])
+      if (!b1.firstImpact) setTrail1(prev => [...prev.slice(-30), b1.y + ball1Props.radius])
+      if (!b2.firstImpact) setTrail2(prev => [...prev.slice(-30), b2.y + ball2Props.radius])
     }
 
-    if (state.y1 === 0 && state.y2 === 0) {
+    if (b1.atRest && b2.atRest) {
       state.done = true
     }
 
     setT(state.t)
     onTelemetryUpdate({
       t: state.t,
-      y1: state.y1,
-      y2: state.y2,
-      v1: state.v1,
-      v2: state.v2,
-      impact1: state.impactTime1,
-      impact2: state.impactTime2
+      y1: b1.y,
+      y2: b2.y,
+      v1: Math.abs(b1.v),
+      v2: Math.abs(b2.v),
+      impact1: b1.firstImpact?.t ?? null,
+      impact2: b2.firstImpact?.t ?? null,
+      bounces1: b1.bounces,
+      bounces2: b2.bounces,
     })
   })
 

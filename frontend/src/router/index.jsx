@@ -23,12 +23,13 @@ import GravityLabScreen from '../screens/GravityLabScreen'
 import LightLabScreen from '../screens/LightLabScreen'
 import ElectricityLabScreen from '../screens/ElectricityLabScreen'
 import ForceLabScreen from '../screens/ForceLabScreen'
+import PhysicsLabScreen from '../screens/PhysicsLabScreen'
 
 function ProtectedRoute() {
   const isAuthenticated = useAuthStore(state => state.isAuthenticated)
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   const location = useLocation()
-  const isSim = location.pathname.startsWith('/sim') || location.pathname.startsWith('/virtual-lab') || location.pathname.startsWith('/lab') || location.pathname.startsWith('/board') || location.pathname.startsWith('/motion') || location.pathname.startsWith('/gravity') || location.pathname.startsWith('/light') || location.pathname.startsWith('/electricity') || location.pathname.startsWith('/force')
+  const isSim = location.pathname.startsWith('/sim') || location.pathname.startsWith('/virtual-lab') || location.pathname.startsWith('/lab') || location.pathname.startsWith('/board') || location.pathname.startsWith('/motion') || location.pathname.startsWith('/gravity') || location.pathname.startsWith('/light') || location.pathname.startsWith('/electricity') || location.pathname.startsWith('/force') || location.pathname.startsWith('/physics-lab')
 
   if (!isAuthenticated) {
     return <Navigate to="/onboarding" replace />
@@ -77,6 +78,7 @@ const router = createBrowserRouter(
             { path: '/lab',               element: <DynamicLabScreen /> },
             { path: '/lab/:labId',        element: <DynamicLabScreen /> },
             { path: '/board',             element: <GraphBoardScreen /> },
+            { path: '/physics-lab',       element: <PhysicsLabScreen /> },
             { path: '/motion',            element: <MotionLabScreen /> },
             { path: '/gravity',           element: <GravityLabScreen /> },
             { path: '/light',             element: <LightLabScreen /> },
