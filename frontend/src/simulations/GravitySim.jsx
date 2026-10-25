@@ -1,10 +1,129 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
-import { OrbitControls, Text, Float } from '@react-three/drei'
+import React, { useState, useRef, useEffect, useMemo, useLayoutEffect, Suspense } from 'react'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { OrbitControls, Text, Float, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { Play, Pause, RotateCcw, Eye, ShieldAlert, Sparkles, Gauge, Compass, SlidersHorizontal, CheckCircle2 } from 'lucide-react'
 
 // ── 3D DROP SCENE ────────────────────────────────────────────────────────────
+// Storybook vacuum-tube stage modelled in Blender (blender/freefall_pilot.blend).
+// The model is built for a 10 m drop; tubes, rings and the ruler are re-fitted
+// to the chosen height here, and the physics below moves the two balls.
+const STAGE_URL = '/models/freefall.glb'
+const MODEL_HEIGHT = 10
+useGLTF.preload(STAGE_URL)
+
+function useFreeFallStage(height, airResistance) {
+  const { scene } = useGLTF(STAGE_URL)
+  const stage = useMemo(() => scene.clone(true), [scene])
+
+  // Remember each part's authored transform so re-fitting is repeatable.
+  const parts = useMemo(() => {
+    const byName = name => stage.getObjectByName(name)
+    const base = new Map()
+    stage.traverse(o => {
+      base.set(o, { y: o.position.y, sy: o.scale.y, rz: o.rotation.z })
+      if (o.isMesh) {
+        // Parts with several materials load as a group of meshes; use the part's name.
+        const part = o.name.startsWith('FF_') ? o.name : o.parent?.name || ''
+        o.castShadow = !/Glass|Cloud/.test(part)
+        o.receiveShadow = /Platform|Pad/.test(part)
+        // No reflections to pick up in this scene, so keep surfaces matte like the storybook renders.
+        if (o.material && o.material.metalness > 0.15) {
+          o.material = o.material.clone()
+          o.material.metalness = 0.1
+          o.material.roughness = Math.max(o.material.roughness, 0.45)
+        }
+        // Blender's glass alpha is tuned for its renderer; make it readable here.
+        if (o.material?.name === 'FF_Glass') {
+          o.material = o.material.clone()
+          o.material.opacity = 0.2
+          o.material.depthWrite = false
+        }
+      }
+    })
+    const pick = re => { const out = []; stage.traverse(o => { if (re.test(o.name)) out.push(o) }); return out }
+    return {
+      base,
+      glass: pick(/^FF_Glass_[LR]$/),
+      lifted: pick(/^FF_(Cap|CapKnob|FlagPole|Flag)_[LR]$/),
+      rings: pick(/^FF_Ring_[LR]\d$/),
+      ruler: byName('FF_Ruler'),
+      clouds: pick(/^FF_Cloud_/),
+      needle: byName('FF_GaugeNeedle'),
+      ball1: byName('FF_Ball_Light'),
+      ball2: byName('FF_Ball_Heavy'),
+    }
+  }, [stage])
+
+  useLayoutEffect(() => {
+    const { base } = parts
+    const dy = height - MODEL_HEIGHT
+    // Glass spans from just above the pad to just under the cap.
+    const glassLen = height + 1.13
+    for (const g of parts.glass) {
+      g.scale.y = base.get(g).sy * (glassLen / (MODEL_HEIGHT + 0.9))
+      g.position.y = 0.02 + glassLen / 2
+    }
+    for (const o of parts.lifted) o.position.y = base.get(o).y + dy
+    for (const r of parts.rings) r.position.y = base.get(r).y * (height / MODEL_HEIGHT)
+    // The ruler's pivot is at ground level, so stretching it keeps its foot on the ground.
+    if (parts.ruler) parts.ruler.scale.y = base.get(parts.ruler).sy * ((height + 1) / (MODEL_HEIGHT + 1))
+    // Clouds rise with the tower so they never float in front of it.
+    for (const c of parts.clouds) c.position.y = base.get(c).y + Math.max(0, dy) * 0.9
+  }, [parts, height])
+
+  // Pump gauge: needle drops to "vacuum" when air is pumped out.
+  useLayoutEffect(() => {
+    if (parts.needle) parts.needle.rotation.z = parts.base.get(parts.needle).rz + (airResistance ? -1.6 : 0)
+  }, [parts, airResistance])
+
+  return { stage, parts }
+}
+
+// Ruler ticks and numbers drawn in code so they stay correct for any height.
+function RulerMarks({ height }) {
+  const label = height <= 12 ? 2 : height <= 30 ? 5 : 10
+  const minor = label >= 5 ? label / 5 : 1
+  const font = Math.min(1.3, Math.max(0.42, height * 0.034))
+  const marks = []
+  for (let m = 0; m <= height + 1e-6; m += minor) marks.push(Math.round(m * 100) / 100)
+  return (
+    <group position={[0, 0, -1.62]}>
+      {marks.map(m => {
+        const major = Math.abs(m / label - Math.round(m / label)) < 1e-6
+        const w = major ? 0.55 : 0.32
+        return (
+          <group key={m} position={[0, m, 0]}>
+            <mesh position={[-0.45 + w / 2, 0, 0]}>
+              <boxGeometry args={[w, 0.07, 0.04]} />
+              <meshBasicMaterial color="#3B2A1A" />
+            </mesh>
+            {major && (
+              <Text position={[0.55, 0, 0]} fontSize={font} color="#3B2A1A" anchorX="left" anchorY="middle" outlineWidth={font * 0.06} outlineColor="#FFFDF8">
+                {`${m} m`}
+              </Text>
+            )}
+          </group>
+        )
+      })}
+    </group>
+  )
+}
+
+// Pull the camera back to fit the whole tower whenever the drop height changes.
+function FrameTower({ height }) {
+  const camera = useThree(s => s.camera)
+  const controls = useThree(s => s.controls)
+  useEffect(() => {
+    camera.position.set(4, height * 0.5 + 5, 16 + height * 1.05)
+    if (controls) {
+      controls.target.set(0, height * 0.45, 0)
+      controls.update()
+    }
+  }, [camera, controls, height])
+  return null
+}
+
 function DropChamber({ 
   height, 
   ball1Props, 
@@ -55,11 +174,18 @@ function DropChamber({
     setImpact2(null)
   }, [simKey, height, gravity, airResistance, ball1Props.mass, ball2Props.mass])
 
-  // Sphere meshes refs
-  const mesh1Ref = useRef()
-  const mesh2Ref = useRef()
-  const trapdoorLeftRef = useRef()
-  const trapdoorRightRef = useRef()
+  // Ball nodes come from the Blender stage; the physics below moves them.
+  const { stage, parts } = useFreeFallStage(height, airResistance)
+  const mesh1Ref = useRef(null)
+  const mesh2Ref = useRef(null)
+  mesh1Ref.current = parts.ball1
+  mesh2Ref.current = parts.ball2
+
+  // Put both balls back at the top whenever the run is reset or the height changes.
+  useLayoutEffect(() => {
+    if (parts.ball1) parts.ball1.position.y = height + ball1Props.radius
+    if (parts.ball2) parts.ball2.position.y = height + ball2Props.radius
+  }, [parts, height, simKey, ball1Props.radius, ball2Props.radius])
 
   useFrame((_, delta) => {
     if (!isPlaying) return
@@ -109,13 +235,6 @@ function DropChamber({
       mesh2Ref.current.position.y = state.y2 + ball2Props.radius
     }
 
-    // Animate trapdoors opening
-    if (trapdoorLeftRef.current && trapdoorRightRef.current) {
-      const openAngle = Math.min(Math.PI * 0.45, state.t * 8)
-      trapdoorLeftRef.current.rotation.z = -openAngle
-      trapdoorRightRef.current.rotation.z = openAngle
-    }
-
     // Ghost trail positions at regular intervals
     if (state.trailTimer >= 0.15) {
       state.trailTimer = 0
@@ -141,131 +260,34 @@ function DropChamber({
 
   return (
     <group position={[0, 0, 0]}>
-      {/* Studio Grid Floor */}
-      <gridHelper args={[60, 60, '#CBA358', '#E2D6C3']} position={[0, 0, 0]} />
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
-        <planeGeometry args={[100, 100]} />
-        <meshStandardMaterial color="#F4EFE6" roughness={0.7} metalness={0.1} />
-      </mesh>
+      <primitive object={stage} />
+      <RulerMarks height={height} />
 
-      {/* Target Landing Pads */}
-      <group position={[-3, 0.02, 0]}>
-        <mesh rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.3, 1.8, 32]} />
-          <meshBasicMaterial color="#B38B40" opacity={0.35} transparent />
-        </mesh>
-        <mesh rotation={[-Math.PI / 2, 0, 0]}>
-          <circleGeometry args={[0.25, 32]} />
-          <meshBasicMaterial color="#B38B40" />
-        </mesh>
-      </group>
-
-      <group position={[3, 0.02, 0]}>
-        <mesh rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.3, 1.8, 32]} />
-          <meshBasicMaterial color="#1C1713" opacity={0.3} transparent />
-        </mesh>
-        <mesh rotation={[-Math.PI / 2, 0, 0]}>
-          <circleGeometry args={[0.25, 32]} />
-          <meshBasicMaterial color="#1C1713" />
-        </mesh>
-      </group>
-
-      {/* Galileo Drop Gantry / Measurement Tower */}
-      <group position={[0, 0, -2]}>
-        {/* Main Pillar */}
-        <mesh position={[0, height / 2, 0]} castShadow>
-          <cylinderGeometry args={[0.2, 0.25, height, 16]} />
-          <meshStandardMaterial color="#2E2721" metalness={0.6} roughness={0.3} />
-        </mesh>
-
-        {/* Height Rungs & Ticks */}
-        {Array.from({ length: Math.floor(height / 5) + 1 }).map((_, i) => {
-          const y = i * 5
-          return (
-            <group key={y} position={[0, y, 0]}>
-              <mesh position={[0, 0, 0.25]}>
-                <boxGeometry args={[1.2, 0.08, 0.08]} />
-                <meshStandardMaterial color="#CBA358" metalness={0.8} roughness={0.2} />
-              </mesh>
-              <Text
-                position={[1.2, 0, 0.25]}
-                fontSize={0.8}
-                color="#6D6254"
-                anchorX="left"
-                anchorY="middle"
-              >
-                {`${y}m`}
-              </Text>
-            </group>
-          )
-        })}
-
-        {/* Top Drop Platform */}
-        <mesh position={[0, height, 1]} castShadow>
-          <boxGeometry args={[8, 0.3, 2.5]} />
-          <meshStandardMaterial color="#1C1713" metalness={0.5} roughness={0.4} />
-        </mesh>
-
-        {/* Trapdoors */}
-        <mesh ref={trapdoorLeftRef} position={[-3, height - 0.15, 2]}>
-          <boxGeometry args={[1.6, 0.08, 1.2]} />
-          <meshStandardMaterial color="#CBA358" metalness={0.8} roughness={0.3} />
-        </mesh>
-        <mesh ref={trapdoorRightRef} position={[3, height - 0.15, 2]}>
-          <boxGeometry args={[1.6, 0.08, 1.2]} />
-          <meshStandardMaterial color="#926F2D" metalness={0.8} roughness={0.3} />
-        </mesh>
-      </group>
-
-      {/* Ball 1 (Gilded Gold Sphere) */}
-      <mesh ref={mesh1Ref} position={[-3, height + ball1Props.radius, 0]} castShadow>
-        <sphereGeometry args={[ball1Props.radius, 32, 32]} />
-        <meshStandardMaterial 
-          color="#D4AF37" 
-          metalness={0.85} 
-          roughness={0.15} 
-          envMapIntensity={1.2}
-        />
-      </mesh>
-
-      {/* Ball 1 Ghost Trail */}
+      {/* Strobe trail: where each ball was every 0.15 s */}
       {trail1.map((py, idx) => (
         <mesh key={`trail1-${idx}`} position={[-3, py, 0]}>
           <sphereGeometry args={[ball1Props.radius * 0.45, 12, 12]} />
-          <meshBasicMaterial color="#E2C17D" transparent opacity={0.3} />
+          <meshBasicMaterial color="#F08A3C" transparent opacity={0.35} />
         </mesh>
       ))}
-
-      {/* Ball 2 (Obsidian / Heavy Sphere) */}
-      <mesh ref={mesh2Ref} position={[3, height + ball2Props.radius, 0]} castShadow>
-        <sphereGeometry args={[ball2Props.radius, 32, 32]} />
-        <meshStandardMaterial 
-          color="#1F1B17" 
-          metalness={0.4} 
-          roughness={0.3} 
-        />
-      </mesh>
-
-      {/* Ball 2 Ghost Trail */}
       {trail2.map((py, idx) => (
         <mesh key={`trail2-${idx}`} position={[3, py, 0]}>
           <sphereGeometry args={[ball2Props.radius * 0.45, 12, 12]} />
-          <meshBasicMaterial color="#483E36" transparent opacity={0.35} />
+          <meshBasicMaterial color="#3A4148" transparent opacity={0.3} />
         </mesh>
       ))}
 
-      {/* Ground Impact Rings if landed */}
+      {/* Landing splash rings */}
       {impact1 && (
-        <mesh position={[-3, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.1, 2.2, 32]} />
-          <meshBasicMaterial color="#CBA358" transparent opacity={0.6} />
+        <mesh position={[-3, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[1.0, 1.9, 40]} />
+          <meshBasicMaterial color="#E3B53A" transparent opacity={0.7} />
         </mesh>
       )}
       {impact2 && (
-        <mesh position={[3, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.1, 2.2, 32]} />
-          <meshBasicMaterial color="#CBA358" transparent opacity={0.6} />
+        <mesh position={[3, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[1.0, 1.9, 40]} />
+          <meshBasicMaterial color="#E3B53A" transparent opacity={0.7} />
         </mesh>
       )}
     </group>
@@ -322,17 +344,27 @@ export default function GravitySim() {
           shadows
           camera={{ position: [0, 16, 36], fov: 48 }}
         >
-          <color attach="background" args={['#F7F3EB']} />
-          <ambientLight intensity={0.8} />
+          {/* Storybook sky + warm sun, matching the Blender renders */}
+          <color attach="background" args={['#A8D8DE']} />
+          <hemisphereLight args={['#FFF6EA', '#B98A5E', 1.15]} />
           <directionalLight
-            position={[15, 40, 20]}
-            intensity={1.5}
+            position={[14, 30, 18]}
+            intensity={2.1}
+            color="#FFF1DC"
             castShadow
             shadow-mapSize-width={2048}
             shadow-mapSize-height={2048}
+            shadow-camera-left={-14}
+            shadow-camera-right={14}
+            shadow-camera-top={56}
+            shadow-camera-bottom={-4}
+            shadow-camera-near={1}
+            shadow-camera-far={120}
+            shadow-bias={-0.0004}
           />
-          <directionalLight position={[-15, 20, -10]} intensity={0.4} color="#CBA358" />
+          <directionalLight position={[-16, 14, 10]} intensity={0.45} color="#DCEBFF" />
 
+          <Suspense fallback={null}>
           <DropChamber
             height={height}
             ball1Props={{ mass: mass1, radius: 0.6 }}
@@ -344,8 +376,11 @@ export default function GravitySim() {
             onTelemetryUpdate={setTelemetry}
             simKey={simKey}
           />
+          </Suspense>
 
+          <FrameTower height={height} />
           <OrbitControls 
+            makeDefault
             target={[0, height / 2, 0]} 
             maxPolarAngle={Math.PI / 2 + 0.05} 
             minDistance={8} 
@@ -654,7 +689,7 @@ export default function GravitySim() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                     <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>
-                      🟡 Ball 1 Mass (Light)
+                      🟠 Ball 1 Mass (Light)
                     </span>
                     <span className="mono" style={{ fontSize: 13, fontWeight: 700, color: 'var(--gold-600)' }}>
                       {mass1} kg
@@ -795,7 +830,7 @@ export default function GravitySim() {
                   border: '1px solid var(--color-border)'
                 }}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--gold-600)', marginBottom: 8 }}>
-                    🟡 Ball 1 ({mass1} kg)
+                    🟠 Ball 1 ({mass1} kg)
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                     <div>
