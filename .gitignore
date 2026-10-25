@@ -58,3 +58,9 @@ UnityLab/*.slnx
 
 # Blender auto-backups
 *.blend1
+# Downloaded Poly Haven assets (CC0) - re-fetch with blender/fetch_polyhaven.py
+blender/assets/
+
+# Rebuildable from blender/physics_lab_hall.blend
+blender/physics_lab_hall_web.blend
+blender/export/
