@@ -154,6 +154,7 @@ export default function HomeScreen() {
         <div className="sb-hero-foot">
           <p className="sb-hero-line">Drop things on the Moon, bend lasers, wire up circuits.</p>
           <div className="sb-hero-cta">
+            <a className="sb-btn is-orange" href="/physics-lab" onClick={go('/physics-lab')}>Walk into the lab</a>
             <a className="sb-btn is-ghost" href="#labs">Open a lab</a>
             <a className="sb-btn is-slate" href="/ai-tutor" onClick={go('/ai-tutor')}>✦ Ask the AI tutor</a>
           </div>
@@ -189,6 +190,29 @@ export default function HomeScreen() {
           </label>
         </div>
       </section>
+
+      {/* The walk-in 3D physics lab */}
+      {!q && (
+        <section className="sb-walkin" aria-labelledby="walkin-title">
+          <div className="sb-walkin-card">
+            <a className="sb-walkin-shot" href="/physics-lab" onClick={go('/physics-lab')} aria-label="Enter the Visiora Physics Lab">
+              <img src="/images/physics-lab-preview.jpg" alt="Inside the Visiora Physics Lab: sunlit benches, apparatus and the free-fall tower" loading="lazy" />
+              <span className="sb-walkin-badge">new · 3D</span>
+            </a>
+            <div className="sb-walkin-copy">
+              <span className="sb-script">step inside</span>
+              <h2 id="walkin-title">The Visiora Physics Lab</h2>
+              <p>Walk around a real-looking lab like a game, go up to the apparatus and run the experiment yourself. Start with the Free Fall Tower: pump out the air and watch a steel ball and a feather land together.</p>
+              <ul className="sb-walkin-facts">
+                <li>W A S D to walk, mouse to look</li>
+                <li>Works on tablets too</li>
+                <li>Every number from the real equations</li>
+              </ul>
+              <a className="sb-btn is-orange" href="/physics-lab" onClick={go('/physics-lab')}>Walk into the lab →</a>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Exact-physics labs */}
       <section id="labs" className="sb-labs">

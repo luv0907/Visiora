@@ -120,6 +120,23 @@
 .sb .sb-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: 700 17px var(--sb-text); color: var(--sb-body); }
 .sb .sb-search input::placeholder { color: #8A7A6E; }
 
+/* the lab button in the hero matches its neighbours */
+.sb .sb-hero-cta .sb-btn.is-orange { padding: 14px 30px; font-size: 14px; letter-spacing: .16em; }
+
+/* Walk-in lab banner */
+.sb .sb-walkin { background: #fff; padding: 8px 24px 64px; }
+.sb .sb-walkin-card { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 32px; align-items: center;
+  padding: 18px; background: var(--sb-cream); border: 2.5px solid var(--sb-brown); border-radius: 22px 30px 24px 28px; box-shadow: 0 0 0 6px var(--sb-cream), 0 0 0 8px var(--sb-peach-line); }
+.sb .sb-walkin-shot { position: relative; display: block; overflow: hidden; border-radius: 14px; border: 2px solid var(--sb-brown); aspect-ratio: 16 / 9; }
+.sb .sb-walkin-shot img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .3s ease; }
+.sb .sb-walkin-shot:hover img { transform: scale(1.03); }
+.sb .sb-walkin-badge { position: absolute; left: 12px; top: 12px; padding: 4px 10px; background: var(--sb-slate); color: #fff; font: 700 11px var(--sb-label); letter-spacing: .12em; text-transform: uppercase; transform: rotate(-3deg); }
+.sb .sb-walkin-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding-right: 10px; }
+.sb .sb-walkin-copy h2 { margin: 0; font: 700 clamp(26px, 3vw, 36px)/1.1 var(--sb-slab); color: var(--sb-slate); }
+.sb .sb-walkin-copy p { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.55; color: var(--sb-body); }
+.sb .sb-walkin-facts { margin: 4px 0 10px; padding: 0; list-style: none; display: grid; gap: 4px; font: 700 12px var(--sb-label); letter-spacing: .08em; text-transform: uppercase; color: var(--sb-brown); }
+.sb .sb-walkin-facts li::before { content: '✓ '; color: var(--sb-orange); }
+
 /* Section heads */
 .sb .sb-head { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
 .sb .sb-head .sb-script { font-size: 24px; }
@@ -215,6 +232,9 @@
 
 /* Phones: drop the side art, let the cloud take the row */
 @media (max-width: 760px) {
+  .sb .sb-walkin { padding: 4px 18px 48px; }
+  .sb .sb-walkin-card { grid-template-columns: 1fr; gap: 18px; padding: 12px; }
+  .sb .sb-walkin-copy { padding: 0 6px 8px; }
   .sb .sb-hero { padding: 24px 12px 0; }
   .sb .sb-hero-left, .sb .sb-hero-right { display: none; }
   .sb .sb-cloud { flex: 1 1 100%; padding: 60px 18px 50px; }
@@ -250,5 +270,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .sb .sb-hero-left { animation: none; }
+  .sb .sb-walkin-shot img { transition: none; }
   .sb .sb-lab, .sb .sb-exp, .sb .sb-btn { transition: none; }
 }

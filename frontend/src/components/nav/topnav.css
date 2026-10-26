@@ -41,6 +41,7 @@
 .tn .tn-tab { display: inline-flex; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 2px dashed transparent; font-weight: 700; font-size: 12.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--tn-slate); transition: color .15s ease; }
 .tn .tn-tab:hover, .tn .tn-tab.is-open { color: var(--tn-link); }
 .tn .tn-tab.is-active { color: var(--tn-link); border-bottom-color: var(--tn-orange); }
+.tn-new { padding: 1px 5px; background: var(--tn-orange); color: #fff; font-size: 9px; letter-spacing: .1em; transform: rotate(-4deg); }
 .tn-caret { transition: transform .2s ease; }
 .tn-tab.is-open .tn-caret { transform: rotate(180deg); }
 .tn-bridge { position: absolute; top: 100%; left: -20px; right: -20px; height: 14px; z-index: 999; }
