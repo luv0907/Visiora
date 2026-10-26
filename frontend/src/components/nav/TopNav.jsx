@@ -135,6 +135,7 @@ const MASTERY_SECTIONS = [
 
 const TABS = [
   { id: 'home', label: 'Home', path: '/', hasDropdown: false },
+  { id: 'physlab', label: 'Physics Lab', path: '/physics-lab', hasDropdown: false, isNew: true },
   { id: 'sim', label: '3D Simulator', path: '/sim', hasDropdown: true },
   { id: 'sim2d', label: '2D Labs', path: '/sim-2d', hasDropdown: true },
   { id: 'aitutor', label: 'AI Visual Studio', path: '/ai-tutor', hasDropdown: false, isSpecial: true },
@@ -186,7 +187,7 @@ export default function TopNav() {
 
   const handleTabMouseEnter = (tab) => {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
-    if (tab.id === 'home' || tab.id === 'aitutor') {
+    if (!tab.hasDropdown) {
       setOpenDropdown(null)
     } else {
       setOpenDropdown(tab.id)
@@ -222,6 +223,9 @@ export default function TopNav() {
       if (location.pathname === '/') {
         window.scrollTo({ top: 0, behavior: 'smooth' })
       }
+    } else if (tab.id === 'physlab') {
+      setOpenDropdown(null)
+      navigate('/physics-lab')
     } else if (tab.id === 'aitutor') {
       setOpenDropdown(null)
       navigate('/ai-tutor')
@@ -354,6 +358,7 @@ export default function TopNav() {
               <button className={`tn-tab${active ? ' is-active' : ''}${isOpen ? ' is-open' : ''}`} onClick={() => handleTabClick(tab)}
                 aria-current={active ? 'page' : undefined} aria-expanded={tab.hasDropdown ? isOpen : undefined}>
                 {tab.isSpecial && <Sparkles size={13} strokeWidth={2.5} />}
+                {tab.isNew && <span className="tn-new">new</span>}
                 <span>{tab.label}</span>
                 {tab.hasDropdown && <ChevronDown size={13} strokeWidth={2.5} className="tn-caret" />}
               </button>
