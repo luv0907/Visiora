@@ -24,6 +24,7 @@ import LightLabScreen from '../screens/LightLabScreen'
 import ElectricityLabScreen from '../screens/ElectricityLabScreen'
 import ForceLabScreen from '../screens/ForceLabScreen'
 import PhysicsLabScreen from '../screens/PhysicsLabScreen'
+import WalkLabScreen from '../screens/WalkLabScreen'
 import PreviewScreen from '../screens/PreviewScreen'
 
 function ProtectedRoute() {
@@ -81,6 +82,7 @@ const router = createBrowserRouter(
             { path: '/lab/:labId',        element: <DynamicLabScreen /> },
             { path: '/board',             element: <GraphBoardScreen /> },
             { path: '/physics-lab',       element: <PhysicsLabScreen /> },
+            { path: '/physics-lab/walk',  element: <WalkLabScreen /> },
             { path: '/motion',            element: <MotionLabScreen /> },
             { path: '/gravity',           element: <GravityLabScreen /> },
             { path: '/light',             element: <LightLabScreen /> },

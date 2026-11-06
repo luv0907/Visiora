@@ -64,4 +64,6 @@ blender/assets/
 # Rebuildable from blender/physics_lab_hall.blend
 blender/physics_lab_hall_web.blend
 blender/export/
+blender/physics_lab_hall_web_v2.blend
+blender/export_v2/
 blender/physics_lab_hall_web_baked.blend
