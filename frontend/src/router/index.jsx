@@ -24,6 +24,7 @@ import LightLabScreen from '../screens/LightLabScreen'
 import ElectricityLabScreen from '../screens/ElectricityLabScreen'
 import ForceLabScreen from '../screens/ForceLabScreen'
 import PhysicsLabScreen from '../screens/PhysicsLabScreen'
+import PreviewScreen from '../screens/PreviewScreen'
 
 function ProtectedRoute() {
   const isAuthenticated = useAuthStore(state => state.isAuthenticated)
@@ -68,6 +69,7 @@ const router = createBrowserRouter(
       ]
     : [
         { path: '/onboarding', element: <OnboardingScreen /> },
+        { path: '/preview', element: <PreviewScreen /> },
         {
           element: <ProtectedRoute />,
           children: [

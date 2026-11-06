@@ -84,6 +84,40 @@
   .pl-table td { padding: 4px 0; }
 }
 
+/* school preview: the 3D view and the controls sit side by side, so nothing covers the tower */
+.pv-root { display: flex; user-select: none; }
+.pv-stage { position: relative; flex: 1; min-width: 0; min-height: 0; }
+.pv-panel { width: 380px; flex: none; padding: 20px 22px; overflow-y: auto; background: var(--pl-cream); border-left: 3px solid var(--pl-brown); }
+.pv-title { margin: 0 0 4px; font: 700 26px 'Zilla Slab', Georgia, serif; color: var(--pl-brown); }
+.pv-lede { margin: 0 0 10px; font-size: 15px; font-weight: 600; line-height: 1.4; }
+.pv-result { min-height: 66px; margin: 0 0 14px; padding: 10px 12px; background: var(--pl-butter); border: 2px solid var(--pl-brown); font-size: 15px; font-weight: 700; line-height: 1.35; }
+.pv-views { position: absolute; left: 12px; right: 12px; bottom: 12px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.pv-speed { margin-bottom: 12px; }
+.pv-seg { display: flex; gap: 6px; }
+.pv-chip { min-height: 44px; padding: 8px 14px; border: 2px solid var(--pl-brown); background: var(--pl-cream); color: var(--pl-slate);
+  font: 700 12.5px 'Josefin Sans', sans-serif; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
+.pv-chip.is-on { background: var(--pl-brown); color: #fff; }
+.pv-marker { min-height: 44px; padding: 8px 14px; white-space: nowrap; border: 2px solid var(--pl-brown); background: var(--pl-orange); color: #fff;
+  font: 700 12.5px 'Josefin Sans', sans-serif; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; box-shadow: 3px 3px 0 var(--pl-brown); }
+.pv-marker:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--pl-brown); }
+.pv-tag { display: block; padding: 3px 7px; white-space: nowrap; background: var(--pl-cream); border: 2px solid var(--pl-brown); color: var(--pl-brown);
+  font: 700 11px 'Josefin Sans', sans-serif; letter-spacing: .06em; text-transform: uppercase; }
+.pv-root .pl-btn { min-height: 44px; }
+.pv-root button:focus-visible { outline: 3px solid #1F6FEB; outline-offset: 2px; }
+
+@media (max-width: 900px), (orientation: portrait) {
+  .pv-root { flex-direction: column; }
+  .pv-panel { width: auto; max-height: 46%; padding: 12px 14px; border-left: 0; border-top: 3px solid var(--pl-brown); }
+  .pv-marker { display: none; }
+  .pv-views { flex-wrap: nowrap; left: 6px; right: 6px; bottom: 8px; gap: 4px; }
+  .pv-views .pv-chip { flex: 1 1 auto; padding: 6px; font-size: 11px; letter-spacing: .03em; }
+  .pv-title { font-size: 20px; }
+  .pv-lede { display: none; }
+  .pv-result { min-height: 0; font-size: 14px; }
+  .pv-root .pl-table { font-size: 13px; }
+  .pv-root .pl-table td { padding: 4px 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pl-gauge span, .pl-bar span { transition: none; }
 }

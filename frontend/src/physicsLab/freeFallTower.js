@@ -60,6 +60,12 @@ export function reset(tower) {
   return Object.assign(tower, { phase: 'ready', t: 0, ball: null, feather: null })
 }
 
+/** Run the same experiment again from the top, with the air as it is now. */
+export function replay(tower) {
+  if (tower.air === 'pumping' || tower.air === 'venting') return tower
+  return release(reset(tower))
+}
+
 /** Advance pump and objects by dt seconds of simulated time. */
 export function stepTower(tower, dt, g = 9.81) {
   if (tower.air === 'pumping') {

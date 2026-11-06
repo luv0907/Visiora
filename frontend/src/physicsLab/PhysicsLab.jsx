@@ -16,10 +16,10 @@ import './physicsLab.css'
 
 const MODEL_URL = '/models/physics_lab.glb'
 const COLLIDERS_URL = '/models/physics_lab_colliders.json'
-const HDRI_URL = '/hdri/sunny_rose_garden_1k.hdr'
+export const HDRI_URL = '/hdri/sunny_rose_garden_1k.hdr'
 const LIGHTMAP_DIR = '/models/lightmaps/'
 // Blender renders the lab with AgX at +1.1 stops; match it so the baked light reads the same.
-const EXPOSURE = 2 ** 1.1
+export const EXPOSURE = 2 ** 1.1
 const TOWER = { x: 18.9, z: 0 } // browser floor coordinates of the tower plinth
 const PLINTH_TOP = 0.6
 const USE_DISTANCE = 3.4
@@ -97,7 +97,7 @@ function bakedMaterial(m, lightMap, scale) {
   })
 }
 
-function LabModel({ onParts }) {
+export function LabModel({ onParts }) {
   const { scene } = useGLTF(MODEL_URL)
   const maps = useLightmaps()
   useEffect(() => {
@@ -131,7 +131,7 @@ function LabModel({ onParts }) {
   return <primitive object={scene} />
 }
 
-function Lights() {
+export function Lights() {
   // Only the moving parts (ball, feather, gauge needle) are lit live; the room's light is baked.
   return (
     <>
@@ -197,11 +197,12 @@ function TouchLook({ look }) {
 }
 
 // ── Free Fall Tower: moves the Blender objects from the engine state ─────────
-function TowerAnimator({ parts, tower, onTick }) {
+export function TowerAnimator({ parts, tower, onTick, timeScale, maxFrameStep = 0.05 }) {
   const flutter = useRef(0)
-  useFrame((_, delta) => {
+  useFrame((_, frameDelta) => {
     const t = tower.current
-    stepTower(t, Math.min(delta, 0.05))
+    const delta = Math.min(frameDelta, maxFrameStep) * (timeScale?.current ?? 1)
+    stepTower(t, delta)
     const { ball, feather, needle } = parts || {}
     if (ball?.userData.base) {
       const y = t.ball ? PLINTH_TOP + t.ball.y + OBJECTS.ball.radius : PLINTH_TOP + DROP_HEIGHT + OBJECTS.ball.radius
