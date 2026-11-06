@@ -102,6 +102,27 @@
 .pv-marker:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--pl-brown); }
 .pv-tag { display: block; padding: 3px 7px; white-space: nowrap; background: var(--pl-cream); border: 2px solid var(--pl-brown); color: var(--pl-brown);
   font: 700 11px 'Josefin Sans', sans-serif; letter-spacing: .06em; text-transform: uppercase; }
+.pv-stage-label { margin: 0 0 2px; }
+.pv-question { margin: 0 0 14px; font-size: 16px; font-weight: 700; line-height: 1.4; }
+.pv-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+.pv-option { min-height: 48px; padding: 10px 14px; text-align: left; border: 2px solid var(--pl-brown); background: #fff; color: var(--pl-slate);
+  font: 700 15px 'Nunito', system-ui, sans-serif; cursor: pointer; box-shadow: 3px 3px 0 var(--pl-brown); }
+.pv-option:not(:disabled):active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--pl-brown); }
+.pv-option:disabled { cursor: default; box-shadow: none; }
+.pv-option.is-right { background: #DDF2DF; border-color: #2F6B3A; color: #1E4A27; }
+.pv-option.is-wrong { background: #F8E0DA; border-color: #A33D22; color: #7A2C17; }
+.pv-feedback { margin: 0 0 12px; padding: 9px 12px; border-left: 5px solid; font-size: 14.5px; font-weight: 700; line-height: 1.35; }
+.pv-feedback.is-right { background: #EAF6EB; border-color: #2F6B3A; }
+.pv-feedback.is-wrong { background: #FBEDE9; border-color: #A33D22; }
+.pv-next { width: 100%; margin-bottom: 14px; }
+.pv-explain p { margin: 0 0 10px; font-size: 15px; line-height: 1.45; }
+.pv-explain .pl-table th { padding: 4px 0; text-align: right; font: 700 12px 'Josefin Sans', sans-serif; }
+.pv-explain .pl-table td:not(:first-child) { text-align: right; font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-weight: 700; }
+.pv-explain .pv-formula { padding: 8px 10px; background: var(--pl-butter); font: 700 14px ui-monospace, 'SF Mono', Menlo, monospace; }
+.pv-note { margin-bottom: 14px; font-size: 13.5px; }
+.pv-note summary { min-height: 32px; font-weight: 800; color: var(--pl-brown); cursor: pointer; }
+.pv-note p { margin-top: 6px; font-size: 13.5px; }
+.pv-score { margin: 0 0 12px; font: 700 28px 'Zilla Slab', Georgia, serif; color: var(--pl-brown); }
 .pv-root .pl-btn { min-height: 44px; }
 .pv-root button:focus-visible { outline: 3px solid #1F6FEB; outline-offset: 2px; }
 
