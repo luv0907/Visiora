@@ -20,6 +20,7 @@ import './physicsLab.css'
 const G = 9.81
 const SLOW = 0.25
 const MOVE_SECONDS = 1.4
+const DEFAULT_FOV = 70
 const easeInOut = t => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2)
 
 /**
@@ -27,10 +28,11 @@ const easeInOut = t => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2)
  * student comes in through the door. A long move rises a little, so it passes over benches.
  */
 export function CameraRig({ pose, start }) {
-  const { camera } = useThree()
+  const { camera, invalidate } = useThree()
   const look = useRef(null)
   const move = useRef(null)
-  const key = `${pose.pos}|${pose.look}`
+  const key = `${pose.pos}|${pose.look}|${pose.fov ?? DEFAULT_FOV}`
+  const setFov = fov => { camera.fov = fov; camera.updateProjectionMatrix() }
 
   useEffect(() => {
     const first = !look.current
@@ -38,6 +40,8 @@ export function CameraRig({ pose, start }) {
       camera.position.set(...(start ?? pose).pos)
       look.current = new THREE.Vector3(...(start ?? pose).look)
       camera.lookAt(look.current)
+      setFov((start ?? pose).fov ?? DEFAULT_FOV)
+      invalidate()
       if (!start) return
     }
     const to = new THREE.Vector3(...pose.pos)
@@ -46,28 +50,37 @@ export function CameraRig({ pose, start }) {
       camera.position.copy(to)
       look.current.set(...pose.look)
       camera.lookAt(look.current)
+      setFov(pose.fov ?? DEFAULT_FOV)
       move.current = null
+      invalidate()
       return
     }
     move.current = {
-      t: 0, to,
+      t: 0, to, started: false,
+      fromFov: camera.fov, toFov: pose.fov ?? DEFAULT_FOV,
       from: camera.position.clone(),
       fromLook: look.current.clone(),
       toLook: new THREE.Vector3(...pose.look),
       lift: Math.min(0.8, camera.position.distanceTo(to) * 0.06),
     }
+    invalidate()
   }, [key]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const m = move.current
     if (!m) return
-    m.t = Math.min(1, m.t + delta / MOVE_SECONDS) // real time, so a slow laptop arrives on time too
+    // Real time, so a slow laptop arrives on time too. The first frame's delta may be a long
+    // pause with nothing drawn, so the move starts counting from then.
+    m.t = Math.min(1, m.t + (m.started ? delta : 0) / MOVE_SECONDS)
+    m.started = true
     const e = easeInOut(m.t)
     camera.position.lerpVectors(m.from, m.to, e)
     camera.position.y += Math.sin(Math.PI * e) * m.lift
     look.current.lerpVectors(m.fromLook, m.toLook, e)
     camera.lookAt(look.current)
+    setFov(m.fromFov + (m.toFov - m.fromFov) * e)
     if (m.t >= 1) move.current = null
+    else state.invalidate()
   })
   return null
 }
@@ -233,9 +246,9 @@ export function useTowerLab() {
   const [slow, setSlow] = useState(false)
   const lastUi = useRef(0)
 
-  const onTick = useCallback(t => {
+  const onTick = useCallback((t, force) => {
     const now = performance.now()
-    if (now - lastUi.current > 100) { lastUi.current = now; setUi({ ...t }) }
+    if (force || now - lastUi.current > 100) { lastUi.current = now; setUi({ ...t }) }
   }, [])
   const act = fn => { fn(tower.current); setUi({ ...tower.current }) }
   const setSpeed = isSlow => { timeScale.current = isSlow ? SLOW : 1; setSlow(isSlow) }
@@ -277,6 +290,9 @@ export function useTowerLab() {
 
 /** The room itself. The tower keeps running here even while the student looks elsewhere. */
 export function LabScenery({ lab }) {
+  const invalidate = useThree(s => s.invalidate)
+  // A button was pressed (every press re-renders this): draw so the change shows.
+  useEffect(() => { invalidate() })
   return (
     <>
       <Environment files={HDRI_URL} background backgroundIntensity={0.45} environmentIntensity={0.55} backgroundRotation={[0, Math.PI * 0.9, 0]} environmentRotation={[0, Math.PI * 0.9, 0]} />
@@ -399,7 +415,9 @@ export function TowerPanel({ lab, onBack }) {
   )
 }
 
-export const LAB_CAMERA = { fov: 70, near: 0.05, far: 200 }
+export const LAB_CAMERA = { fov: DEFAULT_FOV, near: 0.05, far: 200 }
+// Lets tests count frames while the page sits still (development builds only).
+export const exposeForTests = ({ gl }) => { if (import.meta.env.DEV) window.__labRenderer = gl }
 export const LAB_GL = { antialias: true, toneMapping: THREE.AgXToneMapping, toneMappingExposure: EXPOSURE }
 
 export default function TowerPreview() {
@@ -407,7 +425,7 @@ export default function TowerPreview() {
   return (
     <div className="pl-root pv-root">
       <div className="pv-stage">
-        <Canvas dpr={[1, 1.5]} camera={{ ...LAB_CAMERA, position: TOWER_VIEWS.full.pos }} gl={LAB_GL}>
+        <Canvas frameloop="demand" dpr={[1, 1.5]} camera={{ ...LAB_CAMERA, position: TOWER_VIEWS.full.pos }} gl={LAB_GL} onCreated={exposeForTests}>
           <Suspense fallback={null}>
             <LabScenery lab={lab} />
             <TowerControls lab={lab} />

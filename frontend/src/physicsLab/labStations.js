@@ -13,7 +13,8 @@ export const LAB_ENTRANCE = { pos: [-14.2, 1.7, 0.2], look: [-6, 1.6, 0] }
 
 export const LAB_OVERVIEW = {
   desktop: { pos: [-11.5, 4.4, 5.6], look: [6, 1.2, -0.6] },
-  mobile: { pos: [-11.5, 4.6, 0.6], look: [6, 1.2, 0] },
+  // A narrow phone screen needs a wider lens to fit the experiments on the side walls.
+  mobile: { pos: [-13.5, 5.2, 0], look: [4, 1, 0], fov: 92 },
 }
 
 export const STATIONS = [

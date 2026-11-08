@@ -99,6 +99,7 @@ function bakedMaterial(m, lightMap, scale) {
 
 export function LabModel({ onParts }) {
   const { scene } = useGLTF(MODEL_URL)
+  const invalidate = useThree(s => s.invalidate)
   const maps = useLightmaps()
   useEffect(() => {
     if (!maps) return
@@ -127,7 +128,8 @@ export function LabModel({ onParts }) {
     const parts = { ball: get('FF_SteelBall'), feather: get('FF_Feather'), needle: get('FF_GaugeNeedle') }
     for (const p of Object.values(parts)) if (p && !p.userData.base) p.userData.base = { pos: p.position.clone(), rot: p.rotation.clone() }
     onParts(parts)
-  }, [scene, maps, onParts])
+    invalidate() // draw the room with its baked light
+  }, [scene, maps, onParts, invalidate])
   return <primitive object={scene} />
 }
 
@@ -197,11 +199,15 @@ function TouchLook({ look }) {
 }
 
 // ── Free Fall Tower: moves the Blender objects from the engine state ─────────
+const towerBusy = t => t.phase === 'falling' || t.air === 'pumping' || t.air === 'venting'
+
 export function TowerAnimator({ parts, tower, onTick, timeScale, maxFrameStep = 0.05 }) {
   const flutter = useRef(0)
-  useFrame((_, frameDelta) => {
+  const wasBusy = useRef(false)
+  useFrame((state, frameDelta) => {
     const t = tower.current
-    const delta = Math.min(frameDelta, maxFrameStep) * (timeScale?.current ?? 1)
+    // The page may not have drawn for a while; that pause is not experiment time.
+    const delta = (wasBusy.current ? Math.min(frameDelta, maxFrameStep) : 0) * (timeScale?.current ?? 1)
     stepTower(t, delta)
     const { ball, feather, needle } = parts || {}
     if (ball?.userData.base) {
@@ -222,7 +228,10 @@ export function TowerAnimator({ parts, tower, onTick, timeScale, maxFrameStep = 
       feather.rotation.x = base.rot.x + Math.cos(flutter.current * 1.7) * 0.2 * a
     }
     if (needle?.userData.base) needle.rotation.x = needle.userData.base.rot.x + (1 - t.pressure) * 1.9
-    onTick(t)
+    const busy = towerBusy(t)
+    if (busy) state.invalidate() // keep drawing only while something moves
+    onTick(t, wasBusy.current && !busy) // the moment it stops, the controls must hear about it
+    wasBusy.current = busy
   })
   return null
 }

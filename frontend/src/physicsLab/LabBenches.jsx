@@ -4,7 +4,7 @@
  *
  * To add a bench: add an entry to BENCHES and a matching station in labStations.js.
  */
-import React, { useMemo, useRef } from 'react'
+import React, { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
@@ -337,15 +337,18 @@ export function createBenchStates() {
 
 /** Runs the chosen bench each frame and keeps every bench's parts in their right place. */
 export function BenchRunner({ states, activeId, onTick }) {
-  const { scene } = useThree()
+  const { scene, invalidate } = useThree()
   const found = useRef({})
   const last = useRef(0)
   const get = name => {
     if (!found.current[name]) found.current[name] = scene.getObjectByName(name)
     return found.current[name]
   }
-  useFrame((_, delta) => {
-    const dt = Math.min(delta, 1)
+  // A control changed (every change re-renders this): draw once so the parts move to match.
+  useEffect(() => { invalidate() })
+  useFrame((state, delta) => {
+    // The page may not have drawn for a while; that pause is not experiment time.
+    const dt = activeId && states[activeId].wasRunning ? Math.min(delta, 1) : 0
     for (const [id, bench] of Object.entries(BENCHES)) {
       if (id === activeId) bench.step(states[id], dt)
       bench.apply(states[id], get)
@@ -354,6 +357,7 @@ export function BenchRunner({ states, activeId, onTick }) {
     if (activeId && states[activeId]?.running && now - last.current > 100) { last.current = now; onTick() }
     if (activeId && states[activeId]?.wasRunning && !states[activeId].running) onTick()
     if (activeId) states[activeId].wasRunning = states[activeId].running
+    if (activeId && states[activeId].running) state.invalidate()
   })
   return (
     <>

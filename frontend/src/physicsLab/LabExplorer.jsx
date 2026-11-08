@@ -10,8 +10,9 @@ import React, { Suspense, useReducer, useRef } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import { useSearchParams } from 'react-router-dom'
+import * as THREE from 'three'
 import { useMediaQuery } from '../hooks/useMediaQuery'
-import { CameraRig, LabScenery, LAB_CAMERA, LAB_GL, Marker, Opening, TapArea, TowerControls, TowerPanel, TowerViewButtons, useTowerLab } from './TowerPreview'
+import { CameraRig, exposeForTests, LabScenery, LAB_CAMERA, LAB_GL, Marker, Opening, TapArea, TowerControls, TowerPanel, TowerViewButtons, useTowerLab } from './TowerPreview'
 import { BenchPanelBody, BenchRunner, canRun, createBenchStates, runBench } from './LabBenches'
 import { LAB_ENTRANCE, LAB_OVERVIEW, STATIONS, findStation } from './labStations'
 import { TOWER_VIEWS } from './towerViews'
@@ -19,9 +20,20 @@ import { TOWER_VIEWS } from './towerViews'
 // Keep in step with the small-screen rule for .pv-root in physicsLab.css.
 const SMALL_SCREEN = '(max-width: 900px), (orientation: portrait)'
 
+// On a phone, a pin for a bench on a side wall would fall off the edge of the screen,
+// so it is kept just inside, on the side where the bench is.
+const PIN_MARGIN = 26
+const onScreen = new THREE.Vector3()
+function keepInside(el, camera, size) {
+  onScreen.setFromMatrixPosition(el.matrixWorld).project(camera)
+  const x = (onScreen.x + 1) * size.width / 2
+  const y = (1 - onScreen.y) * size.height / 2
+  return [Math.min(size.width - PIN_MARGIN, Math.max(PIN_MARGIN, x)), y]
+}
+
 function StationPin({ station, number, small, onOpen }) {
   return (
-    <Html position={station.pin} center zIndexRange={[4, 0]}>
+    <Html position={station.pin} center zIndexRange={[4, 0]} calculatePosition={small ? keepInside : undefined}>
       <button className={`lx-pin ${small ? 'is-small' : ''}`} aria-label={`Go to ${station.name}`} onClick={() => onOpen(station.id)}>
         <span className="lx-num">{number}</span>{!small && station.name}
       </button>
@@ -105,7 +117,7 @@ export default function LabExplorer({ onExit }) {
   return (
     <div className="pl-root pv-root">
       <div className="pv-stage">
-        <Canvas dpr={[1, 1.5]} camera={{ ...LAB_CAMERA, position: LAB_ENTRANCE.pos }} gl={LAB_GL}>
+        <Canvas frameloop="demand" dpr={[1, 1.5]} camera={{ ...LAB_CAMERA, position: LAB_ENTRANCE.pos }} gl={LAB_GL} onCreated={exposeForTests}>
           <Suspense fallback={null}>
             <LabScenery lab={lab} />
             <BenchRunner states={benches.current} activeId={benchId} onTick={refresh} />
