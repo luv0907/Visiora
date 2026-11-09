@@ -28,8 +28,10 @@ export default function LiveGraph({
   areaLabel,
   note,
   onScrub,
+  fonts = { mono: MONO, sans: SANS },
 }) {
   const layoutRef = useRef(null)
+  const { mono, sans } = fonts
 
   const { ref } = useCanvas((ctx, w, h) => {
     const L = { l: 46, r: 14, t: 14, b: 36 }
@@ -61,7 +63,7 @@ export default function LiveGraph({
     ctx.lineTo(w - L.r, Math.round(zeroY) + 0.5)
     ctx.stroke()
 
-    ctx.font = `600 10.5px ${MONO}`
+    ctx.font = `600 10.5px ${mono}`
     ctx.fillStyle = MOTION_COLORS.muted
     ctx.textAlign = 'center'
     ctx.textBaseline = 'top'
@@ -69,7 +71,7 @@ export default function LiveGraph({
     ctx.textAlign = 'right'
     ctx.textBaseline = 'middle'
     for (const y of yTicks) ctx.fillText(formatTick(y, sy), L.l - 6, Y(y))
-    ctx.font = `600 11px ${SANS}`
+    ctx.font = `600 11px ${sans}`
     ctx.textAlign = 'right'
     ctx.textBaseline = 'bottom'
     ctx.fillText('time (s)', w - L.r, h - 2)
@@ -131,7 +133,7 @@ export default function LiveGraph({
     ctx.stroke()
 
     const text = `${(Math.abs(val) < 0.05 ? 0 : val).toFixed(1)} ${unit}`
-    ctx.font = `700 12px ${MONO}`
+    ctx.font = `700 12px ${mono}`
     const tw = ctx.measureText(text).width + 12
     const bx = Math.min(w - L.r - tw, Math.max(L.l + 4, px + 10))
     const by = Math.max(L.t, Math.min(h - L.b - 24, py - 30))
@@ -148,14 +150,14 @@ export default function LiveGraph({
       const lbl = areaLabel(t)
       const ay = (zeroY + Y(valueAt(t / 2))) / 2
       if (lbl && Math.abs(zeroY - ay) > 14) {
-        ctx.font = `700 11px ${SANS}`
+        ctx.font = `700 11px ${sans}`
         ctx.fillStyle = '#483E36'
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
         ctx.fillText(lbl, X(t / 2), Math.max(ay, L.t + 10))
       }
     }
-  }, [valueAt, t, tAxis, yMin, yMax, showPrediction, areaLabel, color, unit])
+  }, [valueAt, t, tAxis, yMin, yMax, showPrediction, areaLabel, color, unit, mono, sans])
 
   const scrub = e => {
     const L = layoutRef.current

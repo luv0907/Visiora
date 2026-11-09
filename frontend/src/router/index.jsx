@@ -28,6 +28,7 @@ import WalkLabScreen from '../screens/WalkLabScreen'
 import PreviewScreen from '../screens/PreviewScreen'
 import StudioHome from '../studio/StudioHome'
 import PendulumExperiment from '../studio/PendulumExperiment'
+import MotionExperiment from '../studio/MotionExperiment'
 
 function ProtectedRoute() {
   const isAuthenticated = useAuthStore(state => state.isAuthenticated)
@@ -81,6 +82,7 @@ const router = createBrowserRouter(
             { path: '/',                  element: <StudioHome /> },
             { path: '/classic',           element: <HomeScreen /> },
             { path: '/experiments/pendulum', element: <PendulumExperiment /> },
+            { path: '/experiments/motion', element: <MotionExperiment /> },
             { path: '/sim',               element: <SimulatorScreen /> },
             { path: '/sim-2d',            element: <Simulator2DScreen /> },
             { path: '/sim-2d/:labId',     element: <DynamicLabScreen /> },

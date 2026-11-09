@@ -37,6 +37,18 @@ describe('pendulum', () => {
     expect(many.theta).toBeCloseTo(one.theta, 8)
   })
 
+  it('with air friction the swings die down, and more friction stops it sooner', () => {
+    const total = st => { const e = energy(st, 1, g, 1); return e.kinetic + e.potential }
+    const some = { theta: 0.4, omega: 0 }, lots = { theta: 0.4, omega: 0 }
+    const start = total(some)
+    stepPendulum(some, 20, 1, g, 0.05)
+    stepPendulum(lots, 20, 1, g, 0.3)
+    expect(total(some)).toBeLessThan(start)
+    expect(total(lots)).toBeLessThan(total(some))
+    // energy falls as e^(−b·t): after 20 s with b = 0.05, about e^(−1) ≈ 37% is left
+    expect(total(some) / start).toBeCloseTo(Math.exp(-0.05 * 20), 1)
+  })
+
   it('mass is not part of the motion at all', () => {
     expect(stepPendulum.length).toBe(4) // state, dt, L, g: no mass
   })

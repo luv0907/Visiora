@@ -9,7 +9,7 @@ export const CHAPTERS = [
     items: [
       { id: 'pendulum', name: 'Pendulum Lab', kind: '2D', art: 'pendulum', path: '/experiments/pendulum', redesigned: true,
         about: 'Find out what changes how long a swing takes: the string, the mass, or gravity.' },
-      { id: 'motion', name: 'Speed & acceleration', kind: '2D', art: 'car', path: '/motion',
+      { id: 'motion', name: 'Speed & acceleration', kind: '2D', art: 'car', path: '/experiments/motion', redesigned: true,
         about: 'Drive a car and watch its distance–time and speed–time graphs draw live.' },
       { id: 'freefall', name: 'Free Fall Tower', kind: '3D', art: 'fall', path: '/physics-lab?station=freefall',
         about: 'Drop a steel ball and a feather, then pump the air out and drop them again.' },

@@ -5,7 +5,7 @@
  * Physics: engine/pendulum.js. The canvas only draws; it never decides a number.
  */
 import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
-import { PLANETS, energy, stepPendulum, swingTime } from '../engine/pendulum'
+import { FRICTION, PLANETS, energy, stepPendulum, swingTime } from '../engine/pendulum'
 import { INK, ACCENT, SOFT, DATA } from './drawings'
 import { rememberExperiment } from './catalog'
 import { ExperimentShell, Group, Icon, Options, ResetAll, Slider, Stopwatch, TimeControls, Toggle, Toolbox } from './Shell'
@@ -25,7 +25,7 @@ const DONE_KEY = 'visiora.pendulum.missions'
 const loadDone = () => { try { return JSON.parse(localStorage.getItem(DONE_KEY)) || [] } catch { return [] } }
 const saveDone = ids => { try { localStorage.setItem(DONE_KEY, JSON.stringify(ids)) } catch { /* nothing to save to */ } }
 
-const fresh = () => ({ L: 1, m: 1, planet: 'earth', theta: START_ANGLE, omega: 0, release: START_ANGLE })
+const fresh = () => ({ L: 1, m: 1, planet: 'earth', friction: 'none', theta: START_ANGLE, omega: 0, release: START_ANGLE })
 
 export default function PendulumExperiment() {
   const [tab, setTab] = useState('intro')
@@ -44,6 +44,8 @@ export default function PendulumExperiment() {
   useEffect(() => { rememberExperiment('pendulum') }, [])
 
   const g = PLANETS.find(p => p.id === s.planet).g
+  // Intro and the challenges use the ideal pendulum; friction is something to explore.
+  const b = tab === 'explore' ? FRICTION.find(f => f.id === s.friction).b : 0
   const period = swingTime(s.L, g, s.release)
   const current = MISSIONS.find(m => m.id === mission)
   const missionOff = tab === 'challenge' ? (period - current.target) / current.target : null
@@ -163,10 +165,11 @@ export default function PendulumExperiment() {
     if (!playing && !watch.running) return undefined
     let raf, last = performance.now()
     const tick = now => {
-      const dt = Math.min(0.1, (now - last) / 1000) * speed
+      // Up to half a second per frame: a slow computer skips frames but keeps real time.
+      const dt = Math.min(0.5, (now - last) / 1000) * speed
       last = now
       if (playing) {
-        stepPendulum(sim.current, dt, s.L, g)
+        stepPendulum(sim.current, dt, s.L, g, b)
         if (tools.path) { trail.current.push(bobAt(sim.current.theta)); if (trail.current.length > 240) trail.current.shift() }
         draw()
       }
@@ -176,7 +179,7 @@ export default function PendulumExperiment() {
     }
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
-  }, [playing, watch.running, speed, s.L, g, tools.path, draw]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [playing, watch.running, speed, s.L, g, b, tools.path, draw]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // drag the bob to choose where it is let go from
   const dragging = useRef(false)
@@ -208,7 +211,7 @@ export default function PendulumExperiment() {
   }, [])
 
   const togglePlay = () => { if (!playing) sim.current.omega = sim.current.omega || 0; setPlaying(p => !p); setMoved(true) }
-  const stepOnce = () => { setPlaying(false); stepPendulum(sim.current, 1 / 30, s.L, g); setLive({ angle: sim.current.theta }); draw() }
+  const stepOnce = () => { setPlaying(false); stepPendulum(sim.current, 1 / 30, s.L, g, b); setLive({ angle: sim.current.theta }); draw() }
 
   const planets = useMemo(() => PLANETS.map(p => ({ id: p.id, label: p.label, sub: `${p.g} m/s²` })), [])
   const lockedPlanet = tab === 'challenge'
@@ -242,12 +245,17 @@ export default function PendulumExperiment() {
           <Options label="Gravity" options={planets} value={s.planet} disabled={lockedPlanet} onChange={planet => set({ planet })} />
         </Group>
       )}
+      {tab === 'explore' && (
+        <Group label="Air friction">
+          <Options label="Air friction" options={FRICTION} value={s.friction} onChange={friction => set({ friction })} />
+        </Group>
+      )}
       <Group label="Show">
         <Toggle label="Swing time" checked={show.time} onChange={time => setShow(v => ({ ...v, time }))} />
         {tab !== 'intro' && <Toggle label="Velocity arrow" checked={show.velocity} onChange={velocity => { setShow(v => ({ ...v, velocity })); }} />}
         {tab !== 'intro' && <Toggle label="Energy" checked={show.energy} onChange={en => setShow(v => ({ ...v, energy: en }))} />}
       </Group>
-      <p className="st-note">Swing time is worked out exactly for the release angle, not with the small-angle formula, so big swings take a little longer.</p>
+      <p className="st-note">Swing time is worked out exactly for the release angle, not with the small-angle formula, so big swings take a little longer. It is shown without friction; light friction barely changes it, but each swing gets smaller.</p>
     </>
   )
 

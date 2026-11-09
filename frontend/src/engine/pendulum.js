@@ -1,8 +1,15 @@
 /**
  * VISIORA — a simple pendulum, solved exactly enough at any swing size:
- *   θ'' = −(g/L)·sin θ
+ *   θ'' = −(g/L)·sin θ − b·θ'
+ * b is air friction (per second); 0 is the ideal pendulum that swings forever.
  * Stepped with fixed 2 ms RK4 sub-steps, so results don't depend on frame rate.
  */
+
+export const FRICTION = [
+  { id: 'none', label: 'None', b: 0 },
+  { id: 'some', label: 'Some', b: 0.05 },
+  { id: 'lots', label: 'Lots', b: 0.3 },
+]
 
 export const PLANETS = [
   { id: 'moon', label: 'Moon', g: 1.62 },
@@ -13,15 +20,15 @@ export const PLANETS = [
 const SUB_STEP = 0.002
 
 /** Advance { theta, omega } by dt seconds. Mutates and returns the state. */
-export function stepPendulum(s, dt, L, g) {
-  const acc = th => -(g / L) * Math.sin(th)
+export function stepPendulum(s, dt, L, g, friction = 0) {
+  const acc = (th, om) => -(g / L) * Math.sin(th) - friction * om
   let { theta, omega } = s
   for (let left = dt; left > 1e-12; left -= SUB_STEP) {
     const h = Math.min(SUB_STEP, left)
-    const k1t = omega, k1w = acc(theta)
-    const k2t = omega + (h / 2) * k1w, k2w = acc(theta + (h / 2) * k1t)
-    const k3t = omega + (h / 2) * k2w, k3w = acc(theta + (h / 2) * k2t)
-    const k4t = omega + h * k3w, k4w = acc(theta + h * k3t)
+    const k1t = omega, k1w = acc(theta, omega)
+    const k2t = omega + (h / 2) * k1w, k2w = acc(theta + (h / 2) * k1t, k2t)
+    const k3t = omega + (h / 2) * k2w, k3w = acc(theta + (h / 2) * k2t, k3t)
+    const k4t = omega + h * k3w, k4w = acc(theta + h * k3t, k4t)
     theta += (h / 6) * (k1t + 2 * k2t + 2 * k3t + k4t)
     omega += (h / 6) * (k1w + 2 * k2w + 2 * k3w + k4w)
   }
