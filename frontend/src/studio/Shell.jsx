@@ -64,9 +64,50 @@ export function TopBar({ active = 'experiments' }) {
   )
 }
 
+const PANEL_KEY = 'visiora.panel'
+const PANEL_MIN = 280, PANEL_DEFAULT = 340
+const panelMax = () => Math.max(PANEL_MIN, Math.min(640, Math.round(window.innerWidth * 0.5)))
+function loadPanel() {
+  try { const p = JSON.parse(localStorage.getItem(PANEL_KEY)); if (p && typeof p.width === 'number') return p } catch { /* private mode */ }
+  return { width: PANEL_DEFAULT, open: true }
+}
+
+/**
+ * The side panel's width and whether it is shown, remembered between visits. Drag the
+ * handle on its left edge to resize (double-click it for the default width), use ← and → on the
+ * focused handle, or hide the panel to give the experiment the whole screen.
+ */
+function usePanel() {
+  const [panel, setPanel] = useState(loadPanel)
+  const save = next => setPanel(prev => {
+    const p = { ...prev, ...next }
+    p.width = Math.max(PANEL_MIN, Math.min(panelMax(), Math.round(p.width)))
+    try { localStorage.setItem(PANEL_KEY, JSON.stringify(p)) } catch { /* private mode */ }
+    return p
+  })
+  return [panel, save]
+}
+
+function PanelHandle({ width, onWidth, onHide }) {
+  const drag = useRef(null)
+  return (
+    <div className="st-resizer" role="separator" aria-orientation="vertical" aria-label="Resize the side panel" aria-valuenow={width}
+      aria-valuemin={PANEL_MIN} aria-valuemax={640} tabIndex={0} title="Drag to resize · double-click to reset"
+      onPointerDown={e => { if (e.target.closest('button')) return; drag.current = { x: e.clientX, w: width }; e.currentTarget.setPointerCapture(e.pointerId); document.body.classList.add('is-resizing') }}
+      onPointerMove={e => { if (drag.current) onWidth(drag.current.w + (drag.current.x - e.clientX)) }}
+      onPointerUp={() => { drag.current = null; document.body.classList.remove('is-resizing') }}
+      onDoubleClick={() => onWidth(PANEL_DEFAULT)}
+      onKeyDown={e => { if (e.key === 'ArrowLeft') onWidth(width + 24); if (e.key === 'ArrowRight') onWidth(width - 24) }}>
+      <span className="st-resizer-grip" aria-hidden="true" />
+      <button className="st-panel-hide" onClick={onHide} aria-label="Hide the side panel" title="Hide the panel"><Icon name="arrow" /></button>
+    </div>
+  )
+}
+
 /** The frame every experiment sits in. `tabs` is [[id, label], …]. */
 export function ExperimentShell({ code, title, tabs, tab, onTab, panel, children }) {
   const navigate = useNavigate()
+  const [side, setSide] = usePanel()
   return (
     <div className="studio st-sim">
       <header className="st-simbar">
@@ -83,9 +124,15 @@ export function ExperimentShell({ code, title, tabs, tab, onTab, panel, children
         )}
         <button className="st-btn st-btn-secondary st-help" onClick={() => navigate('/ai-tutor')}><Icon name="help" />Ask the tutor</button>
       </header>
-      <div className="st-simmain">
-        <div className="st-stage">{children}</div>
-        <aside className="st-panel" aria-label="Controls">{panel}</aside>
+      <div className="st-simmain" style={{ gridTemplateColumns: side.open ? `minmax(0, 1fr) ${side.width}px` : 'minmax(0, 1fr) 0px' }}>
+        <div className="st-stage">
+          {children}
+          {!side.open && <button className="st-panel-show" onClick={() => setSide({ open: true })}><Icon name="back" />Show the steps</button>}
+        </div>
+        <aside className="st-panel" aria-label="Controls" hidden={!side.open}>
+          {side.open && <PanelHandle width={side.width} onWidth={w => setSide({ width: w })} onHide={() => setSide({ open: false })} />}
+          <div className="st-panel-scroll">{panel}</div>
+        </aside>
       </div>
     </div>
   )
