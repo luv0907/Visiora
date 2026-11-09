@@ -1,26 +1,26 @@
-<svg id="emoji" viewBox="0 0 72 72" version="1.1" xmlns="http://www.w3.org/2000/svg">
-  <g id="color">
-    <path fill="#EA5A47" d="M17.9247,53.9753l-6.625-1.017c0,0-1.0625,0-1.0625-1.25s-0.0625-3.5625-0.0625-3.5625 s0.6832-9.4798,2.625-10.625c1.625-0.9583,46.544-0.7036,53.1365-0.5781c0.4728,0.009,0.8668,0.3478,0.9496,0.8133 c0.2375,1.3354,0.6809,4.0966,0.7264,6.3273c0.0625,3.0625-0.125,8-0.125,8l-4.7646,1.7952"/>
-    <path fill="#3F3F3F" d="M13.1331,38.0833c0,0-2.3125,3.1667-2.125,9.0417c0,0,3.9166,1.4583,9.9791-4.3125l42.9375,1.3125 c0,0,2.2292-1.2292,2.3334-6.2917C66.2581,37.8333,20.3831,35.6667,13.1331,38.0833z"/>
-    <line x1="50.3414" x2="30.1747" y1="53.0606" y2="53.0065" fill="none"/>
-    <circle cx="56.4803" cy="53.2917" r="3" fill="#D0CFCE"/>
-    <circle cx="23.9803" cy="53.2917" r="3" fill="#D0CFCE"/>
-    <rect x="40.4872" y="40.3177" width="5.0625" height="12.6667" fill="#3F3F3F"/>
-    <path fill="#FCEA2B" d="M11.1591,50.6562h2.5783l1.0723-2.3125h-2.8795c-0.4259,0-0.7711,0.3992-0.7711,0.8916 C11.1591,49.2353,11.1591,50.6562,11.1591,50.6562z"/>
-  </g>
-  <g id="hair"/>
-  <g id="skin"/>
-  <g id="skin-shadow"/>
-  <g id="line">
-    <path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M17.9247,52.9753l-6.625-0.017c0,0-1.0625,0-1.0625-1.25s-0.0625-3.5625-0.0625-3.5625s0.6832-9.4798,2.625-10.625 c1.625-0.9583,46.544-0.7036,53.1365-0.5781c0.4728,0.009,0.8668,0.3478,0.9496,0.8133c0.2375,1.3354,0.6809,4.0966,0.7264,6.3273 c0.0625,3.0625-0.125,8-0.125,8l-4.7646,0.7952"/>
-    <line x1="50.3414" x2="30.1747" y1="53.0606" y2="53.0065" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"/>
-    <polyline fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" points="11.2997,40.5 6.7372,40.8125 5.2997,44.125"/>
-    <circle cx="56.4803" cy="53.2917" r="3" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"/>
-    <circle cx="23.9803" cy="53.2917" r="3" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"/>
-    <path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M45.5493,43.0283l18.1254,0.1592c0,0,0.0142-0.0017,0.0403-0.0069"/>
-    <path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M13.2782,46.3109c0,0,4.0241-0.9494,7.709-3.4984l19.5,0.1713"/>
-    <path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M17.9247,52.9753l-6.625-0.017c0,0-1.0625,0-1.0625-1.25s-0.0625-3.5625-0.0625-3.5625s0.6832-9.4798,2.625-10.625 c1.625-0.9583,46.544-0.7036,53.1365-0.5781c0.4728,0.009,0.8668,0.3478,0.9496,0.8133c0.2375,1.3354,0.6809,4.0966,0.7264,6.3273 c0.0625,3.0625-0.125,8-0.125,8"/>
-    <rect x="40.4872" y="40.3177" width="5.0625" height="12.6667" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2"/>
-    <polyline fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" points="11.1591,50.6562 13.7374,50.6562 14.8097,49.2948"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 84" fill="none" stroke="#16181D" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
+  <!-- side view of a city bus, facing right; 240 units ≈ 12 m -->
+  <path d="M8 66 V14 Q8 6 16 6 H214 Q226 6 230 14 L236 34 V66 Q236 70 232 70 H12 Q8 70 8 66 Z" fill="#fff"/>
+  <!-- windows -->
+  <path d="M16 14 H192 V38 H16 Z" fill="#E9EBF0"/>
+  <path d="M46 14 V38 M76 14 V38 M106 14 V38 M136 14 V38 M166 14 V38" stroke-width="2"/>
+  <!-- windscreen -->
+  <path d="M214 12 H222 Q226 12 228 16 L233 36 H214 Z" fill="#E9EBF0"/>
+  <!-- front door -->
+  <path d="M196 14 H210 V66 H196 Z" fill="#fff"/>
+  <path d="M203 14 V66" stroke-width="1.6"/>
+  <path d="M199 18 H207 V38 H199 Z M199 42 H207 V62 H199 Z" stroke-width="1.4" fill="#E9EBF0"/>
+  <!-- trim line and bumper -->
+  <path d="M8 46 H196 M210 46 H236" stroke-width="1.4"/>
+  <path d="M230 58 H238 V66 H230" fill="#fff"/>
+  <!-- headlight, mirror -->
+  <circle cx="231" cy="52" r="2.6" fill="#16181D" stroke="none"/>
+  <path d="M232 14 Q240 12 240 20 V26" stroke-width="1.8"/>
+  <!-- wheels -->
+  <path d="M34 70 A16 16 0 0 1 66 70" fill="#fff"/>
+  <path d="M168 70 A16 16 0 0 1 200 70" fill="#fff"/>
+  <circle cx="50" cy="70" r="12" fill="#16181D"/>
+  <circle cx="184" cy="70" r="12" fill="#16181D"/>
+  <circle cx="50" cy="70" r="4.5" fill="#fff" stroke="none"/>
+  <circle cx="184" cy="70" r="4.5" fill="#fff" stroke="none"/>
 </svg>

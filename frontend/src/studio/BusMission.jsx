@@ -3,6 +3,7 @@
  * Learn by doing, in order: read the situation, sketch a prediction, watch the real run
  * over it, measure a ticker tape, explain the pattern, then apply it to a harder case.
  * The formulas only appear after the student has done the work. Physics: engine/busMission.js.
+ * Art in public/images/studio: bus.svg is ours; cow.svg is Microsoft Fluent Emoji (MIT).
  */
 import React, { useEffect, useMemo, useState } from 'react'
 import { useCanvas } from '../components/motion/useCanvas'
@@ -19,8 +20,12 @@ const MUTED = '#82868F'
 const DONE_KEY = 'visiora.motion.busMission'
 const n1 = v => v.toFixed(1)
 
-// OpenMoji art (CC BY-SA 4.0) sits inside a 72×72 box; these are the drawn areas.
-const ART_BOX = { cow: { x: 6, y: 20.7, w: 59.2, h: 36.2 }, bus: { x: 5.3, y: 36.8, w: 62.3, h: 19.5 } }
+// Each picture's viewBox size (vw × vh) and its drawn area: left x, top y, width w, height h.
+// The cow is Microsoft Fluent Emoji (MIT) and faces left; the bus is our own drawing and faces right.
+const ART_BOX = {
+  cow: { vw: 32, vh: 32, x: 2, y: 3.5, w: 28, h: 26.5 },
+  bus: { vw: 240, vh: 84, x: 8, y: 6, w: 230, h: 76 },
+}
 const ART = Object.fromEntries(Object.keys(ART_BOX).map(k => {
   const img = new Image()
   img.src = `/images/studio/${k}.svg`
@@ -57,17 +62,13 @@ function Road({ t, u, a, cowAt, artReady }) {
       ctx.fillStyle = MUTED; ctx.fillText(m ? `${m}` : '0 m', X(m), top + 46)
     }
     // the cow, drawn a little larger than life so it reads at a glance
-    const cowH = Math.min(64, h * 0.3), c = ART_BOX.cow, cs = (cowH / c.h) * 72, cx = X(cowAt)
-    if (artReady) ctx.drawImage(ART.cow, cx - (c.x / 72) * cs, lane - ((c.y + c.h) / 72) * cs, cs, cs)
+    const cowH = Math.min(64, h * 0.3), c = ART_BOX.cow, cs = cowH / c.h, cx = X(cowAt)
+    if (artReady) ctx.drawImage(ART.cow, cx - c.x * cs, lane - (c.y + c.h) * cs, c.vw * cs, c.vh * cs)
     ctx.fillStyle = INK; ctx.font = `600 12px ${SANS}`; ctx.textBaseline = 'bottom'
-    ctx.fillText(`cow · ${cowAt} m`, cx + (c.w / 72) * cs / 2, lane - cowH - 14)
-    // the bus, true to scale, its front at the distance travelled; the art faces left, so mirror it
-    const { s } = busAt(t, u, a), bx = X(s), b = ART_BOX.bus, bs = ((BUS_M * k) / b.w) * 72
-    if (artReady) {
-      ctx.save(); ctx.translate(bx, 0); ctx.scale(-1, 1)
-      ctx.drawImage(ART.bus, -(b.x / 72) * bs, lane - ((b.y + b.h) / 72) * bs, bs, bs)
-      ctx.restore()
-    }
+    ctx.fillText(`cow · ${cowAt} m`, cx + (c.w * cs) / 2, lane - cowH - 10)
+    // the bus, true to scale, its front at the distance travelled
+    const { s } = busAt(t, u, a), bx = X(s), b = ART_BOX.bus, bs = (BUS_M * k) / b.w
+    if (artReady) ctx.drawImage(ART.bus, bx - (b.x + b.w) * bs, lane - (b.y + b.h) * bs, b.vw * bs, b.vh * bs)
     ctx.fillStyle = INK; ctx.beginPath(); ctx.moveTo(bx, top + 30); ctx.lineTo(bx - 5, top + 38); ctx.lineTo(bx + 5, top + 38); ctx.fill()
   }, [t, u, a, cowAt, artReady])
   return <canvas ref={ref} className="st-fill" role="img" aria-label={`Bus ${n1(busAt(t, u, a).s)} m along, cow at ${cowAt} m.`} />
@@ -359,7 +360,7 @@ export default function BusMission({ tabs, onTab }) {
           <span className="st-label">Speed–time graph{step === 1 && <em> · draw here</em>}</span>
           <SpeedGraph t={step >= 2 ? Math.min(t, end.t) : 0} u={u} a={a} sketch={sketch} onSketch={step === 1 ? setSketch : null} showSketch={!applying} showReal={step >= 2} />
         </div>
-        <p className="st-credit">Illustrations: <a href="https://openmoji.org" target="_blank" rel="noreferrer">OpenMoji</a>, CC BY-SA 4.0</p>
+        <p className="st-credit">Cow: <a href="https://github.com/microsoft/fluentui-emoji" target="_blank" rel="noreferrer">Fluent Emoji</a> © Microsoft, MIT License</p>
       </div>
     </ExperimentShell>
   )
