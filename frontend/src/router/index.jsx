@@ -24,12 +24,20 @@ import LightLabScreen from '../screens/LightLabScreen'
 import ElectricityLabScreen from '../screens/ElectricityLabScreen'
 import ForceLabScreen from '../screens/ForceLabScreen'
 import PhysicsLabScreen from '../screens/PhysicsLabScreen'
+import WalkLabScreen from '../screens/WalkLabScreen'
+import PreviewScreen from '../screens/PreviewScreen'
+import StudioHome from '../studio/StudioHome'
+import PendulumExperiment from '../studio/PendulumExperiment'
+import MotionExperiment from '../studio/MotionExperiment'
+import CircuitsExperiment from '../studio/CircuitsExperiment'
 
 function ProtectedRoute() {
   const isAuthenticated = useAuthStore(state => state.isAuthenticated)
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   const location = useLocation()
-  const isSim = location.pathname.startsWith('/sim') || location.pathname.startsWith('/virtual-lab') || location.pathname.startsWith('/lab') || location.pathname.startsWith('/board') || location.pathname.startsWith('/motion') || location.pathname.startsWith('/gravity') || location.pathname.startsWith('/light') || location.pathname.startsWith('/electricity') || location.pathname.startsWith('/force') || location.pathname.startsWith('/physics-lab')
+  // The redesigned screens bring their own top bar.
+  const isStudio = location.pathname === '/' || location.pathname.startsWith('/experiments')
+  const isSim = isStudio || location.pathname.startsWith('/sim') || location.pathname.startsWith('/virtual-lab') || location.pathname.startsWith('/lab') || location.pathname.startsWith('/board') || location.pathname.startsWith('/motion') || location.pathname.startsWith('/gravity') || location.pathname.startsWith('/light') || location.pathname.startsWith('/electricity') || location.pathname.startsWith('/force') || location.pathname.startsWith('/physics-lab')
 
   if (!isAuthenticated) {
     return <Navigate to="/onboarding" replace />
@@ -68,10 +76,15 @@ const router = createBrowserRouter(
       ]
     : [
         { path: '/onboarding', element: <OnboardingScreen /> },
+        { path: '/preview', element: <PreviewScreen /> },
         {
           element: <ProtectedRoute />,
           children: [
-            { path: '/',                  element: <HomeScreen /> },
+            { path: '/',                  element: <StudioHome /> },
+            { path: '/classic',           element: <HomeScreen /> },
+            { path: '/experiments/pendulum', element: <PendulumExperiment /> },
+            { path: '/experiments/motion', element: <MotionExperiment /> },
+            { path: '/experiments/circuits', element: <CircuitsExperiment /> },
             { path: '/sim',               element: <SimulatorScreen /> },
             { path: '/sim-2d',            element: <Simulator2DScreen /> },
             { path: '/sim-2d/:labId',     element: <DynamicLabScreen /> },
@@ -79,6 +92,7 @@ const router = createBrowserRouter(
             { path: '/lab/:labId',        element: <DynamicLabScreen /> },
             { path: '/board',             element: <GraphBoardScreen /> },
             { path: '/physics-lab',       element: <PhysicsLabScreen /> },
+            { path: '/physics-lab/walk',  element: <WalkLabScreen /> },
             { path: '/motion',            element: <MotionLabScreen /> },
             { path: '/gravity',           element: <GravityLabScreen /> },
             { path: '/light',             element: <LightLabScreen /> },

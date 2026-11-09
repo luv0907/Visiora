@@ -8,6 +8,7 @@
  *   { id, type: 'R', a, b, R }           resistor between nodes a and b
  *   { id, type: 'V', p, n, V }           ideal battery, + terminal at p
  *   { id, type: 'A', p, n }              ideal ammeter / closed switch / wire (0 V source)
+ *   { id, type: 'I', p, n, I }           current source: pushes I out of p (in at n)
  * Node 0 is ground. Currents are conventional, measured a→b (R) or p→n through the part (A).
  * For a battery, current() is what it pushes out of its + terminal.
  */
@@ -36,6 +37,12 @@ export function solve(nodes, elements) {
     if (e.a && e.b) { A[a][b] -= g; A[b][a] -= g }
   }
 
+  for (const e of elements) {
+    if (e.type !== 'I') continue
+    if (e.p) z[idx(e.p)] += e.I
+    if (e.n) z[idx(e.n)] -= e.I
+  }
+
   sources.forEach((e, k) => {
     const row = N + k
     const p = idx(e.p)
@@ -50,6 +57,7 @@ export function solve(nodes, elements) {
   const currents = {}
   for (const e of elements) {
     if (e.type === 'R') currents[e.id] = (v(e.a) - v(e.b)) / e.R
+    if (e.type === 'I') currents[e.id] = e.I
   }
   sources.forEach((e, k) => {
     // MNA's source current flows from p to n through the source.

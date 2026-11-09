@@ -19,10 +19,30 @@ from mathutils import Vector
 
 ROOT = "/Users/bouroju/Documents/mini-ai-video"
 MASTER = f"{ROOT}/blender/physics_lab_hall.blend"
-WEB = f"{ROOT}/blender/physics_lab_hall_web.blend"
-EXPORT = f"{ROOT}/blender/export"
+WEB = f"{ROOT}/blender/physics_lab_hall_web_v2.blend"
+EXPORT = f"{ROOT}/blender/export_v2"
 LIGHTMAPS = f"{EXPORT}/lightmaps"
 INTERACTIVE = ("FF_SteelBall", "FF_Feather", "FF_Tube0", "FF_Tube1", "FF_GaugeNeedle")
+# Moving parts of the other experiments: new name -> the master objects joined into it.
+GROUPS = {
+    "AT_GliderA": ("AT_Glider0", "AT_Glider0b", "AT_GliderFlag0"),
+    "AT_GliderB": ("AT_Glider1", "AT_Glider1b", "AT_GliderFlag1"),
+    "PD_Swing0": ("PD_Bob0", "PD_String0"),
+    "PD_Swing1": ("PD_Bob1", "PD_String1"),
+    "PD_Swing2": ("PD_Bob2", "PD_String2"),
+    "MT_CartBody": ("MT_Cart", "MT_CartFlag", "MT_Wheel", "MT_Wheel.001", "MT_Wheel.002", "MT_Wheel.003"),
+    "OB_ObjectStand": ("OB_Object", "OB_Carrier.001", "OB_Post.001"),
+    "OB_LensStand": ("OB_Lens", "OB_LensRing", "OB_Carrier.002", "OB_Post.002"),
+    "OB_ScreenStand": ("OB_Screen", "OB_ScreenFrame", "OB_Carrier.003", "OB_Post.003"),
+    "OL_AmmeterNeedle": ("OL_Ammeter_Needle",),
+    "OL_VoltmeterNeedle": ("OL_Voltmeter_Needle",),
+    "OL_Slider": ("OL_RheoSlider",),
+    "OL_LampA": ("OL_Bulb0",),
+    "OL_LampB": ("OL_Bulb1",),
+}
+# Where a part turns from, in Blender coordinates. Anything not listed pivots on its own centre.
+PIVOTS = {"PD_Swing0": (-2.6, 0, 6.5), "PD_Swing1": (-2.0, 0, 6.5), "PD_Swing2": (-1.4, 0, 6.5)}
+NEEDLES = ("OL_AmmeterNeedle", "OL_VoltmeterNeedle")  # these turn from their bottom end
 # Lightmaps are stored as 8-bit sRGB of (light / LM_SCALE); the browser multiplies back.
 LM_SCALE = 4.0
 LM_SIZE = {"Static_Shell": 4096, "Static_Structure": 2048, "Static_Furniture": 4096, "Static_Stations": 2048,
@@ -63,6 +83,8 @@ def stage_prepare():
     nd = box("FF_GaugeNeedle", (0.006, 0.012, 0.11), (g.location.x + 0.012, g.location.y, g.location.z + 0.04), bpy.data.materials["Black_Plastic"], inter)
     nd.rotation_euler = (math.radians(-50), 0, 0)
     for n in INTERACTIVE[:-1]: put(O[n], inter)
+    for names in GROUPS.values():
+        for n in names: put(O[n], inter)
     # plain geometry in world space
     bpy.context.view_layer.layer_collection.children["Library"].exclude = False
     lib = set(C["Library"].all_objects)
@@ -82,6 +104,18 @@ def stage_prepare():
     c = sum(pts, Vector()) / 8
     sc.cursor.location = (c.x + 0.012, c.y, c.z)
     _select([O["FF_GaugeNeedle"]]); bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
+    for name, names in GROUPS.items():
+        parts = [O[n] for n in names]
+        _select(parts, parts[0])
+        if len(parts) > 1: bpy.ops.object.join()
+        o = bpy.context.view_layer.objects.active
+        o.name = name
+        pts = [o.matrix_world @ Vector(v) for v in o.bound_box]
+        mid = sum(pts, Vector()) / 8
+        if name in PIVOTS: sc.cursor.location = PIVOTS[name]
+        elif name in NEEDLES: sc.cursor.location = (mid.x, mid.y, min(p.z for p in pts))
+        else: sc.cursor.location = mid
+        _select([o]); bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
     _web_materials_and_uvs()
     # merge static scenery by area
     for coll_ in list(C):
@@ -161,6 +195,8 @@ def bake_one(name, samples=192):
     sc = bpy.context.scene
     sc.render.engine = 'CYCLES'; sc.cycles.device = 'GPU'
     sc.cycles.samples = samples; sc.cycles.use_denoising = False
+    # Moving parts must not leave a baked shadow behind when they move away.
+    for part in bpy.data.collections["Interactive"].objects: part.hide_render = True
     o = bpy.data.objects[name]
     size = LM_SIZE.get(name, 2048)
     img = bpy.data.images.get(f"LM_{name}") or bpy.data.images.new(f"LM_{name}", size, size, float_buffer=True)

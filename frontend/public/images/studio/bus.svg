@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 84" fill="none" stroke="#16181D" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
+  <!-- side view of a city bus, facing right; 240 units ≈ 12 m -->
+  <path d="M8 66 V14 Q8 6 16 6 H214 Q226 6 230 14 L236 34 V66 Q236 70 232 70 H12 Q8 70 8 66 Z" fill="#fff"/>
+  <!-- windows -->
+  <path d="M16 14 H192 V38 H16 Z" fill="#E9EBF0"/>
+  <path d="M46 14 V38 M76 14 V38 M106 14 V38 M136 14 V38 M166 14 V38" stroke-width="2"/>
+  <!-- windscreen -->
+  <path d="M214 12 H222 Q226 12 228 16 L233 36 H214 Z" fill="#E9EBF0"/>
+  <!-- front door -->
+  <path d="M196 14 H210 V66 H196 Z" fill="#fff"/>
+  <path d="M203 14 V66" stroke-width="1.6"/>
+  <path d="M199 18 H207 V38 H199 Z M199 42 H207 V62 H199 Z" stroke-width="1.4" fill="#E9EBF0"/>
+  <!-- trim line and bumper -->
+  <path d="M8 46 H196 M210 46 H236" stroke-width="1.4"/>
+  <path d="M230 58 H238 V66 H230" fill="#fff"/>
+  <!-- headlight, mirror -->
+  <circle cx="231" cy="52" r="2.6" fill="#16181D" stroke="none"/>
+  <path d="M232 14 Q240 12 240 20 V26" stroke-width="1.8"/>
+  <!-- wheels -->
+  <path d="M34 70 A16 16 0 0 1 66 70" fill="#fff"/>
+  <path d="M168 70 A16 16 0 0 1 200 70" fill="#fff"/>
+  <circle cx="50" cy="70" r="12" fill="#16181D"/>
+  <circle cx="184" cy="70" r="12" fill="#16181D"/>
+  <circle cx="50" cy="70" r="4.5" fill="#fff" stroke="none"/>
+  <circle cx="184" cy="70" r="4.5" fill="#fff" stroke="none"/>
+</svg>

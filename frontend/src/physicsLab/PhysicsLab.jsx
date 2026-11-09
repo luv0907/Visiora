@@ -16,10 +16,10 @@ import './physicsLab.css'
 
 const MODEL_URL = '/models/physics_lab.glb'
 const COLLIDERS_URL = '/models/physics_lab_colliders.json'
-const HDRI_URL = '/hdri/sunny_rose_garden_1k.hdr'
+export const HDRI_URL = '/hdri/sunny_rose_garden_1k.hdr'
 const LIGHTMAP_DIR = '/models/lightmaps/'
 // Blender renders the lab with AgX at +1.1 stops; match it so the baked light reads the same.
-const EXPOSURE = 2 ** 1.1
+export const EXPOSURE = 2 ** 1.1
 const TOWER = { x: 18.9, z: 0 } // browser floor coordinates of the tower plinth
 const PLINTH_TOP = 0.6
 const USE_DISTANCE = 3.4
@@ -97,8 +97,9 @@ function bakedMaterial(m, lightMap, scale) {
   })
 }
 
-function LabModel({ onParts }) {
+export function LabModel({ onParts }) {
   const { scene } = useGLTF(MODEL_URL)
+  const invalidate = useThree(s => s.invalidate)
   const maps = useLightmaps()
   useEffect(() => {
     if (!maps) return
@@ -127,11 +128,12 @@ function LabModel({ onParts }) {
     const parts = { ball: get('FF_SteelBall'), feather: get('FF_Feather'), needle: get('FF_GaugeNeedle') }
     for (const p of Object.values(parts)) if (p && !p.userData.base) p.userData.base = { pos: p.position.clone(), rot: p.rotation.clone() }
     onParts(parts)
-  }, [scene, maps, onParts])
+    invalidate() // draw the room with its baked light
+  }, [scene, maps, onParts, invalidate])
   return <primitive object={scene} />
 }
 
-function Lights() {
+export function Lights() {
   // Only the moving parts (ball, feather, gauge needle) are lit live; the room's light is baked.
   return (
     <>
@@ -197,11 +199,16 @@ function TouchLook({ look }) {
 }
 
 // ── Free Fall Tower: moves the Blender objects from the engine state ─────────
-function TowerAnimator({ parts, tower, onTick }) {
+const towerBusy = t => t.phase === 'falling' || t.air === 'pumping' || t.air === 'venting'
+
+export function TowerAnimator({ parts, tower, onTick, timeScale, maxFrameStep = 0.05 }) {
   const flutter = useRef(0)
-  useFrame((_, delta) => {
+  const wasBusy = useRef(false)
+  useFrame((state, frameDelta) => {
     const t = tower.current
-    stepTower(t, Math.min(delta, 0.05))
+    // The page may not have drawn for a while; that pause is not experiment time.
+    const delta = (wasBusy.current ? Math.min(frameDelta, maxFrameStep) : 0) * (timeScale?.current ?? 1)
+    stepTower(t, delta)
     const { ball, feather, needle } = parts || {}
     if (ball?.userData.base) {
       const y = t.ball ? PLINTH_TOP + t.ball.y + OBJECTS.ball.radius : PLINTH_TOP + DROP_HEIGHT + OBJECTS.ball.radius
@@ -221,7 +228,10 @@ function TowerAnimator({ parts, tower, onTick }) {
       feather.rotation.x = base.rot.x + Math.cos(flutter.current * 1.7) * 0.2 * a
     }
     if (needle?.userData.base) needle.rotation.x = needle.userData.base.rot.x + (1 - t.pressure) * 1.9
-    onTick(t)
+    const busy = towerBusy(t)
+    if (busy) state.invalidate() // keep drawing only while something moves
+    onTick(t, wasBusy.current && !busy) // the moment it stops, the controls must hear about it
+    wasBusy.current = busy
   })
   return null
 }
