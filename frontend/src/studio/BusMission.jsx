@@ -3,81 +3,27 @@
  * Learn by doing, in order: read the situation, sketch a prediction, watch the real run
  * over it, measure a ticker tape, explain the pattern, then apply it to a harder case.
  * The formulas only appear after the student has done the work. Physics: engine/busMission.js.
- * Art in public/images/studio: bus.svg is ours; cow.svg is Microsoft Fluent Emoji (MIT).
+ * The road itself (bus, cow, speedometer) is BusScene.jsx.
  */
 import React, { useEffect, useMemo, useState } from 'react'
 import { useCanvas } from '../components/motion/useCanvas'
 import { BUS, busAt, busRunEnd, minBraking, predictionScore, sketchStopTime, tickerGaps } from '../engine/busMission'
 import { ACCENT, DATA, INK } from './drawings'
 import { ExperimentShell, Group, Icon, Slider } from './Shell'
+import { BusRoad, roadScale } from './BusScene'
 
 const STEPS = ['Situation', 'Predict', 'Run', 'Measure', 'Explain', 'Apply']
 const ROAD_M = 70 // metres shown on the road
-const BUS_M = 12 // a real bus is about 12 m long
 const T_AXIS = 8, V_AXIS = 25
 const MONO = '"IBM Plex Mono", monospace', SANS = '"Instrument Sans", sans-serif'
 const MUTED = '#82868F'
 const DONE_KEY = 'visiora.motion.busMission'
 const n1 = v => v.toFixed(1)
 
-// Each picture's viewBox size (vw × vh) and its drawn area: left x, top y, width w, height h.
-// The cow is Microsoft Fluent Emoji (MIT) and faces left; the bus is our own drawing and faces right.
-const ART_BOX = {
-  cow: { vw: 32, vh: 32, x: 2, y: 3.5, w: 28, h: 26.5 },
-  bus: { vw: 240, vh: 84, x: 8, y: 6, w: 230, h: 76 },
-}
-const ART = Object.fromEntries(Object.keys(ART_BOX).map(k => {
-  const img = new Image()
-  img.src = `/images/studio/${k}.svg`
-  return [k, img]
-}))
-const artLoaded = Promise.all(Object.values(ART).map(img => img.decode().catch(() => {})))
-function useArt() {
-  const [ready, setReady] = useState(false)
-  useEffect(() => {
-    let live = true
-    artLoaded.then(() => live && setReady(true))
-    return () => { live = false }
-  }, [])
-  return ready && Object.values(ART).every(img => img.complete && img.naturalWidth > 0)
-}
-
-/** Road and tape share one scale so the tape lines up under the bus. */
-const roadScale = w => {
-  const left = 24, right = 28, k = (w - left - right) / (ROAD_M + BUS_M)
-  return { X: s => left + (s + BUS_M) * k, S: s => (s - left) / k - BUS_M, k }
-}
-
-function Road({ t, u, a, cowAt, artReady }) {
-  const { ref } = useCanvas((ctx, w, h) => {
-    ctx.clearRect(0, 0, w, h)
-    const { X, k } = roadScale(w)
-    const top = Math.round(h * 0.6), lane = top + 22
-    ctx.fillStyle = '#E9E7DF'; ctx.fillRect(0, top, w, 36)
-    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.setLineDash([18, 14])
-    ctx.beginPath(); ctx.moveTo(0, top + 18); ctx.lineTo(w, top + 18); ctx.stroke(); ctx.setLineDash([])
-    ctx.font = `500 11px ${MONO}`; ctx.textAlign = 'center'; ctx.textBaseline = 'top'
-    for (let m = 0; m <= ROAD_M; m += 10) {
-      ctx.fillStyle = INK; ctx.fillRect(Math.round(X(m)) - 0.5, top + 36, 1, 6)
-      ctx.fillStyle = MUTED; ctx.fillText(m ? `${m}` : '0 m', X(m), top + 46)
-    }
-    // the cow, drawn a little larger than life so it reads at a glance
-    const cowH = Math.min(64, h * 0.3), c = ART_BOX.cow, cs = cowH / c.h, cx = X(cowAt)
-    if (artReady) ctx.drawImage(ART.cow, cx - c.x * cs, lane - (c.y + c.h) * cs, c.vw * cs, c.vh * cs)
-    ctx.fillStyle = INK; ctx.font = `600 12px ${SANS}`; ctx.textBaseline = 'bottom'
-    ctx.fillText(`cow · ${cowAt} m`, cx + (c.w * cs) / 2, lane - cowH - 10)
-    // the bus, true to scale, its front at the distance travelled
-    const { s } = busAt(t, u, a), bx = X(s), b = ART_BOX.bus, bs = (BUS_M * k) / b.w
-    if (artReady) ctx.drawImage(ART.bus, bx - (b.x + b.w) * bs, lane - (b.y + b.h) * bs, b.vw * bs, b.vh * bs)
-    ctx.fillStyle = INK; ctx.beginPath(); ctx.moveTo(bx, top + 30); ctx.lineTo(bx - 5, top + 38); ctx.lineTo(bx + 5, top + 38); ctx.fill()
-  }, [t, u, a, cowAt, artReady])
-  return <canvas ref={ref} className="st-fill" role="img" aria-label={`Bus ${n1(busAt(t, u, a).s)} m along, cow at ${cowAt} m.`} />
-}
-
 function Tape({ t, u, a, labelled, hover, onHover }) {
   const { ref } = useCanvas((ctx, w, h) => {
     ctx.clearRect(0, 0, w, h)
-    const { X } = roadScale(w)
+    const { X } = roadScale(w, ROAD_M)
     ctx.fillStyle = '#FBF6E4'; ctx.strokeStyle = '#E2DCC4'
     ctx.fillRect(X(0) - 10, 8, X(ROAD_M) - X(0) + 20, 34); ctx.strokeRect(X(0) - 10.5, 8.5, X(ROAD_M) - X(0) + 20, 34)
     ctx.font = `500 10.5px ${MONO}`; ctx.textAlign = 'center'; ctx.textBaseline = 'top'
@@ -99,7 +45,7 @@ function Tape({ t, u, a, labelled, hover, onHover }) {
   }, [t, u, a, labelled, hover])
   const move = e => {
     if (!onHover) return
-    const r = e.currentTarget.getBoundingClientRect(), s = roadScale(r.width).S(e.clientX - r.left)
+    const r = e.currentTarget.getBoundingClientRect(), s = roadScale(r.width, ROAD_M).S(e.clientX - r.left)
     const gap = tickerGaps(u, a).findIndex((_, i) => s >= busAt(i, u, a).s && s < busAt(i + 1, u, a).s)
     onHover(gap < 0 ? null : gap)
   }
@@ -166,7 +112,6 @@ function Answer({ label, value, onChange, right, checked }) {
 }
 
 export default function BusMission({ tabs, onTab }) {
-  const artReady = useArt()
   const [step, setStep] = useState(0)
   const [sketch, setSketch] = useState([])
   const [t, setT] = useState(0)
@@ -345,12 +290,14 @@ export default function BusMission({ tabs, onTab }) {
     <ExperimentShell code="Class 9 · Motion" title="Speed & acceleration" tabs={tabs} tab="mission" onTab={onTab} panel={panel}>
       <div className="st-bus">
         <div className="st-bus-road">
-          <Road t={step >= 2 ? t : 0} u={u} a={a} cowAt={cowAt} artReady={artReady} />
-          <div className="st-float st-readouts">
-            <div><span className="st-label">Time</span><b>{n1(step >= 2 ? Math.min(t, end.t) : 0)} s</b></div>
-            <div><span className="st-label">Speed</span><b style={{ color: ACCENT }}>{n1(step >= 2 ? now.v : u)} m/s</b></div>
-            <div><span className="st-label">Gap to cow</span><b style={{ color: DATA }}>{n1(cowAt - (step >= 2 ? now.s : 0))} m</b></div>
-          </div>
+          <BusRoad roadM={ROAD_M} s={step >= 2 ? now.s : 0} v={step >= 2 ? now.v : u} decel={step >= 2 && t > 0 && now.v > 0 ? -a : 0}
+            brakeS={step >= 2 && t > 0 ? 0 : null} cow={{ at: cowAt, step: 1, react: ran ? (end.reason === 'hit' ? 'hit' : cowAt - now.s < 3 ? 'near' : null) : null }}>
+            <div className="st-float st-readouts">
+              <div><span className="st-label">Time</span><b>{n1(step >= 2 ? Math.min(t, end.t) : 0)} s</b></div>
+              <div><span className="st-label">Speed</span><b style={{ color: ACCENT }}>{n1(step >= 2 ? now.v : u)} m/s</b></div>
+              <div><span className="st-label">Gap to cow</span><b style={{ color: DATA }}>{n1(cowAt - (step >= 2 ? now.s : 0))} m</b></div>
+            </div>
+          </BusRoad>
         </div>
         <div className="st-bus-tape">
           <span className="st-label">Ticker tape · one dot every second</span>

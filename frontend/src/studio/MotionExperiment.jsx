@@ -2,7 +2,8 @@
  * VISIORA Studio — Speed & acceleration, in the new layout.
  * A car on a 100 m road, a dot for every second it has driven, and its distance–time and
  * speed–time graphs drawing live. All numbers come from engine/motion.js.
- * Mission: a guided bus-and-cow lesson (BusMission.jsx). Intro: steady speed only.
+ * Mission: a guided bus-and-cow lesson (BusMission.jsx). Drive: brake the bus yourself, four
+ * levels with stars (DriveGame.jsx). Intro: steady speed only.
  * Explore: acceleration and the worked maths. Challenge: three goals.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -15,8 +16,9 @@ import { rememberExperiment } from './catalog'
 import { ACCENT, DATA, INK, SOFT } from './drawings'
 import { ExperimentShell, Group, Icon, Slider, Toggle } from './Shell'
 import BusMission from './BusMission'
+import DriveGame from './DriveGame'
 
-const TABS = [['mission', 'Mission'], ['intro', 'Steady speed'], ['explore', 'Explore'], ['challenge', 'Challenge']]
+const TABS = [['mission', 'Mission'], ['drive', 'Drive'], ['intro', 'Steady speed'], ['explore', 'Explore'], ['challenge', 'Challenge']]
 const FLAG_AT = 60
 const SPEED_UP = '#1E7F4F'
 const SLOW_DOWN = '#B63A16'
@@ -166,14 +168,14 @@ export default function MotionExperiment() {
   const resetAll = () => { setPlaying(false); setT(0); setU(10); setA(tab === 'intro' ? 0 : 2); setRate(1); setShowPrediction(false) }
   const switchTab = next => {
     setTab(next); setPlaying(false); setT(0); setJustWon(null)
-    if (next === 'intro' || next === 'mission') setA(0)
+    if (next === 'intro' || next === 'mission' || next === 'drive') setA(0)
     else if (a === 0 && next === 'explore') setA(2)
   }
 
   // space bar plays and pauses
   useEffect(() => {
     const key = e => {
-      if (tab === 'mission' || e.code !== 'Space' || ['INPUT', 'BUTTON'].includes(e.target.tagName)) return
+      if (tab === 'mission' || tab === 'drive' || e.code !== 'Space' || ['INPUT', 'BUTTON'].includes(e.target.tagName)) return
       e.preventDefault(); togglePlay()
     }
     window.addEventListener('keydown', key)
@@ -181,6 +183,7 @@ export default function MotionExperiment() {
   })
 
   if (tab === 'mission') return <BusMission tabs={TABS} onTab={switchTab} />
+  if (tab === 'drive') return <DriveGame tabs={TABS} onTab={switchTab} />
 
   const ts = stopTime(u, a)
   const accelColor = a > 0 ? SPEED_UP : a < 0 ? SLOW_DOWN : undefined
