@@ -12,6 +12,14 @@ import { auth, googleProvider } from '../lib/firebase'
 import { loginWithFirebase, logout as apiLogout } from '../api/client'
 import { useProgressStore } from './useProgressStore'
 
+const GUEST_KEY = 'visiora_scholar_user' // kept from the old "Scholar Access" so existing guests keep their progress
+/** A guest uses the site without an account; their progress stays in this browser until they sign in. */
+export const isGuestUser = user => !user || user.provider === 'guest' || user.provider === 'scholar.visiora'
+
+function newGuest() {
+  return { uid: `guest_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`, email: null, displayName: null, photoURL: null, provider: 'guest' }
+}
+
 /**
  * Maps a Firebase user to a local user object with Google profile avatar.
  */
@@ -109,7 +117,7 @@ export const useAuthStore = create((set, get) => ({
       })
 
     // 2. Check for stored scholar session
-    const storedScholar = localStorage.getItem('visiora_scholar_user')
+    const storedScholar = localStorage.getItem(GUEST_KEY)
     if (storedScholar) {
       try {
         const parsed = JSON.parse(storedScholar)
@@ -130,8 +138,8 @@ export const useAuthStore = create((set, get) => ({
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         await get()._handleFirebaseUser(firebaseUser, false)
-      } else if (!localStorage.getItem('visiora_scholar_user')) {
-        set({ user: null, isAuthenticated: false, isJustSignedIn: false, isLoading: false })
+      } else if (!localStorage.getItem(GUEST_KEY)) {
+        get().startGuest()
       } else {
         set({ isLoading: false })
       }
@@ -210,6 +218,14 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
+  /** Use the site straight away, no account: a guest whose progress lives in this browser. */
+  startGuest: () => {
+    const guest = newGuest()
+    try { localStorage.setItem(GUEST_KEY, JSON.stringify(guest)) } catch { /* private mode: a guest for this visit only */ }
+    set({ user: guest, isAuthenticated: true, isJustSignedIn: false, isLoading: false, error: null })
+    try { useProgressStore.getState().recordDailyActivity() } catch { /* progress store not ready */ }
+  },
+
   // Instant Scholar Access (Guest / Demo mode with full persistence)
   signInAsScholar: (customName = 'Physics Scholar', customEmail = 'scholar@visiora.edu') => {
     set({ isLoading: true, error: null })
@@ -254,11 +270,12 @@ export const useAuthStore = create((set, get) => ({
   logout: async () => {
     set({ isLoading: true })
     try {
-      localStorage.removeItem('visiora_scholar_user')
+      localStorage.removeItem(GUEST_KEY)
       localStorage.removeItem('dev_token_bypass')
       await signOut(auth).catch(() => {})
       await apiLogout().catch(() => {})
-      set({ user: null, isAuthenticated: false, isJustSignedIn: false, error: null, backendConnected: null })
+      set({ backendConnected: null })
+      get().startGuest()
     } finally {
       set({ isLoading: false })
     }

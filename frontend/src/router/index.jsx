@@ -5,7 +5,6 @@ import { useMediaQuery } from '../hooks/useMediaQuery'
 import BottomNav from '../components/nav/BottomNav'
 import TopNav from '../components/nav/TopNav'
 
-import OnboardingScreen from '../screens/OnboardingScreen'
 import StudioHome from '../studio/StudioHome'
 
 // Only the first screens a visitor sees are in the main bundle; every other screen (and the
@@ -26,6 +25,7 @@ const ForceLabScreen = lazy(() => import('../screens/ForceLabScreen'))
 const PhysicsLabScreen = lazy(() => import('../screens/PhysicsLabScreen'))
 const WalkLabScreen = lazy(() => import('../screens/WalkLabScreen'))
 const PreviewScreen = lazy(() => import('../screens/PreviewScreen'))
+const SignIn = lazy(() => import('../studio/SignIn'))
 const PendulumExperiment = lazy(() => import('../studio/PendulumExperiment'))
 const MotionExperiment = lazy(() => import('../studio/MotionExperiment'))
 const CircuitsExperiment = lazy(() => import('../studio/CircuitsExperiment'))
@@ -44,8 +44,9 @@ function ProtectedRoute() {
   const isStudio = location.pathname === '/' || location.pathname.startsWith('/experiments')
   const isSim = isStudio || location.pathname.startsWith('/sim') || location.pathname.startsWith('/virtual-lab') || location.pathname.startsWith('/lab') || location.pathname.startsWith('/board') || location.pathname.startsWith('/motion') || location.pathname.startsWith('/gravity') || location.pathname.startsWith('/light') || location.pathname.startsWith('/electricity') || location.pathname.startsWith('/force') || location.pathname.startsWith('/physics-lab')
 
+  // Visitors start as guests (useAuthStore.startGuest), so this only catches the moment before that
   if (!isAuthenticated) {
-    return <Navigate to="/onboarding" replace />
+    return <Navigate to="/onboarding" replace state={{ from: location.pathname + location.search }} />
   }
 
   if (isSim) {
@@ -80,7 +81,8 @@ const router = createBrowserRouter(
         { path: '*', element: <Navigate to="/" replace /> }
       ]
     : [
-        { path: '/onboarding', element: <OnboardingScreen /> },
+        // only for saving progress: nobody has to sign in to use Visiora
+        { path: '/onboarding', element: <Suspense fallback={<Loading />}><SignIn /></Suspense> },
         { path: '/preview', element: <Suspense fallback={<Loading />}><PreviewScreen /></Suspense> },
         {
           element: <ProtectedRoute />,

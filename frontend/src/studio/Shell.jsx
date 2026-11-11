@@ -2,9 +2,9 @@
  * VISIORA Studio — shared pieces: icons, the top bar, and the experiment layout every
  * simulation uses (stage in the middle, controls on the right, play bar at the bottom).
  */
-import React, { useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuthStore } from '../store/useAuthStore'
+import React, { useEffect, useRef, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { isGuestUser, useAuthStore } from '../store/useAuthStore'
 import { useProgressStore } from '../store/useProgressStore'
 import './studio.css'
 
@@ -22,6 +22,24 @@ const ICONS = {
   flame: <path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z" />,
   check: <path d="M5 12l4 4 10-10" />,
   arrow: <path d="M5 12h14M13 6l6 6-6 6" />,
+  save: <><path d="M5 4h11l3 3v13H5z" /><path d="M8 4v5h7V4M8 20v-6h8v6" /></>,
+  flask: <path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3" />,
+  chat: <path d="M4 5h16v11H9l-5 4z" />,
+  chart: <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />,
+}
+
+/** True on phone-sized screens (under 900 px wide), where panels become a sheet under the stage. */
+export function usePhone() {
+  const query = '(max-width: 899px)'
+  const [phone, setPhone] = useState(() => typeof window !== 'undefined' && !!window.matchMedia?.(query).matches)
+  useEffect(() => {
+    if (!window.matchMedia) return undefined
+    const m = window.matchMedia(query)
+    const on = () => setPhone(m.matches)
+    m.addEventListener('change', on)
+    return () => m.removeEventListener('change', on)
+  }, [])
+  return phone
 }
 
 export function Icon({ name, style }) {
@@ -31,11 +49,7 @@ export function Icon({ name, style }) {
 export function Brand({ onClick }) {
   return (
     <button className="st-brand" onClick={onClick} aria-label="Visiora home">
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <circle cx="12" cy="12" r="10" fill="none" stroke="#16181D" strokeWidth="1.75" />
-        <circle cx="12" cy="12" r="3.2" fill="#E4532A" />
-        <path d="M12 2v4" stroke="#16181D" strokeWidth="1.75" />
-      </svg>
+      <img src="/logo-96.png" alt="" width="30" height="30" />
       Visiora
     </button>
   )
@@ -43,24 +57,39 @@ export function Brand({ onClick }) {
 
 const initials = name => (name || 'S').split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase()
 
+const NAV = [['experiments', 'Experiments', '/', 'flask'], ['tutor', 'Tutor', '/ai-tutor', 'chat'], ['progress', 'Progress', '/progress', 'chart']]
+
 export function TopBar({ active = 'experiments' }) {
   const navigate = useNavigate()
+  const location = useLocation()
   const user = useAuthStore(s => s.user)
+  const guest = isGuestUser(user)
   const streak = useProgressStore(s => s.profile?.streak ?? 1)
-  const items = [['experiments', 'Experiments', '/'], ['tutor', 'Ask the tutor', '/ai-tutor'], ['progress', 'Progress', '/progress']]
+  // guests sign in only to save, and come straight back here afterwards
+  const save = () => navigate('/onboarding', { state: { from: location.pathname } })
   return (
-    <header className="st-topbar">
-      <Brand onClick={() => navigate('/')} />
-      <nav className="st-nav" aria-label="Main">
-        {items.map(([id, label, path]) => (
-          <button key={id} className={active === id ? 'is-on' : ''} aria-current={active === id ? 'page' : undefined} onClick={() => navigate(path)}>{label}</button>
+    <>
+      <header className="st-topbar">
+        <Brand onClick={() => navigate('/')} />
+        <nav className="st-nav" aria-label="Main">
+          {NAV.map(([id, label, path]) => (
+            <button key={id} className={active === id ? 'is-on' : ''} aria-current={active === id ? 'page' : undefined} onClick={() => navigate(path)}>{label}</button>
+          ))}
+        </nav>
+        <div className="st-top-right">
+          {!guest && <span className="st-stat"><Icon name="flame" /><span className="st-num">{streak}</span> day streak</span>}
+          {guest
+            ? <button className="st-btn st-btn-secondary st-save" onClick={save}><Icon name="save" />Save progress</button>
+            : <button className="st-avatar" onClick={() => navigate('/profile')} aria-label="Your profile">{initials(user?.displayName)}</button>}
+        </div>
+      </header>
+      {/* phones: the main places sit in a bar at the bottom, where thumbs reach */}
+      <nav className="st-tabbar" aria-label="Main">
+        {NAV.map(([id, label, path, icon]) => (
+          <button key={id} className={active === id ? 'is-on' : ''} aria-current={active === id ? 'page' : undefined} onClick={() => navigate(path)}><Icon name={icon} />{label}</button>
         ))}
       </nav>
-      <div className="st-top-right">
-        <span className="st-stat"><Icon name="flame" /><span className="st-num">{streak}</span> day streak</span>
-        <button className="st-avatar" onClick={() => navigate('/profile')} aria-label="Your profile">{initials(user?.displayName)}</button>
-      </div>
-    </header>
+    </>
   )
 }
 
@@ -104,14 +133,40 @@ function PanelHandle({ width, onWidth, onHide }) {
   )
 }
 
+/**
+ * On phones the controls panel becomes a sheet under the stage: half height to start, pulled up
+ * (drag or tap the handle) to read a whole step, with the stage still showing above it.
+ */
+function PhoneSheet({ panel }) {
+  const [full, setFull] = useState(false)
+  const drag = useRef(null)
+  return (
+    <aside className={`st-panel st-sheet ${full ? 'is-full' : ''}`} aria-label="Controls">
+      <button type="button" className="st-sheet-handle" aria-expanded={full} aria-label={full ? 'Lower the steps' : 'Pull up the steps'}
+        onPointerDown={e => { drag.current = e.clientY }}
+        onPointerUp={e => {
+          const dy = drag.current == null ? 0 : e.clientY - drag.current
+          drag.current = null
+          if (dy < -30) setFull(true)
+          else if (dy > 30) setFull(false)
+          else setFull(f => !f)
+        }}>
+        <span aria-hidden="true" />
+      </button>
+      <div className="st-panel-scroll">{panel}</div>
+    </aside>
+  )
+}
+
 /** The frame every experiment sits in. `tabs` is [[id, label], …]. */
 export function ExperimentShell({ code, title, tabs, tab, onTab, panel, children }) {
   const navigate = useNavigate()
   const [side, setSide] = usePanel()
+  const phone = usePhone()
   return (
     <div className="studio st-sim">
       <header className="st-simbar">
-        <button className="st-back" onClick={() => navigate('/')}><Icon name="back" />Experiments</button>
+        <button className="st-back" onClick={() => navigate('/')} aria-label="Back to experiments"><Icon name="back" /><span>Experiments</span></button>
         <div className="st-crumb"><span className="st-num">{code}</span><h1>{title}</h1></div>
         {tabs && (
           <div className="st-tabs" role="tablist" aria-label="Parts of this experiment">
@@ -122,18 +177,25 @@ export function ExperimentShell({ code, title, tabs, tab, onTab, panel, children
             ))}
           </div>
         )}
-        <button className="st-btn st-btn-secondary st-help" onClick={() => navigate('/ai-tutor')}><Icon name="help" />Ask the tutor</button>
+        <button className="st-btn st-btn-secondary st-help" onClick={() => navigate('/ai-tutor')} aria-label="Ask the tutor"><Icon name="help" /><span>Ask the tutor</span></button>
       </header>
-      <div className="st-simmain" style={{ gridTemplateColumns: side.open ? `minmax(0, 1fr) ${side.width}px` : 'minmax(0, 1fr) 0px' }}>
-        <div className="st-stage">
-          {children}
-          {!side.open && <button className="st-panel-show" onClick={() => setSide({ open: true })}><Icon name="back" />Show the steps</button>}
+      {phone ? (
+        <div className="st-simmain is-phone">
+          <div className="st-stage">{children}</div>
+          <PhoneSheet panel={panel} />
         </div>
-        <aside className="st-panel" aria-label="Controls" hidden={!side.open}>
-          {side.open && <PanelHandle width={side.width} onWidth={w => setSide({ width: w })} onHide={() => setSide({ open: false })} />}
-          <div className="st-panel-scroll">{panel}</div>
-        </aside>
-      </div>
+      ) : (
+        <div className="st-simmain" style={{ gridTemplateColumns: side.open ? `minmax(0, 1fr) ${side.width}px` : 'minmax(0, 1fr) 0px' }}>
+          <div className="st-stage">
+            {children}
+            {!side.open && <button className="st-panel-show" onClick={() => setSide({ open: true })}><Icon name="back" />Show the steps</button>}
+          </div>
+          <aside className="st-panel" aria-label="Controls" hidden={!side.open}>
+            {side.open && <PanelHandle width={side.width} onWidth={w => setSide({ width: w })} onHide={() => setSide({ open: false })} />}
+            <div className="st-panel-scroll">{panel}</div>
+          </aside>
+        </div>
+      )}
     </div>
   )
 }
