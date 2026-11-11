@@ -4,7 +4,7 @@
  */
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuthStore } from '../store/useAuthStore'
+import { isGuestUser, useAuthStore } from '../store/useAuthStore'
 import { useUIStore } from '../store/useUIStore'
 import { CHAPTERS, findExperiment, lastExperiment, rememberExperiment } from './catalog'
 import { drawFigure } from './drawings'
@@ -28,7 +28,7 @@ export default function StudioHome() {
   const setActiveLab = useUIStore(s => s.setActiveLab)
   const [grade, setGrade] = useState('all')
   const next = lastExperiment() ?? findExperiment('pendulum')
-  const firstName = user?.displayName?.split(/\s+/)[0]
+  const firstName = isGuestUser(user) ? null : user?.displayName?.split(/\s+/)[0]
 
   const open = exp => {
     rememberExperiment(exp.id)
