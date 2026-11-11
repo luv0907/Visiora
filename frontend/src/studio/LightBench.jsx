@@ -6,11 +6,11 @@
  */
 import React, { useMemo, useRef, useState } from 'react'
 import { useCanvas } from '../components/motion/useCanvas'
-import { LIGHTS, MATERIALS, SHAPES, criticalAngle, dirOf, indexOf, mainPath, makeShape, spectrumRGB, traceBeam, vec } from '../engine/raybench'
-import { MONO, SANS, drawGlass, fit } from './lightDraw'
+import { LIGHTS, MATERIALS, SHAPES, criticalAngle, dirOf, indexOf, mainPath, makeShape, traceBeam, vec } from '../engine/raybench'
+import { paintBench } from './lightDraw'
+import Ideas, { loadIdeas, nextIdea } from './LightIdeas'
 import { ExperimentShell, Group, Icon, Options, Slider, Toggle } from './Shell'
 
-const VIEW = { x0: -160, y0: -100, x1: 160, y1: 100 }
 const PRESETS = {
   prism: { label: 'Rainbow from a prism', light: 'white', beam: 'ray', box: { x: -115, y: 30, deg: -14 }, shapes: [['prism', 0, 0, 0]] },
   slab: { label: 'Through a glass slab', light: 'red', beam: 'ray', box: { x: -110, y: -75, deg: 35 }, shapes: [['slab', 0, 0, 0]] },
@@ -28,6 +28,12 @@ function load(id) {
 }
 
 export default function LightBench({ tabs, onTab }) {
+  const [mode, setMode] = useState(() => (nextIdea(loadIdeas()) != null ? 'ideas' : 'free'))
+  if (mode === 'ideas') return <Ideas tabs={tabs} onTab={onTab} onFree={() => setMode('free')} />
+  return <FreeBench tabs={tabs} onTab={onTab} onIdeas={() => setMode('ideas')} />
+}
+
+function FreeBench({ tabs, onTab, onIdeas }) {
   const [preset, setPreset] = useState('prism')
   const [state, setState] = useState(() => load('prism'))
   const [selected, setSelected] = useState(null)
@@ -53,46 +59,7 @@ export default function LightBench({ tabs, onTab }) {
   const viewRef = useRef(null)
   const drag = useRef(null)
   const { ref } = useCanvas((ctx, w, h) => {
-    const v = fit(VIEW, w, h, 0)
-    viewRef.current = v
-    ctx.fillStyle = '#12141A'; ctx.fillRect(0, 0, w, h)
-    ctx.strokeStyle = 'rgba(255,255,255,.04)'; ctx.lineWidth = 1
-    for (let x = -160; x <= 160; x += 10) { ctx.beginPath(); ctx.moveTo(v.X(x), 0); ctx.lineTo(v.X(x), h); ctx.stroke() }
-    for (let y = -100; y <= 100; y += 10) { ctx.beginPath(); ctx.moveTo(0, v.Y(y)); ctx.lineTo(w, v.Y(y)); ctx.stroke() }
-    for (const s of shapes) drawGlass(ctx, s, v, { dark: true, selected: s.id === selected })
-    // rays: added up like light, so overlapping colours make white
-    ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round'
-    const n = LIGHTS[light].lams.length
-    for (const r of rays) {
-      const [R, G, B] = spectrumRGB(r.lam), a = Math.min(1, Math.sqrt(r.I * n) * (n > 1 ? 0.55 : 1))
-      ctx.strokeStyle = `rgba(${R},${G},${B},${a * 0.25})`; ctx.lineWidth = 6
-      ctx.beginPath(); ctx.moveTo(...v.P(r.a)); ctx.lineTo(...v.P(r.b)); ctx.stroke()
-      ctx.strokeStyle = `rgba(${R},${G},${B},${a})`; ctx.lineWidth = 1.8
-      ctx.beginPath(); ctx.moveTo(...v.P(r.a)); ctx.lineTo(...v.P(r.b)); ctx.stroke()
-    }
-    ctx.globalCompositeOperation = 'source-over'
-    // normal and angles at the first surface
-    const shown = first.find(e => !e.mirror && e.i > 0.2) ?? first[0]
-    if (angles && shown && !shown.mirror && shown.i > 0.2) {
-      const e = shown
-      ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.setLineDash([5, 4]); ctx.lineWidth = 1
-      ctx.beginPath(); ctx.moveTo(...v.P(vec.add(e.at, e.normal, 28))); ctx.lineTo(...v.P(vec.add(e.at, e.normal, -28))); ctx.stroke()
-      ctx.setLineDash([])
-      ctx.fillStyle = '#fff'; ctx.font = `600 12px ${MONO}`; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'
-      ctx.fillText(`i = ${e.i.toFixed(1)}°${e.r != null ? `   r = ${e.r.toFixed(1)}°` : '   total internal reflection'}`, v.X(e.at[0]) + 10, v.Y(e.at[1]) - 8)
-    }
-    // the ray box
-    const d = dirOf(box.deg)
-    ctx.save(); ctx.translate(v.X(box.x), v.Y(box.y)); ctx.rotate((box.deg * Math.PI) / 180)
-    ctx.fillStyle = '#2B2F38'; ctx.strokeStyle = '#8A8F99'; ctx.lineWidth = 1.2
-    ctx.beginPath(); ctx.roundRect(-14 * v.k, -6 * v.k, 22 * v.k, 12 * v.k, 3); ctx.fill(); ctx.stroke()
-    ctx.fillStyle = '#F5D76E'; ctx.fillRect(8 * v.k - 2, -2 * v.k, 3, 4 * v.k)
-    ctx.restore()
-    // rotate handle behind the box
-    const hnd = vec.add([box.x, box.y], d, -20)
-    ctx.fillStyle = '#E4532A'; ctx.beginPath(); ctx.arc(...v.P(hnd), 6, 0, 2 * Math.PI); ctx.fill()
-    ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.font = `500 11px ${SANS}`; ctx.textAlign = 'center'; ctx.textBaseline = 'top'
-    ctx.fillText('turn', ...vec.add(v.P(hnd), [0, 9]))
+    viewRef.current = paintBench(ctx, w, h, { shapes, selected, rays, first, angles, light, box })
   }, [rays, shapes, selected, box, angles, first, light])
 
   const pointer = e => { const r = e.currentTarget.getBoundingClientRect(); return viewRef.current?.inv(e.clientX - r.left, e.clientY - r.top) }
@@ -130,6 +97,7 @@ export default function LightBench({ tabs, onTab }) {
   const lamMid = LIGHTS[light].lams[Math.floor(LIGHTS[light].lams.length / 2)]
   const panel = (
     <>
+      <button className="st-btn st-btn-secondary st-btn-wide" onClick={onIdeas}><Icon name="target" />Guided ideas: predict, try, explain</button>
       <Group label="Try one">
         <div className="st-chipset">
           {Object.entries(PRESETS).map(([id, p]) => (
@@ -188,4 +156,3 @@ export default function LightBench({ tabs, onTab }) {
     </ExperimentShell>
   )
 }
-

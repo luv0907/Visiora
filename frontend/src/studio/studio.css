@@ -481,9 +481,11 @@ body.is-resizing .st-stage { pointer-events: none; }
 
   .st-simmain.is-phone { display: flex; flex-direction: column; }
   .st-simmain.is-phone .st-stage { flex: 1 1 auto; min-height: 120px; }
-  .st-sheet { flex: none; height: 46dvh; border-left: 0; border-top: 1px solid var(--line); border-radius: 16px 16px 0 0; margin-top: -14px; z-index: 4; box-shadow: 0 -6px 20px rgba(27, 19, 64, .07); transition: height .25s ease; padding-bottom: env(safe-area-inset-bottom); }
-  .st-sheet.is-full { height: 80dvh; }
-  .st-sheet-handle { flex: none; align-self: center; width: 72px; height: 28px; border: 0; background: none; padding: 0; display: grid; place-items: center; touch-action: none; }
+  .st-sheet { flex: none; border-left: 0; border-top: 1px solid var(--line); border-radius: 16px 16px 0 0; margin-top: -14px; z-index: 4; box-shadow: 0 -6px 20px rgba(27, 19, 64, .07); transition: height .28s cubic-bezier(.2, .8, .2, 1); padding-bottom: env(safe-area-inset-bottom); }
+  .st-sheet.is-dragging { transition: none; }
+  /* the whole top strip of the sheet is the grab area, not just the little bar */
+  .st-sheet-handle { flex: none; align-self: stretch; height: 32px; border: 0; background: none; padding: 0; display: grid; place-items: center; touch-action: none; cursor: grab; }
+  .st-sheet.is-dragging .st-sheet-handle { cursor: grabbing; }
   .st-sheet-handle span { width: 40px; height: 5px; border-radius: 3px; background: var(--line-2); }
   .st-sheet .st-btn { min-height: 44px; }
 
@@ -539,3 +541,43 @@ body.is-resizing .st-stage { pointer-events: none; }
 .st-field-block { display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; font-weight: 600; color: var(--ink-2); }
 .st-field-block input { min-height: 46px; padding: 0 12px; border: 1px solid var(--line-2); border-radius: 10px; font: 500 16px var(--sans); color: var(--ink); background: #fff; }
 .st-field-block input:focus { outline: 2px solid var(--data); outline-offset: 1px; border-color: transparent; }
+
+/* ——— Light: guided ideas (predict, try, explain) ——— */
+.st-idea-stages { display: flex; gap: 6px; margin: 10px 0 2px; padding: 0; list-style: none; }
+.st-idea-stages li { flex: 1; padding: 6px 0 0; border-top: 3px solid var(--line); font-size: 12px; font-weight: 700; color: var(--ink-3); text-transform: uppercase; letter-spacing: .05em; }
+.st-idea-stages li.is-done { border-color: var(--ok); color: var(--ink-2); }
+.st-idea-stages li.is-on { border-image: var(--lotus) 1; color: var(--ink); }
+.studio .st-idea-skip { margin: 0; color: #6D3FE0; }
+.st-idea-q { font-size: 21px; line-height: 1.25; }
+.st-idea-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.st-idea-options button { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 4px; border: 1px solid var(--line-2); border-radius: 12px; background: var(--surface); font-weight: 600; font-size: 13px; color: var(--ink); min-height: 44px; text-align: center; }
+.st-idea-options button:hover { border-color: var(--ink-3); }
+.st-idea-options button.is-on { border: 2px solid var(--ink); background: var(--sunk); padding: 11px 3px; font-weight: 700; }
+.st-idea-swatch { width: 40px; height: 40px; border-radius: 50%; box-shadow: inset 0 0 0 2px rgba(0,0,0,.08); }
+.st-idea-go { width: 100%; min-height: 50px; border-radius: 12px; font-size: 15.5px; }
+.st-idea-go:disabled { background: var(--line-2); }
+.st-idea-result { display: flex; gap: 12px; align-items: center; padding: 12px; border-radius: 12px; background: var(--sunk); }
+.st-idea-result.is-right { background: #EAF4EE; }
+.st-idea-result b { display: block; font-size: 16px; }
+.st-idea-result span { display: block; font-size: 14px; }
+.st-idea-mark { width: 32px; height: 32px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--ink); color: #fff; }
+.st-idea-result.is-right .st-idea-mark { background: var(--ok); }
+.st-idea-mark .st-icon { stroke-width: 2.6; }
+.st-idea-readings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.st-idea-readings div { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; }
+.st-idea-readings span { display: block; font-size: 12px; color: var(--ink-3); }
+.st-idea-readings b { font-size: 20px; font-weight: 600; }
+.st-idea-chat { display: flex; flex-direction: column; gap: 10px; }
+.st-bubble { display: flex; gap: 8px; align-items: flex-start; }
+.st-bubble img { flex: none; margin-top: 2px; }
+.st-bubble p { padding: 10px 12px; border-radius: 4px 14px 14px 14px; background: var(--sunk); font-size: 14.5px; line-height: 1.45; }
+.st-bubble.is-me { justify-content: flex-end; }
+.st-bubble.is-me p { max-width: 80%; border-radius: 14px 4px 14px 14px; background: var(--ink); color: #fff; }
+.st-idea-answers { display: flex; flex-wrap: wrap; gap: 8px; }
+.st-idea-answers button { min-height: 42px; padding: 0 14px; border: 1px solid var(--line-2); border-radius: 999px; background: var(--surface); font-weight: 600; font-size: 14px; color: var(--ink); }
+.st-idea-answers button:hover { border-color: var(--ink); }
+.st-idea-done { display: flex; flex-direction: column; gap: 10px; }
+.st-idea-ask { display: flex; gap: 8px; margin-top: 6px; }
+.st-idea-ask input { flex: 1; min-width: 0; min-height: 46px; padding: 0 14px; border: 1px solid var(--line-2); border-radius: 12px; font: 500 15px var(--sans); color: var(--ink); }
+.st-idea-ask .st-btn { min-width: 46px; padding: 0; border-radius: 12px; }
+.st-idea-list { display: flex; flex-wrap: wrap; gap: 6px; padding: 14px 20px 20px; border-top: 1px solid var(--line); }

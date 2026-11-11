@@ -134,22 +134,48 @@ function PanelHandle({ width, onWidth, onHide }) {
 }
 
 /**
- * On phones the controls panel becomes a sheet under the stage: half height to start, pulled up
- * (drag or tap the handle) to read a whole step, with the stage still showing above it.
+ * On phones the controls panel becomes a sheet under the stage. Drag its handle and it follows
+ * the finger; let go and it settles at the nearest of three heights (low, half, nearly full),
+ * with a quick flick carrying it on in that direction. A tap steps it up, or back down from full.
  */
+const SHEET_STOPS = [0.28, 0.46, 0.8] // share of the screen height
 function PhoneSheet({ panel }) {
-  const [full, setFull] = useState(false)
+  const [stop, setStop] = useState(1)
+  const [dragH, setDragH] = useState(null) // height in px while being dragged
+  const sheet = useRef(null)
   const drag = useRef(null)
+  const vh = () => window.innerHeight
+  const down = e => {
+    drag.current = { y: e.clientY, h: sheet.current.getBoundingClientRect().height, t: performance.now(), moved: false }
+    e.currentTarget.setPointerCapture?.(e.pointerId)
+  }
+  const move = e => {
+    const d = drag.current
+    if (!d) return
+    const dy = e.clientY - d.y
+    if (Math.abs(dy) > 4) d.moved = true
+    if (d.moved) setDragH(Math.max(vh() * 0.18, Math.min(vh() * 0.88, d.h - dy)))
+  }
+  const up = e => {
+    const d = drag.current
+    drag.current = null
+    if (!d) return
+    if (!d.moved) { setStop(s => (s === SHEET_STOPS.length - 1 ? 1 : s + 1)); return }
+    const h = d.h - (e.clientY - d.y), speed = (d.y - e.clientY) / Math.max(1, performance.now() - d.t) // px per ms, up is positive
+    let next = SHEET_STOPS.reduce((best, f, i) => (Math.abs(f * vh() - h) < Math.abs(SHEET_STOPS[best] * vh() - h) ? i : best), 0)
+    if (speed > 0.6) next = Math.min(SHEET_STOPS.length - 1, Math.max(next, stop + 1))
+    else if (speed < -0.6) next = Math.max(0, Math.min(next, stop - 1))
+    setStop(next); setDragH(null)
+  }
+  const full = stop === SHEET_STOPS.length - 1
   return (
-    <aside className={`st-panel st-sheet ${full ? 'is-full' : ''}`} aria-label="Controls">
-      <button type="button" className="st-sheet-handle" aria-expanded={full} aria-label={full ? 'Lower the steps' : 'Pull up the steps'}
-        onPointerDown={e => { drag.current = e.clientY }}
-        onPointerUp={e => {
-          const dy = drag.current == null ? 0 : e.clientY - drag.current
-          drag.current = null
-          if (dy < -30) setFull(true)
-          else if (dy > 30) setFull(false)
-          else setFull(f => !f)
+    <aside ref={sheet} className={`st-panel st-sheet ${dragH != null ? 'is-dragging' : ''}`} aria-label="Controls"
+      style={{ height: dragH != null ? `${dragH}px` : `${SHEET_STOPS[stop] * 100}dvh` }}>
+      <button type="button" className="st-sheet-handle" aria-label={full ? 'Lower the steps' : 'Pull up the steps'} aria-expanded={full}
+        onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}
+        onKeyDown={e => {
+          if (e.key === 'ArrowUp') { e.preventDefault(); setStop(s => Math.min(SHEET_STOPS.length - 1, s + 1)) }
+          if (e.key === 'ArrowDown') { e.preventDefault(); setStop(s => Math.max(0, s - 1)) }
         }}>
         <span aria-hidden="true" />
       </button>
