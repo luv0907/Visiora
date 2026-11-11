@@ -401,27 +401,29 @@ export default function AdminScreen() {
               )}
             </button>
 
-            <button
-              type="button"
-              onClick={() => enableDevAdmin()}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                width: '100%',
-                padding: '11px 16px',
-                background: '#FAF8F5',
-                color: '#002B66',
-                border: '1.5px solid rgba(0, 43, 102, 0.3)',
-                fontSize: 13,
-                fontWeight: 700,
-                cursor: 'pointer'
-              }}
-            >
-              <Sparkles size={15} color="#D97706" />
-              <span>✦ Instant Dev Admin Access (Bypass)</span>
-            </button>
+            {import.meta.env.DEV && (
+              <button
+                type="button"
+                onClick={() => enableDevAdmin()}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  width: '100%',
+                  padding: '11px 16px',
+                  background: '#FAF8F5',
+                  color: '#002B66',
+                  border: '1.5px solid rgba(0, 43, 102, 0.3)',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                <Sparkles size={15} color="#D97706" />
+                <span>Local dev admin access</span>
+              </button>
+            )}
           </div>
 
           {/* Footer Back Link */}

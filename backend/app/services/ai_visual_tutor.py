@@ -372,9 +372,7 @@ def _get_openrouter_key() -> str:
     return os.getenv("OPENROUTER_API_KEY", "")
 
 
-def _get_gemini_key(api_key: Optional[str] = None) -> str:
-    if api_key:
-        return api_key
+def _get_gemini_key() -> str:
     try:
         from ..config import settings
         if settings and getattr(settings, "GEMINI_API_KEY", ""):
@@ -390,13 +388,15 @@ def _get_gemini_key(api_key: Optional[str] = None) -> str:
     return os.getenv("GEMINI_API_KEY", "")
 
 
+MAX_ANSWER_TOKENS = 1500  # caps what one answer can cost
+
+
 def _get_groq_key() -> str:
     return os.getenv("GROQ_API_KEY", "")
 
 
 async def generate_ai_visual_tutor_response(
     prompt: str,
-    api_key: Optional[str] = None,
     model: Optional[str] = "qwen",
     messages: Optional[List[Dict[str, Any]]] = None
 ) -> Dict[str, Any]:
@@ -478,6 +478,7 @@ async def generate_ai_visual_tutor_response(
                         "models": models_to_try,
                         "messages": chat_msgs,
                         "temperature": 0.4,
+                        "max_tokens": MAX_ANSWER_TOKENS,
                         "response_format": {"type": "json_object"}
                     }
                 )
@@ -511,6 +512,7 @@ async def generate_ai_visual_tutor_response(
                         "model": "llama-3.3-70b-versatile",
                         "messages": chat_msgs,
                         "temperature": 0.4,
+                        "max_tokens": MAX_ANSWER_TOKENS,
                         "response_format": {"type": "json_object"}
                     }
                 )
@@ -526,10 +528,10 @@ async def generate_ai_visual_tutor_response(
             log.warn("ai_visual_tutor_groq_failed", error=str(e))
 
     # 3. Google Gemini
-    gemini_key = _get_gemini_key(api_key)
+    gemini_key = _get_gemini_key()
     if gemini_key:
         try:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
+            url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
             prior_text = ""
             if history_context:
                 prior_text = "Prior conversation context:\n" + "\n".join([f"{m['role'].capitalize()}: {m['content']}" for m in history_context]) + "\n\n"
@@ -538,12 +540,14 @@ async def generate_ai_visual_tutor_response(
             async with httpx.AsyncClient(timeout=14.0) as client:
                 res = await client.post(
                     url,
+                    headers={"x-goog-api-key": gemini_key},  # in a header, so the key never lands in a logged URL
                     json={
                         "contents": [
                             {"role": "user", "parts": [{"text": f"{system_prompt}\n\n{user_content}"}]}
                         ],
                         "generationConfig": {
                             "temperature": 0.4,
+                            "maxOutputTokens": MAX_ANSWER_TOKENS,
                             "responseMimeType": "application/json"
                         }
                     }

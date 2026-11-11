@@ -17,23 +17,31 @@ service cloud.firestore {
       return request.resource.data.keys().hasOnly(allowed);
     }
 
+    // A class code is optional, and when present a short string
+    function validClassCode() {
+      return !('classCode' in request.resource.data)
+        || (request.resource.data.classCode is string && request.resource.data.classCode.size() <= 32);
+    }
+
     // ── User profiles ────────────────────────────────────────────────────────
-    // Users can only read/write their own profile.
-    // v1: No teacher role — classCode is a plain string field only.
+    // Users can read their own profile and set only their class code.
+    // Mastery and quiz scores are written by the backend (Admin SDK, which these rules
+    // don't apply to) after it has marked the answers, so no student can award themselves marks.
     match /users/{uid} {
       allow read: if isOwner(uid);
       allow create: if isOwner(uid)
-        && onlyFields(['uid', 'classCode', 'mastery', 'createdAt']);
+        && onlyFields(['uid', 'classCode', 'createdAt'])
+        && request.resource.data.uid == uid
+        && validClassCode();
       allow update: if isOwner(uid)
-        && onlyFields(['classCode', 'mastery']);
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['classCode'])
+        && validClassCode();
       allow delete: if false; // No self-delete in v1
 
-      // Quiz history sub-collection
+      // Quiz history: backend only, and records never change
       match /quiz_history/{docId} {
         allow read: if isOwner(uid);
-        allow create: if isOwner(uid)
-          && onlyFields(['scene', 'score', 'time_spent_mins', 'timestamp']);
-        allow update, delete: if false; // Immutable quiz records
+        allow write: if false;
       }
     }
 

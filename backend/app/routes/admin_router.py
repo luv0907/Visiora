@@ -8,11 +8,15 @@ import uuid
 from datetime import datetime, timezone
 from typing import Optional, List
 from fastapi import APIRouter, HTTPException, Request, UploadFile, File, Form, Depends
+from ..auth.firebase_auth import is_admin, require_admin, require_auth
 from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/admin", tags=["Admin Portal"])
 
+# The live store holds user sign-ins, so it is never committed (backend/.gitignore). On a fresh
+# server it starts from the committed seed, which has the experiments and home images only.
 STORE_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "admin_store.json")
+SEED_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "admin_store.seed.json")
 UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
@@ -223,13 +227,14 @@ def _get_default_experiments() -> list:
 
 
 def _load_store() -> dict:
+    if not os.path.exists(STORE_PATH) and os.path.exists(SEED_PATH):
+        with open(SEED_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
     if not os.path.exists(STORE_PATH):
         store = {
             "config": {
                 "bannerImage": "/images/physics_doodle_banner_16x9.jpg",
-                "showcaseImage": "/images/physics_doodle_portrait.jpg",
-                "authorizedGoogleEmails": ["admin@visiora.edu", "director@visiora.org", "bouroju@gmail.com"],
-                "allowAnyGoogleLoginInDev": True
+                "showcaseImage": "/images/physics_doodle_portrait.jpg"
             },
             "experiments": _get_default_experiments(),
             "visualizations2D": [],
@@ -260,7 +265,6 @@ def _save_store(data: dict):
 class ConfigUpdateRequest(BaseModel):
     bannerImage: Optional[str] = None
     showcaseImage: Optional[str] = None
-    authorizedGoogleEmails: Optional[List[str]] = None
 
 
 class ExperimentCreate(BaseModel):
@@ -332,13 +336,17 @@ class UserLoginTrack(BaseModel):
 
 
 # ── Configuration & Home Images ──────────────────────────────────────
+PUBLIC_CONFIG_KEYS = ("bannerImage", "showcaseImage", "lastUpdated")
+
+
 @router.get("/config")
 def get_admin_config():
-    store = _load_store()
-    return store.get("config", {})
+    # Public: the home page reads its images from here. Nothing else leaves the server.
+    cfg = _load_store().get("config", {})
+    return {k: cfg[k] for k in PUBLIC_CONFIG_KEYS if k in cfg}
 
 
-@router.post("/config")
+@router.post("/config", dependencies=[Depends(require_admin)])
 def update_admin_config(payload: ConfigUpdateRequest):
     store = _load_store()
     cfg = store.setdefault("config", {})
@@ -346,8 +354,6 @@ def update_admin_config(payload: ConfigUpdateRequest):
         cfg["bannerImage"] = payload.bannerImage.strip()
     if payload.showcaseImage is not None:
         cfg["showcaseImage"] = payload.showcaseImage.strip()
-    if payload.authorizedGoogleEmails is not None:
-        cfg["authorizedGoogleEmails"] = payload.authorizedGoogleEmails
     cfg["lastUpdated"] = datetime.now(timezone.utc).isoformat()
     _save_store(store)
     return {"status": "success", "config": cfg}
@@ -366,7 +372,7 @@ def list_experiments(exp_type: Optional[str] = None, active_only: bool = False):
     return items
 
 
-@router.post("/experiments")
+@router.post("/experiments", dependencies=[Depends(require_admin)])
 def create_experiment(payload: ExperimentCreate):
     store = _load_store()
     items = store.setdefault("experiments", [])
@@ -397,7 +403,7 @@ def create_experiment(payload: ExperimentCreate):
     return new_item
 
 
-@router.put("/experiments/{exp_id}")
+@router.put("/experiments/{exp_id}", dependencies=[Depends(require_admin)])
 def update_experiment(exp_id: str, payload: ExperimentUpdate):
     store = _load_store()
     items = store.get("experiments", [])
@@ -441,7 +447,7 @@ def update_experiment(exp_id: str, payload: ExperimentUpdate):
     return target
 
 
-@router.delete("/experiments/{exp_id}")
+@router.delete("/experiments/{exp_id}", dependencies=[Depends(require_admin)])
 def delete_experiment(exp_id: str):
     store = _load_store()
     items = store.get("experiments", [])
@@ -453,7 +459,7 @@ def delete_experiment(exp_id: str):
     return {"status": "success", "deleted_id": exp_id}
 
 
-@router.post("/experiments/{exp_id}/toggle")
+@router.post("/experiments/{exp_id}/toggle", dependencies=[Depends(require_admin)])
 def toggle_experiment(exp_id: str):
     store = _load_store()
     items = store.get("experiments", [])
@@ -490,7 +496,7 @@ def list_visualizations(active_only: bool = False):
     return items
 
 
-@router.post("/visualizations")
+@router.post("/visualizations", dependencies=[Depends(require_admin)])
 def create_visualization(payload: Visualization2DCreate):
     store = _load_store()
     items = store.setdefault("visualizations2D", [])
@@ -513,7 +519,7 @@ def create_visualization(payload: Visualization2DCreate):
     return new_item
 
 
-@router.put("/visualizations/{vis_id}")
+@router.put("/visualizations/{vis_id}", dependencies=[Depends(require_admin)])
 def update_visualization(vis_id: str, payload: Visualization2DUpdate):
     store = _load_store()
     items = store.get("visualizations2D", [])
@@ -543,7 +549,7 @@ def update_visualization(vis_id: str, payload: Visualization2DUpdate):
     return target
 
 
-@router.delete("/visualizations/{vis_id}")
+@router.delete("/visualizations/{vis_id}", dependencies=[Depends(require_admin)])
 def delete_visualization(vis_id: str):
     store = _load_store()
     items = store.get("visualizations2D", [])
@@ -568,7 +574,7 @@ def track_visualization_click(vis_id: str):
 
 
 # ── User Logins Directory ────────────────────────────────────────────
-@router.get("/users")
+@router.get("/users", dependencies=[Depends(require_admin)])
 def get_user_logins():
     store = _load_store()
     users = store.get("userLogins", [])
@@ -578,54 +584,65 @@ def get_user_logins():
 
 
 @router.post("/users/track")
-def track_user_login(payload: UserLoginTrack):
+def track_user_login(payload: UserLoginTrack, user: dict = Depends(require_auth)):
+    # Who signed in comes from the verified token, never from the request body.
     store = _load_store()
     users = store.setdefault("userLogins", [])
     now_iso = datetime.now(timezone.utc).isoformat()
-    
-    existing = next((u for u in users if u["uid"] == payload.uid or (payload.email and u.get("email") == payload.email)), None)
+    uid, email = user.get("uid"), user.get("email")
+    role = "Admin" if is_admin(user) else "Student"
+
+    existing = next((u for u in users if u["uid"] == uid), None)
     if existing:
         existing["lastLogin"] = now_iso
+        existing["role"] = role
         if payload.displayName:
-            existing["displayName"] = payload.displayName
+            existing["displayName"] = payload.displayName[:80]
         if payload.photoURL:
-            existing["photoURL"] = payload.photoURL
-        if payload.provider:
-            existing["provider"] = payload.provider
-        if payload.streak is not None:
-            existing["streak"] = max(existing.get("streak", 1), payload.streak)
-        if payload.mastery is not None:
-            existing["mastery"] = max(existing.get("mastery", 0), payload.mastery)
+            existing["photoURL"] = payload.photoURL[:500]
     else:
-        # Determine role based on email whitelist
-        auth_emails = store.get("config", {}).get("authorizedGoogleEmails", [])
-        is_admin = bool(payload.email and (payload.email in auth_emails or "admin" in payload.email.lower()))
-        new_user = {
-            "uid": payload.uid,
-            "email": payload.email or f"{payload.uid[:8]}@visiora.user",
-            "displayName": payload.displayName or "Physicist Scholar",
-            "provider": payload.provider or "google.com",
-            "photoURL": payload.photoURL,
+        users.insert(0, {
+            "uid": uid,
+            "email": email or f"{uid[:8]}@visiora.user",
+            "displayName": (payload.displayName or "Student")[:80],
+            "provider": user.get("firebase", {}).get("sign_in_provider", "google.com"),
+            "photoURL": (payload.photoURL or None) and payload.photoURL[:500],
             "lastLogin": now_iso,
             "createdAt": now_iso,
-            "role": "Admin" if is_admin else "Student",
-            "streak": payload.streak or 1,
-            "mastery": payload.mastery or 0
-        }
-        users.insert(0, new_user)
+            "role": role,
+        })
 
     _save_store(store)
     return {"status": "success"}
 
 
 # ── File Upload Endpoint ─────────────────────────────────────────────
-@router.post("/upload")
+MAX_UPLOAD_BYTES = 2 * 1024 * 1024
+# Images only, recognised by their first bytes, not by the name or type the browser sends.
+# SVG is left out on purpose: it can carry scripts.
+IMAGE_SIGNATURES = (
+    (b"\x89PNG\r\n\x1a\n", ".png"),
+    (b"\xff\xd8\xff", ".jpg"),
+    (b"GIF87a", ".gif"),
+    (b"GIF89a", ".gif"),
+)
+
+
+def _image_extension(head: bytes) -> Optional[str]:
+    if head[:4] == b"RIFF" and head[8:12] == b"WEBP":
+        return ".webp"
+    return next((ext for sig, ext in IMAGE_SIGNATURES if head.startswith(sig)), None)
+
+
+@router.post("/upload", dependencies=[Depends(require_admin)])
 async def upload_image(file: UploadFile = File(...)):
-    filename = f"{uuid.uuid4().hex[:12]}_{file.filename}"
-    filepath = os.path.join(UPLOAD_DIR, filename)
-    with open(filepath, "wb") as buffer:
-        content = await file.read()
+    content = await file.read(MAX_UPLOAD_BYTES + 1)
+    if len(content) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="Images must be 2 MB or smaller")
+    ext = _image_extension(content[:16])
+    if not ext:
+        raise HTTPException(status_code=415, detail="Only PNG, JPEG, GIF or WebP images can be uploaded")
+    filename = f"{uuid.uuid4().hex}{ext}"  # the browser's filename is never used
+    with open(os.path.join(UPLOAD_DIR, filename), "wb") as buffer:
         buffer.write(content)
-    
-    # Return accessible relative URL
     return {"url": f"/api/v1/admin/uploads/{filename}", "filename": filename}

@@ -13,3 +13,7 @@ serviceAccountKey.json
 
 # Logs
 *.log
+
+# Live admin store: holds user sign-ins (names, emails). The committed seed is admin_store.seed.json.
+app/data/admin_store.json
+app/data/uploads/

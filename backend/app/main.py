@@ -71,13 +71,16 @@ app.add_middleware(LoggingMiddleware)
 # ── Request Size Limit ────────────────────────────────────────────
 @app.middleware("http")
 async def limit_request_size(request: Request, call_next):
+    from fastapi.responses import JSONResponse
+    # Image uploads (admin only) get room for a 2 MB file; everything else stays small.
+    limit = 2 * 1024 * 1024 + 4096 if request.url.path.endswith("/admin/upload") else settings.MAX_REQUEST_SIZE_BYTES
     content_length = request.headers.get("content-length")
-    if content_length and int(content_length) > settings.MAX_REQUEST_SIZE_BYTES:
-        from fastapi.responses import JSONResponse
-        return JSONResponse(
-            status_code=413,
-            content={"error": f"Request body too large (max {settings.MAX_REQUEST_SIZE_BYTES // 1024}KB)"}
-        )
+    try:
+        size = int(content_length) if content_length else 0
+    except ValueError:
+        return JSONResponse(status_code=400, content={"error": "Invalid Content-Length header"})
+    if size > limit:
+        return JSONResponse(status_code=413, content={"error": f"Request body too large (max {limit // 1024}KB)"})
     return await call_next(request)
 
 from .routes.progress_router import router as progress_router
