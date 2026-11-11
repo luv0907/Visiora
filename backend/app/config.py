@@ -10,7 +10,9 @@ from pydantic import ConfigDict
 
 class Settings(BaseSettings):
     # ── Environment ────────────────────────────────
-    ENVIRONMENT: str = "development"
+    # Defaults to production so a missing variable can never switch on the dev auth bypass.
+    # Local development sets ENVIRONMENT=development in backend/.env.
+    ENVIRONMENT: str = "production"
 
     # ── LLM ────────────────────────────────────────
     GEMINI_API_KEY: str = ""
@@ -26,6 +28,11 @@ class Settings(BaseSettings):
     FIREBASE_PROJECT_ID: str = ""
     FIREBASE_SERVICE_ACCOUNT_PATH: str = ""  # path to service-account.json
     FIRESTORE_USE_EMULATOR: bool = False
+
+    # ── Admins ─────────────────────────────────────
+    # Google accounts allowed into the admin API, as a JSON list: ADMIN_EMAILS='["you@gmail.com"]'.
+    # A Firebase custom claim admin=true also grants access. Never stored in a writable file.
+    ADMIN_EMAILS: list[str] = []
 
     # ── CORS ───────────────────────────────────────
     ALLOWED_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000"]
@@ -45,10 +52,6 @@ class Settings(BaseSettings):
     MAX_REQUEST_SIZE_BYTES: int = 10_240   # 10 KB
     MAX_TTS_TEXT_LENGTH: int = 500
 
-    # ── JWT ────────────────────────────────────────
-    JWT_SECRET: str = "change_me_in_production"
-    JWT_ALGORITHM: str = "HS256"
-    JWT_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
 
     model_config = ConfigDict(
         env_file=[

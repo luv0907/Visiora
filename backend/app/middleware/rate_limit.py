@@ -44,10 +44,14 @@ _limiter = SlidingWindowRateLimiter()
 
 
 def get_client_ip(request: Request) -> str:
-    """Extract real IP, respecting common proxy headers."""
+    """
+    The caller's IP. Railway's proxy appends the address it saw to X-Forwarded-For, so the
+    right-most entry is the trustworthy one; anything to its left was sent by the client and
+    could be forged to dodge the limit.
+    """
     forwarded = request.headers.get("X-Forwarded-For")
     if forwarded:
-        return forwarded.split(",")[0].strip()
+        return forwarded.split(",")[-1].strip()
     return request.client.host if request.client else "unknown"
 
 

@@ -2,6 +2,13 @@ import { create } from 'zustand'
 import { auth, googleProvider } from '../lib/firebase'
 import { signInWithPopup, signOut } from 'firebase/auth'
 
+/** fetch for the admin API, carrying the signed-in user's Firebase ID token: the server checks it on every admin call. */
+async function adminFetch(url, init = {}) {
+  const token = await auth.currentUser?.getIdToken().catch(() => null)
+  const headers = { ...(init.headers || {}), ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+  return fetch(url, { ...init, headers })
+}
+
 const DEFAULT_BANNER = '/images/physics_doodle_banner_16x9.jpg'
 const DEFAULT_SHOWCASE = '/images/physics_doodle_portrait.jpg'
 
@@ -360,8 +367,9 @@ export const useAdminStore = create((set, get) => ({
       const email = result.user.email?.toLowerCase() || ''
       const authorized = get().authorizedEmails.map(e => e.toLowerCase())
 
-      // Check if user is in authorized list OR has admin in email or in dev mode
-      const isAuthorized = authorized.includes(email) || email.includes('admin') || import.meta.env.DEV
+      // This only decides what the page shows: the backend checks every admin request itself
+      // (a verified email on its ADMIN_EMAILS list, or the Firebase admin claim).
+      const isAuthorized = authorized.includes(email) || import.meta.env.DEV
 
       if (!isAuthorized) {
         await signOut(auth)
@@ -413,8 +421,9 @@ export const useAdminStore = create((set, get) => ({
     }
   },
 
-  // Development / Demo Admin Access Bypass
+  // Local development only: open the admin panel without Google. Does nothing in a production build.
   enableDevAdmin: (customEmail = 'bouroju@gmail.com') => {
+    if (!import.meta.env.DEV) return
     const devAdmin = {
       uid: 'dev_admin_001',
       email: customEmail,
@@ -450,7 +459,7 @@ export const useAdminStore = create((set, get) => ({
     set({ isLoadingData: true })
     try {
       // Fetch Config (Home Images)
-      const resConfig = await fetch('/api/v1/admin/config').catch(() => null)
+      const resConfig = await adminFetch('/api/v1/admin/config').catch(() => null)
       if (resConfig && resConfig.ok) {
         const config = await resConfig.json()
         if (config.bannerImage) {
@@ -468,7 +477,7 @@ export const useAdminStore = create((set, get) => ({
       }
 
       // Fetch Experiments (Unified 2D & 3D)
-      const resExp = await fetch('/api/v1/admin/experiments').catch(() => null)
+      const resExp = await adminFetch('/api/v1/admin/experiments').catch(() => null)
       if (resExp && resExp.ok) {
         const exps = await resExp.json()
         if (Array.isArray(exps) && exps.length > 0) {
@@ -481,7 +490,7 @@ export const useAdminStore = create((set, get) => ({
         }
       } else {
         // Fallback: fetch legacy 2D visualizations
-        const resVis = await fetch('/api/v1/admin/visualizations').catch(() => null)
+        const resVis = await adminFetch('/api/v1/admin/visualizations').catch(() => null)
         if (resVis && resVis.ok) {
           const vis = await resVis.json()
           if (Array.isArray(vis) && vis.length > 0) {
@@ -492,7 +501,7 @@ export const useAdminStore = create((set, get) => ({
       }
 
       // Fetch Users
-      const resUsers = await fetch('/api/v1/admin/users').catch(() => null)
+      const resUsers = await adminFetch('/api/v1/admin/users').catch(() => null)
       if (resUsers && resUsers.ok) {
         const users = await resUsers.json()
         if (Array.isArray(users) && users.length > 0) {
@@ -513,7 +522,7 @@ export const useAdminStore = create((set, get) => ({
     set({ bannerImage: trimmed })
     try {
       localStorage.setItem('visiora_banner_img', trimmed)
-      await fetch('/api/v1/admin/config', {
+      await adminFetch('/api/v1/admin/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bannerImage: trimmed })
@@ -526,7 +535,7 @@ export const useAdminStore = create((set, get) => ({
     set({ showcaseImage: trimmed })
     try {
       localStorage.setItem('visiora_showcase_img', trimmed)
-      await fetch('/api/v1/admin/config', {
+      await adminFetch('/api/v1/admin/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ showcaseImage: trimmed })
@@ -539,7 +548,7 @@ export const useAdminStore = create((set, get) => ({
     try {
       localStorage.setItem('visiora_banner_img', DEFAULT_BANNER)
       localStorage.setItem('visiora_showcase_img', DEFAULT_SHOWCASE)
-      await fetch('/api/v1/admin/config', {
+      await adminFetch('/api/v1/admin/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bannerImage: DEFAULT_BANNER, showcaseImage: DEFAULT_SHOWCASE })
@@ -584,7 +593,7 @@ export const useAdminStore = create((set, get) => ({
     try {
       localStorage.setItem('visiora_experiments', JSON.stringify(updated))
       localStorage.setItem('visiora_2d_sims', JSON.stringify(updated.filter(e => e.type === '2d')))
-      await fetch('/api/v1/admin/experiments', {
+      await adminFetch('/api/v1/admin/experiments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newItem)
@@ -602,7 +611,7 @@ export const useAdminStore = create((set, get) => ({
     try {
       localStorage.setItem('visiora_experiments', JSON.stringify(updated))
       localStorage.setItem('visiora_2d_sims', JSON.stringify(updated.filter(e => e.type === '2d')))
-      await fetch(`/api/v1/admin/experiments/${id}`, {
+      await adminFetch(`/api/v1/admin/experiments/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(changes)
@@ -619,7 +628,7 @@ export const useAdminStore = create((set, get) => ({
     try {
       localStorage.setItem('visiora_experiments', JSON.stringify(updated))
       localStorage.setItem('visiora_2d_sims', JSON.stringify(updated.filter(e => e.type === '2d')))
-      await fetch(`/api/v1/admin/experiments/${id}`, { method: 'DELETE' })
+      await adminFetch(`/api/v1/admin/experiments/${id}`, { method: 'DELETE' })
     } catch (e) {}
   },
 
@@ -638,7 +647,7 @@ export const useAdminStore = create((set, get) => ({
     try {
       localStorage.setItem('visiora_experiments', JSON.stringify(updated))
       localStorage.setItem('visiora_2d_sims', JSON.stringify(updated.filter(e => e.type === '2d')))
-      fetch(`/api/v1/admin/experiments/${id}/click`, { method: 'POST' }).catch(() => {})
+      adminFetch(`/api/v1/admin/experiments/${id}/click`, { method: 'POST' }).catch(() => {})
     } catch (e) {}
   },
 
@@ -680,7 +689,7 @@ export const useAdminStore = create((set, get) => ({
         provider: userData.provider || updatedUsers[existingIndex].provider
       }
     } else {
-      const isAdm = get().authorizedEmails.includes(userData.email) || (userData.email && userData.email.includes('admin'))
+      const isAdm = get().authorizedEmails.includes(userData.email?.toLowerCase())
       updatedUsers.unshift({
         uid: userData.uid,
         email: userData.email || `${userData.uid.substring(0, 8)}@visiora.user`,
@@ -698,7 +707,7 @@ export const useAdminStore = create((set, get) => ({
     set({ usersList: updatedUsers })
     try {
       localStorage.setItem('visiora_users_list', JSON.stringify(updatedUsers))
-      fetch('/api/v1/admin/users/track', {
+      adminFetch('/api/v1/admin/users/track', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData)

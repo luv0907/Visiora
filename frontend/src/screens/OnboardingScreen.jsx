@@ -457,51 +457,55 @@ export default function OnboardingScreen() {
                             {domainCopied ? '✓ Copied Domain!' : `📋 Copy "${typeof window !== 'undefined' ? window.location.hostname : ''}"`}
                           </button>
 
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (isDedicatedAdmin) {
-                                enableDevAdmin()
-                              } else {
-                                handleInstantScholar('Research Scholar')
-                              }
-                            }}
-                            style={{
-                              background: 'var(--ink)',
-                              color: '#FFFFFF',
-                              border: 'none',
-                              padding: '5px 12px',
-                              fontSize: 11.5,
-                              fontWeight: 700,
-                              cursor: 'pointer'
-                            }}
-                          >
-                            ✦ Enter via Instant {isDedicatedAdmin ? 'Admin' : 'Scholar'} Access
-                          </button>
+                          {(!isDedicatedAdmin || import.meta.env.DEV) && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (isDedicatedAdmin) {
+                                  enableDevAdmin()
+                                } else {
+                                  handleInstantScholar('Research Scholar')
+                                }
+                              }}
+                              style={{
+                                background: 'var(--ink)',
+                                color: '#FFFFFF',
+                                border: 'none',
+                                padding: '5px 12px',
+                                fontSize: 11.5,
+                                fontWeight: 700,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              ✦ Enter via Instant {isDedicatedAdmin ? 'Admin' : 'Scholar'} Access
+                            </button>
+                          )}
                         </div>
                       ) : (
                         <div style={{ marginTop: 8 }}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (isDedicatedAdmin) {
-                                enableDevAdmin()
-                              } else {
-                                handleInstantScholar('Research Scholar')
-                              }
-                            }}
-                            style={{
-                              background: 'var(--ink)',
-                              color: '#FFFFFF',
-                              border: 'none',
-                              padding: '4px 10px',
-                              fontSize: 11.5,
-                              fontWeight: 700,
-                              cursor: 'pointer'
-                            }}
-                          >
-                            ✦ Click Here for Instant {isDedicatedAdmin ? 'Admin' : 'Scholar'} Access
-                          </button>
+                          {(!isDedicatedAdmin || import.meta.env.DEV) && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (isDedicatedAdmin) {
+                                  enableDevAdmin()
+                                } else {
+                                  handleInstantScholar('Research Scholar')
+                                }
+                              }}
+                              style={{
+                                background: 'var(--ink)',
+                                color: '#FFFFFF',
+                                border: 'none',
+                                padding: '4px 10px',
+                                fontSize: 11.5,
+                                fontWeight: 700,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              ✦ Click Here for Instant {isDedicatedAdmin ? 'Admin' : 'Scholar'} Access
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -575,7 +579,7 @@ export default function OnboardingScreen() {
                       <Sparkles size={16} color="var(--ink)" />
                       <span>Jump in as a guest</span>
                     </button>
-                  ) : (
+                  ) : import.meta.env.DEV ? (
                     <button
                       type="button"
                       onClick={() => enableDevAdmin()}
@@ -602,7 +606,7 @@ export default function OnboardingScreen() {
                       <ShieldCheck size={16} color="var(--sunflower)" />
                       <span>✦ Switch to Verified Admin (Dev Mode)</span>
                     </button>
-                  )}
+                  ) : null}
                 </div>
 
                 {/* Email / Password Toggle Form (Hidden in Admin) */}

@@ -54,14 +54,15 @@ def _get_firebase_app():
 async def verify_firebase_token(id_token: str) -> dict:
     """Verify a Firebase ID token and return decoded claims."""
     from ..config import settings
+    dev_user = {"uid": "dev_user", "email": "dev@visiora.app", "name": "Dev User", "admin": True}
     if settings.ENVIRONMENT == "development" and id_token == "dev_token_bypass":
-        return {"uid": "dev_user", "email": "dev@visiora.app", "name": "Dev User"}
+        return dev_user
 
     app = _get_firebase_app()
     if app is None:
         # In dev without Firebase configured, allow through with mock user
         if settings.ENVIRONMENT == "development":
-            return {"uid": "dev_user", "email": "dev@visiora.app", "name": "Dev User"}
+            return dev_user
         raise HTTPException(status_code=503, detail="Authentication service unavailable")
 
     try:
@@ -100,3 +101,21 @@ class CurrentUser:
 # Convenience dependencies
 require_auth  = CurrentUser(required=True)
 optional_auth = CurrentUser(required=False)
+
+
+def is_admin(user: dict) -> bool:
+    """An admin has the Firebase custom claim admin=true, or a verified email on ADMIN_EMAILS."""
+    from ..config import settings
+    if user.get("admin") is True:
+        return True
+    email = (user.get("email") or "").strip().lower()
+    allowed = {e.strip().lower() for e in settings.ADMIN_EMAILS if e.strip()}
+    return bool(email) and user.get("email_verified") is True and email in allowed
+
+
+async def require_admin(user: dict = Depends(require_auth)) -> dict:
+    """Dependency for admin-only routes: a signed-in user who is an admin, checked on the server."""
+    if not is_admin(user):
+        log.warning("admin_denied", uid=user.get("uid"))
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return user

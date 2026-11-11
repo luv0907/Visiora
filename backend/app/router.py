@@ -6,7 +6,7 @@ import structlog
 from fastapi import APIRouter, Depends, HTTPException, Request, Header
 from fastapi.responses import Response
 from pydantic import BaseModel, Field, field_validator
-from typing import Optional, TypeVar, Generic, Any, List, Dict
+from typing import Optional, TypeVar, Generic, Any, List, Dict, Literal
 
 DataT = TypeVar("DataT")
 
@@ -23,7 +23,7 @@ from .services.tutor import get_reactive_explanation, get_proactive_message
 from .services.tts import synthesize_speech, TTSUnavailableError
 from .physics.validator import validate_and_clamp_variables, validate_scene
 from .middleware.rate_limit import apply_ai_rate_limit
-from .auth.firebase_auth import optional_auth
+from .auth.firebase_auth import optional_auth, require_auth
 from .data.knowledge_graph import KNOWLEDGE_GRAPH
 
 log = structlog.get_logger()
@@ -212,22 +212,33 @@ async def track_event(event: AnalyticsEvent):
 # AI INTERACTIVE 2D VISUAL TUTOR
 # ══════════════════════════════════════════════════════════════════
 
+VISUAL_TUTOR_TOKENS = 3000  # a typical prompt plus answer; answers are capped by max_tokens in the service
+
+
+class TutorTurn(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(..., max_length=2000)
+
+
 class AIVisualTutorRequest(BaseModel):
     prompt: str = Field(..., min_length=1, max_length=2000)
-    apiKey: Optional[str] = None
-    model: Optional[str] = "qwen"
-    messages: Optional[List[Dict[str, Any]]] = None
+    model: Optional[str] = Field("qwen", max_length=40)
+    messages: Optional[List[TutorTurn]] = Field(None, max_length=12)
 
 
-@router.post("/ai/visual-tutor")
-async def ai_visual_tutor(request: AIVisualTutorRequest):
+@router.post("/ai/visual-tutor", dependencies=[Depends(apply_ai_rate_limit)])
+async def ai_visual_tutor(request: AIVisualTutorRequest, user: dict = Depends(require_auth)):
+    # Signed-in users only, rate limited, and always on the server's own keys and token budget.
     from .services.ai_visual_tutor import generate_ai_visual_tutor_response
+    from .services.budget import check_budget_available, record_token_usage
+    if not await check_budget_available(VISUAL_TUTOR_TOKENS):
+        raise HTTPException(status_code=429, detail="The AI tutor has reached today's limit. Please try again tomorrow.")
     result = await generate_ai_visual_tutor_response(
         prompt=request.prompt,
-        api_key=request.apiKey,
         model=request.model,
-        messages=request.messages
+        messages=[m.model_dump() for m in request.messages] if request.messages else None,
     )
+    await record_token_usage(VISUAL_TUTOR_TOKENS)  # the providers' usage isn't returned here, so count a typical answer
     return success(result)
 
 

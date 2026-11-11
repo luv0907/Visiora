@@ -1,15 +1,7 @@
 {
   "config": {
     "bannerImage": "/images/physics_doodle_banner_16x9.jpg",
-    "showcaseImage": "/images/physics_doodle_portrait.jpg",
-    "authorizedGoogleEmails": [
-      "admin@visiora.edu",
-      "director@visiora.org",
-      "bouroju@gmail.com",
-      "admin@atelier.visiora"
-    ],
-    "allowAnyGoogleLoginInDev": true,
-    "lastUpdated": "2026-09-11T10:00:00Z"
+    "showcaseImage": "/images/physics_doodle_portrait.jpg"
   },
   "experiments": [
     {
@@ -254,66 +246,5 @@
       "createdAt": "2026-09-11T08:15:00Z"
     }
   ],
-  "userLogins": [
-    {
-      "uid": "J03vkSMLWvZbHLKsZraR8bK3Jr73",
-      "email": "akshaybouroju@gmail.com",
-      "displayName": "Akshay Bouroju",
-      "provider": "google.com",
-      "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocLC3aIOmXqE7euuq4QYZ6aMUU2xItz-JVsddAJmPH5h7ITVN9P24A=s96-c",
-      "lastLogin": "2026-09-20T11:43:21.863500+00:00",
-      "createdAt": "2026-09-20T10:32:15.294941+00:00",
-      "role": "Student",
-      "streak": 1,
-      "mastery": 0
-    },
-    {
-      "uid": "usr_atelier_founder",
-      "email": "director@visiora.org",
-      "displayName": "Visiora Director",
-      "provider": "google.com",
-      "photoURL": null,
-      "lastLogin": "2026-09-11T09:45:00Z",
-      "createdAt": "2026-09-01T08:00:00Z",
-      "role": "Admin",
-      "streak": 11,
-      "mastery": 94
-    },
-    {
-      "uid": "usr_dev_bouroju",
-      "email": "bouroju@gmail.com",
-      "displayName": "Lead Physicist",
-      "provider": "google.com",
-      "photoURL": null,
-      "lastLogin": "2026-09-11T10:15:00Z",
-      "createdAt": "2026-09-02T10:30:00Z",
-      "role": "Admin",
-      "streak": 9,
-      "mastery": 88
-    },
-    {
-      "uid": "usr_student_elena",
-      "email": "elena.curie@cambridge.ac.uk",
-      "displayName": "Elena Curie",
-      "provider": "google.com",
-      "photoURL": null,
-      "lastLogin": "2026-09-11T08:20:00Z",
-      "createdAt": "2026-09-05T14:15:00Z",
-      "role": "Student",
-      "streak": 5,
-      "mastery": 72
-    },
-    {
-      "uid": "usr_student_marcus",
-      "email": "marcus.feynman@mit.edu",
-      "displayName": "Marcus Feynman",
-      "provider": "password",
-      "photoURL": null,
-      "lastLogin": "2026-09-10T18:30:00Z",
-      "createdAt": "2026-09-06T11:00:00Z",
-      "role": "Student",
-      "streak": 3,
-      "mastery": 64
-    }
-  ]
+  "userLogins": []
 }
