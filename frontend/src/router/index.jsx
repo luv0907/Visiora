@@ -1,36 +1,40 @@
-import React from 'react'
+import React, { Suspense, lazy } from 'react'
 import { createBrowserRouter, RouterProvider, Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../store/useAuthStore'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 import BottomNav from '../components/nav/BottomNav'
 import TopNav from '../components/nav/TopNav'
-import { useAdminStore } from '../store/useAdminStore'
 
 import OnboardingScreen from '../screens/OnboardingScreen'
-import HomeScreen from '../screens/HomeScreen'
-import SimulatorScreen from '../screens/SimulatorScreen'
-import Simulator2DScreen from '../screens/Simulator2DScreen'
-import ProgressScreen from '../screens/ProgressScreen'
-import QuizScreen from '../screens/QuizScreen'
-import AdminScreen from '../screens/AdminScreen'
-import VirtualLabScreen from '../screens/VirtualLabScreen'
-import ProfileScreen from '../screens/ProfileScreen'
-import DynamicLabScreen from '../screens/DynamicLabScreen'
-import AITutorScreen from '../screens/AITutorScreen'
-import GraphBoardScreen from '../screens/GraphBoardScreen'
-import MotionLabScreen from '../screens/MotionLabScreen'
-import GravityLabScreen from '../screens/GravityLabScreen'
-import LightLabScreen from '../screens/LightLabScreen'
-import ElectricityLabScreen from '../screens/ElectricityLabScreen'
-import ForceLabScreen from '../screens/ForceLabScreen'
-import PhysicsLabScreen from '../screens/PhysicsLabScreen'
-import WalkLabScreen from '../screens/WalkLabScreen'
-import PreviewScreen from '../screens/PreviewScreen'
 import StudioHome from '../studio/StudioHome'
-import PendulumExperiment from '../studio/PendulumExperiment'
-import MotionExperiment from '../studio/MotionExperiment'
-import CircuitsExperiment from '../studio/CircuitsExperiment'
-import LightExperiment from '../studio/LightExperiment'
+
+// Only the first screens a visitor sees are in the main bundle; every other screen (and the
+// three.js, maths and admin code it needs) downloads the first time it is opened.
+const HomeScreen = lazy(() => import('../screens/HomeScreen'))
+const SimulatorScreen = lazy(() => import('../screens/SimulatorScreen'))
+const Simulator2DScreen = lazy(() => import('../screens/Simulator2DScreen'))
+const ProgressScreen = lazy(() => import('../screens/ProgressScreen'))
+const QuizScreen = lazy(() => import('../screens/QuizScreen'))
+const AdminScreen = lazy(() => import('../screens/AdminScreen'))
+const VirtualLabScreen = lazy(() => import('../screens/VirtualLabScreen'))
+const ProfileScreen = lazy(() => import('../screens/ProfileScreen'))
+const DynamicLabScreen = lazy(() => import('../screens/DynamicLabScreen'))
+const AITutorScreen = lazy(() => import('../screens/AITutorScreen'))
+const GraphBoardScreen = lazy(() => import('../screens/GraphBoardScreen'))
+const GravityLabScreen = lazy(() => import('../screens/GravityLabScreen'))
+const ForceLabScreen = lazy(() => import('../screens/ForceLabScreen'))
+const PhysicsLabScreen = lazy(() => import('../screens/PhysicsLabScreen'))
+const WalkLabScreen = lazy(() => import('../screens/WalkLabScreen'))
+const PreviewScreen = lazy(() => import('../screens/PreviewScreen'))
+const PendulumExperiment = lazy(() => import('../studio/PendulumExperiment'))
+const MotionExperiment = lazy(() => import('../studio/MotionExperiment'))
+const CircuitsExperiment = lazy(() => import('../studio/CircuitsExperiment'))
+const LightExperiment = lazy(() => import('../studio/LightExperiment'))
+
+/** Shown for the moment a screen's code is downloading: a quiet bar, not a flash of text. */
+function Loading() {
+  return <div className="route-loading" role="progressbar" aria-label="Loading" />
+}
 
 function ProtectedRoute() {
   const isAuthenticated = useAuthStore(state => state.isAuthenticated)
@@ -45,14 +49,14 @@ function ProtectedRoute() {
   }
 
   if (isSim) {
-    return <Outlet />
+    return <Suspense fallback={<Loading />}><Outlet /></Suspense>
   }
 
   return (
     <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', background: 'var(--color-bg)' }}>
       {isDesktop ? <TopNav /> : null}
       <div style={{ flex: 1 }}>
-        <Outlet />
+        <Suspense fallback={<Loading />}><Outlet /></Suspense>
       </div>
       {!isDesktop ? <BottomNav /> : null}
     </div>
@@ -70,14 +74,14 @@ const isDedicatedAdmin =
 const router = createBrowserRouter(
   isDedicatedAdmin
     ? [
-        { path: '/', element: <AdminScreen /> },
-        { path: '/admin', element: <AdminScreen /> },
-        { path: '/onboarding', element: <AdminScreen /> },
+        { path: '/', element: <Suspense fallback={<Loading />}><AdminScreen /></Suspense> },
+        { path: '/admin', element: <Suspense fallback={<Loading />}><AdminScreen /></Suspense> },
+        { path: '/onboarding', element: <Suspense fallback={<Loading />}><AdminScreen /></Suspense> },
         { path: '*', element: <Navigate to="/" replace /> }
       ]
     : [
         { path: '/onboarding', element: <OnboardingScreen /> },
-        { path: '/preview', element: <PreviewScreen /> },
+        { path: '/preview', element: <Suspense fallback={<Loading />}><PreviewScreen /></Suspense> },
         {
           element: <ProtectedRoute />,
           children: [
@@ -95,10 +99,10 @@ const router = createBrowserRouter(
             { path: '/board',             element: <GraphBoardScreen /> },
             { path: '/physics-lab',       element: <PhysicsLabScreen /> },
             { path: '/physics-lab/walk',  element: <WalkLabScreen /> },
-            { path: '/motion',            element: <MotionLabScreen /> },
+            { path: '/motion',            element: <Navigate to="/experiments/motion" replace /> },
             { path: '/gravity',           element: <GravityLabScreen /> },
-            { path: '/light',             element: <LightLabScreen /> },
-            { path: '/electricity',       element: <ElectricityLabScreen /> },
+            { path: '/light',             element: <Navigate to="/experiments/light" replace /> },
+            { path: '/electricity',       element: <Navigate to="/experiments/circuits" replace /> },
             { path: '/force',             element: <ForceLabScreen /> },
             { path: '/ai-tutor',          element: <AITutorScreen /> },
             { path: '/progress',          element: <ProgressScreen /> },
@@ -107,7 +111,7 @@ const router = createBrowserRouter(
             { path: '/profile',           element: <ProfileScreen /> },
           ]
         },
-        { path: '/admin', element: <AdminScreen /> },
+        { path: '/admin', element: <Suspense fallback={<Loading />}><AdminScreen /></Suspense> },
         { path: '*', element: <Navigate to="/" replace /> }
       ]
 )

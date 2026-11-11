@@ -314,6 +314,7 @@ export default function GravitySim() {
       {/* 3D Canvas Viewport */}
       <div className="canvas-container-3d">
         <Canvas
+          frameloop={isPlaying ? 'always' : 'demand'} // paused: draw only when something changes
           shadows
           camera={{ position: [0, 16, 36], fov: 48 }}
         >

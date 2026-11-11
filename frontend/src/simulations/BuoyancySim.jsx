@@ -227,6 +227,7 @@ export default function BuoyancySim() {
     <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
       <div className="canvas-container-3d">
         <Canvas
+          frameloop={isPlaying ? 'always' : 'demand'} // paused: draw only when something changes
           shadows
           camera={{ position: [0, 2, 12], fov: 46 }}
         >

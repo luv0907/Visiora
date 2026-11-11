@@ -328,6 +328,7 @@ export default function ProjectileSim() {
       {/* 3D Canvas */}
       <div className="canvas-container-3d">
         <Canvas
+          frameloop={isPlaying ? 'always' : 'demand'} // paused: draw only when something changes
           shadows
           camera={{ position: [30, 20, 50], fov: 45 }}
         >
