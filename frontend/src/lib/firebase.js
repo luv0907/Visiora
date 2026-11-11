@@ -1,7 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -15,6 +13,12 @@ const firebaseConfig = {
 
 export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
 export const googleProvider = new GoogleAuthProvider();
+
+// The browser never reads Firestore (the backend does), so it isn't bundled here. Analytics
+// loads once the page is idle, so it never delays the first screen.
+if (typeof window !== 'undefined' && firebaseConfig.measurementId) {
+  const start = () => import('firebase/analytics').then(({ getAnalytics }) => getAnalytics(app)).catch(() => {});
+  if ('requestIdleCallback' in window) window.requestIdleCallback(start, { timeout: 5000 });
+  else setTimeout(start, 3000);
+}

@@ -1,12 +1,14 @@
-import React, { useEffect } from 'react'
+import React, { Suspense, lazy, useEffect } from 'react'
 import { BrowserRouter } from 'react-router-dom'
 import { AppRouter } from './router'
-import AdminScreen from './screens/AdminScreen'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
 import ToastContainer from './components/ui/Toast'
 import { useAuthStore } from './store/useAuthStore'
 import { useProgressStore } from './store/useProgressStore'
 import { useLenisScroll } from './hooks/useLenisScroll'
+
+// The admin portal is a separate screen most visitors never open, so it loads on demand.
+const AdminScreen = lazy(() => import('./screens/AdminScreen'))
 
 export default function App() {
   useLenisScroll()
@@ -23,7 +25,7 @@ export default function App() {
     return (
       <ErrorBoundary section="admin-portal">
         <BrowserRouter>
-          <AdminScreen />
+          <Suspense fallback={null}><AdminScreen /></Suspense>
         </BrowserRouter>
         <ToastContainer />
       </ErrorBoundary>

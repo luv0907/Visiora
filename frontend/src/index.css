@@ -352,3 +352,8 @@ button:focus-visible {
   box-shadow: 0 24px 60px rgba(21, 18, 16, 0.12);
 }
 
+
+/* A thin bar across the top while a screen's code downloads */
+.route-loading { position: fixed; inset: 0 0 auto 0; height: 3px; z-index: 1000; background: linear-gradient(90deg, transparent, #E4532A, transparent); background-size: 50% 100%; background-repeat: no-repeat; animation: route-loading 1s ease-in-out infinite; }
+@keyframes route-loading { from { background-position: -50% 0; } to { background-position: 150% 0; } }
+@media (prefers-reduced-motion: reduce) { .route-loading { animation: none; background: #E4532A; opacity: .5; } }

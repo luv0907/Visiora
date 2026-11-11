@@ -49,14 +49,18 @@ export default function AIInteractiveCanvas({
   }, [sliders])
 
   const [isPlaying, setIsPlaying] = useState(true)
-  const [simTime, setSimTime] = useState(0)
+  // Simulation clock in seconds. Kept in a ref: it changes every frame, and a state update
+  // per frame would re-render the whole panel 60 times a second.
+  const simTimeRef = useRef(0)
+  const [resetCount, setResetCount] = useState(0)
 
   const handleSliderChange = (id, val) => {
     setParams(prev => ({ ...prev, [id]: parseFloat(val) }))
   }
 
   const handleReset = () => {
-    setSimTime(0)
+    simTimeRef.current = 0
+    setResetCount(n => n + 1) // redraw at t = 0 even while paused
   }
 
   // ── Physics Telemetry Computations ──
@@ -268,11 +272,12 @@ export default function AIInteractiveCanvas({
   // ── 60 FPS Render Loop ──
   useEffect(() => {
     let animFrameId
+    let last = null
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
 
-    const render = () => {
+    const render = now => {
       const width = canvas.parentElement?.clientWidth || canvas.clientWidth || 600
       const height = canvas.parentElement?.clientHeight || canvas.clientHeight || 320
 
@@ -288,9 +293,12 @@ export default function AIInteractiveCanvas({
       ctx.fillRect(0, 0, width, height)
       drawGrid(ctx, width, height)
 
-      if (isPlaying) {
-        setSimTime(prev => prev + 0.016)
+      // advance by the real time between frames (capped, so a paused tab doesn't leap ahead)
+      if (isPlaying && now != null) {
+        if (last != null) simTimeRef.current += Math.min(0.05, (now - last) / 1000)
+        last = now
       }
+      const simTime = simTimeRef.current
 
       // 1. PROJECTILE MOTION / BOUNCING BALL
       if (visualType === 'projectile') {
@@ -343,12 +351,13 @@ export default function AIInteractiveCanvas({
         renderProjectile(ctx, width, height, params, simTime)
       }
 
-      animFrameId = requestAnimationFrame(render)
+      // keep animating only while playing; paused, the last frame simply stays on screen
+      if (isPlaying) animFrameId = requestAnimationFrame(render)
     }
 
     animFrameId = requestAnimationFrame(render)
     return () => cancelAnimationFrame(animFrameId)
-  }, [visualType, params, isPlaying, simTime, topic, concept])
+  }, [visualType, params, isPlaying, topic, concept, resetCount])
 
   // ── Renderer: Projectile ──
   const renderProjectile = (ctx, w, h, p, t) => {
