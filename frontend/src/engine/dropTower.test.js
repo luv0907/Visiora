@@ -91,3 +91,11 @@ describe('drop tower: with air', () => {
     expect(apex).toBeGreaterThan(0)
   })
 })
+
+describe('drop tower: each planet’s own air', () => {
+  it('on the Moon the air switch changes nothing: there is no air to push', () => {
+    const run = rho => { const b = createBall({ height: 10, mass: 0.2, radius: 0.2, restitution: 0.5 }); for (let t = 0; t < 10 && !b.firstImpact; t += 0.01) stepBall(b, 0.01, { g: 1.62, air: true, rho, t0: t }); return b.firstImpact.t }
+    expect(run(0)).toBeCloseTo(Math.sqrt(20 / 1.62), 3)
+    expect(run(1.225)).toBeGreaterThan(run(0) + 0.05)
+  })
+})

@@ -3,6 +3,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, Text, Float, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { createBall, stepBall, RESTITUTION } from '../engine/dropTower'
+import { airDensity } from '../engine/planets'
 import { Play, Pause, RotateCcw, Eye, ShieldAlert, Sparkles, Gauge, Compass, SlidersHorizontal, CheckCircle2 } from 'lucide-react'
 
 // ── 3D DROP SCENE ────────────────────────────────────────────────────────────
@@ -131,6 +132,7 @@ function DropChamber({
   ball2Props, 
   gravity, 
   airResistance, 
+  planetId,
   isPlaying, 
   timeScale,
   onTelemetryUpdate,
@@ -189,8 +191,10 @@ function DropChamber({
 
     // Exact engine: 1 ms steps, bounces with restitution, drag opposing motion.
     const { b1, b2 } = state
-    stepBall(b1, dt, { g: gravity, air: airResistance, t0 })
-    stepBall(b2, dt, { g: gravity, air: airResistance, t0 })
+    // each planet's own air: none on the Moon, a hundredth of Earth's on Mars
+    const rho = airDensity(planetId)
+    stepBall(b1, dt, { g: gravity, air: airResistance, rho, t0 })
+    stepBall(b2, dt, { g: gravity, air: airResistance, rho, t0 })
     if (b1.firstImpact && impact1 === null) setImpact1(b1.firstImpact.t)
     if (b2.firstImpact && impact2 === null) setImpact2(b2.firstImpact.t)
 
@@ -345,6 +349,7 @@ export default function GravitySim() {
             ball2Props={{ mass: mass2, radius: 0.9 }}
             gravity={gravityVal}
             airResistance={airResistance}
+            planetId={gravityPreset}
             isPlaying={isPlaying}
             timeScale={timeScale}
             onTelemetryUpdate={setTelemetry}
