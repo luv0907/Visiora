@@ -48,11 +48,13 @@ function acceleration(ball, v, g, rho) {
 
 /**
  * Advance a ball by dt seconds (any size). `t0` is the simulation time at the
- * start of the step, used to time-stamp impacts. Mutates and returns the ball.
+ * start of the step, used to time-stamp impacts. `rho` is the air density when the air is
+ * on (default sea-level Earth). Mutates and returns the ball.
  */
-export function stepBall(ball, dt, { g, air = false, t0 = 0 }) {
+export function stepBall(ball, dt, { g, air = false, rho: airRho, t0 = 0 }) {
   if (ball.atRest || dt <= 0) return ball
-  const rho = air ? AIR_DENSITY : 0
+  // the planet's own air when given (the Moon has none, Mars very little); else Earth's
+  const rho = air ? (airRho ?? AIR_DENSITY) : 0
   let t = t0
   let left = dt
   while (left > 1e-12 && !ball.atRest) {

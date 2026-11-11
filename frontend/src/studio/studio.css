@@ -581,3 +581,4 @@ body.is-resizing .st-stage { pointer-events: none; }
 .st-idea-ask input { flex: 1; min-width: 0; min-height: 46px; padding: 0 14px; border: 1px solid var(--line-2); border-radius: 12px; font: 500 15px var(--sans); color: var(--ink); }
 .st-idea-ask .st-btn { min-width: 46px; padding: 0; border-radius: 12px; }
 .st-idea-list { display: flex; flex-wrap: wrap; gap: 6px; padding: 14px 20px 20px; border-top: 1px solid var(--line); }
+.st-idea-watch { padding: 12px; border-radius: 12px; background: var(--sunk); font-weight: 700; color: var(--ink); }

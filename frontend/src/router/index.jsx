@@ -20,7 +20,6 @@ const ProfileScreen = lazy(() => import('../screens/ProfileScreen'))
 const DynamicLabScreen = lazy(() => import('../screens/DynamicLabScreen'))
 const AITutorScreen = lazy(() => import('../screens/AITutorScreen'))
 const GraphBoardScreen = lazy(() => import('../screens/GraphBoardScreen'))
-const GravityLabScreen = lazy(() => import('../screens/GravityLabScreen'))
 const ForceLabScreen = lazy(() => import('../screens/ForceLabScreen'))
 const PhysicsLabScreen = lazy(() => import('../screens/PhysicsLabScreen'))
 const WalkLabScreen = lazy(() => import('../screens/WalkLabScreen'))
@@ -30,6 +29,7 @@ const PendulumExperiment = lazy(() => import('../studio/PendulumExperiment'))
 const MotionExperiment = lazy(() => import('../studio/MotionExperiment'))
 const CircuitsExperiment = lazy(() => import('../studio/CircuitsExperiment'))
 const LightExperiment = lazy(() => import('../studio/LightExperiment'))
+const PlanetsExperiment = lazy(() => import('../studio/PlanetsExperiment'))
 
 /** Shown for the moment a screen's code is downloading: a quiet bar, not a flash of text. */
 function Loading() {
@@ -93,6 +93,7 @@ const router = createBrowserRouter(
             { path: '/experiments/motion', element: <MotionExperiment /> },
             { path: '/experiments/circuits', element: <CircuitsExperiment /> },
             { path: '/experiments/light', element: <LightExperiment /> },
+            { path: '/experiments/planets', element: <PlanetsExperiment /> },
             { path: '/sim',               element: <SimulatorScreen /> },
             { path: '/sim-2d',            element: <Simulator2DScreen /> },
             { path: '/sim-2d/:labId',     element: <DynamicLabScreen /> },
@@ -102,7 +103,7 @@ const router = createBrowserRouter(
             { path: '/physics-lab',       element: <PhysicsLabScreen /> },
             { path: '/physics-lab/walk',  element: <WalkLabScreen /> },
             { path: '/motion',            element: <Navigate to="/experiments/motion" replace /> },
-            { path: '/gravity',           element: <GravityLabScreen /> },
+            { path: '/gravity',           element: <Navigate to="/experiments/planets" replace /> },
             { path: '/light',             element: <Navigate to="/experiments/light" replace /> },
             { path: '/electricity',       element: <Navigate to="/experiments/circuits" replace /> },
             { path: '/force',             element: <ForceLabScreen /> },
