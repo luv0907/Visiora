@@ -31,6 +31,7 @@ const CircuitsExperiment = lazy(() => import('../studio/CircuitsExperiment'))
 const LightExperiment = lazy(() => import('../studio/LightExperiment'))
 const PlanetsExperiment = lazy(() => import('../studio/PlanetsExperiment'))
 const ProjectileExperiment = lazy(() => import('../studio/ProjectileExperiment'))
+const BuoyancyExperiment = lazy(() => import('../studio/BuoyancyExperiment'))
 
 /** Shown for the moment a screen's code is downloading: a quiet bar, not a flash of text. */
 function Loading() {
@@ -96,6 +97,7 @@ const router = createBrowserRouter(
             { path: '/experiments/light', element: <LightExperiment /> },
             { path: '/experiments/planets', element: <PlanetsExperiment /> },
             { path: '/experiments/projectile', element: <ProjectileExperiment /> },
+            { path: '/experiments/buoyancy', element: <BuoyancyExperiment /> },
             { path: '/sim',               element: <SimulatorScreen /> },
             { path: '/sim-2d',            element: <Simulator2DScreen /> },
             { path: '/sim-2d/:labId',     element: <DynamicLabScreen /> },

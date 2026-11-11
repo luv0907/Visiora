@@ -30,8 +30,8 @@ export const CHAPTERS = [
         about: 'Find out which surfaces hold a block still on a ramp, and which let it slide.' },
       { id: 'airtrack', name: 'Air track collisions', kind: '3D', art: 'carts', path: '/physics-lab?station=collisions',
         about: 'Crash two gliders together and compare momentum before and after.' },
-      { id: 'buoyancy', name: 'Floating and sinking', kind: '3D', art: 'float', path: '/sim', simLab: 'buoyancy',
-        about: 'Lower objects into liquids and find out what decides whether they float.' },
+      { id: 'buoyancy', name: 'Floating and sinking', kind: '2D', art: 'float', path: '/experiments/buoyancy', redesigned: true,
+        about: 'Float ice, steel and wood in water, oil, honey and mercury, then prove Archimedes’ principle.' },
     ],
   },
   {
