@@ -3,7 +3,7 @@
  * region of the sheet (in mm) to a canvas, outlining blocks, lenses and mirrors, pins, arrows
  * and a protractor that can be read to the degree.
  */
-import { surfaces } from '../engine/raybench'
+import { LIGHTS, dirOf, spectrumRGB, surfaces, vec } from '../engine/raybench'
 import { INK } from './drawings'
 
 export const MONO = '"IBM Plex Mono", monospace', SANS = '"Instrument Sans", sans-serif'
@@ -132,4 +132,70 @@ export function protractor(ctx, cx, cy, R, zeroDeg, { span = 90 } = {}) {
     if (d % 10 === 0) ctx.fillText(String(Math.abs(d)), cx + (R - 24) * Math.cos(a), cy + (R - 24) * Math.sin(a))
   }
   ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(cx, cy, 2.5, 0, 2 * Math.PI); ctx.fill()
+}
+
+/** The ray bench's floor, in mm: 320 × 200, centred on the origin. */
+export const BENCH_VIEW = { x0: -160, y0: -100, x1: 160, y1: 100 }
+
+/**
+ * Draw the bench: the dark room, the glass, every traced ray (added up like light), the normal
+ * and angles where the ray first bends, and the ray box. `upTo` draws the ray only as far as the
+ * glass, with a question mark, for the moment before a prediction is checked. Returns the view.
+ */
+export function paintBench(ctx, w, h, { shapes, selected = null, rays, first, angles, light, box, upTo = null, handle = true }) {
+  const v = fit(BENCH_VIEW, w, h, 0)
+  ctx.fillStyle = '#12141A'; ctx.fillRect(0, 0, w, h)
+  ctx.strokeStyle = 'rgba(255,255,255,.04)'; ctx.lineWidth = 1
+  for (let x = -160; x <= 160; x += 10) { ctx.beginPath(); ctx.moveTo(v.X(x), 0); ctx.lineTo(v.X(x), h); ctx.stroke() }
+  for (let y = -100; y <= 100; y += 10) { ctx.beginPath(); ctx.moveTo(0, v.Y(y)); ctx.lineTo(w, v.Y(y)); ctx.stroke() }
+  for (const s of shapes) drawGlass(ctx, s, v, { dark: true, selected: s.id === selected })
+  if (upTo) {
+    ctx.strokeStyle = 'rgba(255,107,107,.25)'; ctx.lineWidth = 6; ctx.lineCap = 'round'
+    ctx.beginPath(); ctx.moveTo(...v.P(upTo.from)); ctx.lineTo(...v.P(upTo.to)); ctx.stroke()
+    ctx.strokeStyle = '#FF6B6B'; ctx.lineWidth = 1.8
+    ctx.beginPath(); ctx.moveTo(...v.P(upTo.from)); ctx.lineTo(...v.P(upTo.to)); ctx.stroke()
+    if (upTo.normal) {
+      ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.setLineDash([5, 4]); ctx.lineWidth = 1
+      ctx.beginPath(); ctx.moveTo(...v.P(vec.add(upTo.to, upTo.normal, 34))); ctx.lineTo(...v.P(vec.add(upTo.to, upTo.normal, -34))); ctx.stroke(); ctx.setLineDash([])
+    }
+    const [qx, qy] = v.P(upTo.to)
+    ctx.fillStyle = '#12141A'; ctx.strokeStyle = '#FFB347'; ctx.lineWidth = 2
+    ctx.beginPath(); ctx.arc(qx, qy, 13, 0, 2 * Math.PI); ctx.fill(); ctx.stroke()
+    ctx.fillStyle = '#FFB347'; ctx.font = `700 15px ${SANS}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('?', qx, qy + 1)
+  }
+  // rays: added up like light, so overlapping colours make white
+  ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round'
+  const n = LIGHTS[light].lams.length
+  for (const r of rays) {
+    const [R, G, B] = spectrumRGB(r.lam), a = Math.min(1, Math.sqrt(r.I * n) * (n > 1 ? 0.55 : 1))
+    ctx.strokeStyle = `rgba(${R},${G},${B},${a * 0.25})`; ctx.lineWidth = 6
+    ctx.beginPath(); ctx.moveTo(...v.P(r.a)); ctx.lineTo(...v.P(r.b)); ctx.stroke()
+    ctx.strokeStyle = `rgba(${R},${G},${B},${a})`; ctx.lineWidth = 1.8
+    ctx.beginPath(); ctx.moveTo(...v.P(r.a)); ctx.lineTo(...v.P(r.b)); ctx.stroke()
+  }
+  ctx.globalCompositeOperation = 'source-over'
+  // normal and angles at the first surface
+  const shown = first.find(e => !e.mirror && e.i > 0.2) ?? first[0]
+  if (angles && shown && !shown.mirror && shown.i > 0.2) {
+    const e = shown
+    ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.setLineDash([5, 4]); ctx.lineWidth = 1
+    ctx.beginPath(); ctx.moveTo(...v.P(vec.add(e.at, e.normal, 28))); ctx.lineTo(...v.P(vec.add(e.at, e.normal, -28))); ctx.stroke()
+    ctx.setLineDash([])
+    ctx.fillStyle = '#fff'; ctx.font = `600 12px ${MONO}`; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'
+    ctx.fillText(`i = ${e.i.toFixed(1)}°${e.r != null ? `   r = ${e.r.toFixed(1)}°` : '   total internal reflection'}`, v.X(e.at[0]) + 10, v.Y(e.at[1]) - 8)
+  }
+  // the ray box
+  const d = dirOf(box.deg)
+  ctx.save(); ctx.translate(v.X(box.x), v.Y(box.y)); ctx.rotate((box.deg * Math.PI) / 180)
+  ctx.fillStyle = '#2B2F38'; ctx.strokeStyle = '#8A8F99'; ctx.lineWidth = 1.2
+  ctx.beginPath(); ctx.roundRect(-14 * v.k, -6 * v.k, 22 * v.k, 12 * v.k, 3); ctx.fill(); ctx.stroke()
+  ctx.fillStyle = '#F5D76E'; ctx.fillRect(8 * v.k - 2, -2 * v.k, 3, 4 * v.k)
+  ctx.restore()
+  // rotate handle behind the box
+  if (!handle) return v
+  const hnd = vec.add([box.x, box.y], d, -20)
+  ctx.fillStyle = '#E4532A'; ctx.beginPath(); ctx.arc(...v.P(hnd), 6, 0, 2 * Math.PI); ctx.fill()
+  ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.font = `500 11px ${SANS}`; ctx.textAlign = 'center'; ctx.textBaseline = 'top'
+  ctx.fillText('turn', ...vec.add(v.P(hnd), [0, 9]))
+  return v
 }

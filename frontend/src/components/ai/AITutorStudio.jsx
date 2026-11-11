@@ -385,7 +385,8 @@ export default function AITutorStudio({ onClose, isModal = false }) {
   const [selectedModel, setSelectedModel] = useState('gemini')
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
-  const [input, setInput] = useState('')
+  // a question handed over from an experiment (?ask=…) is waiting in the box, ready to send
+  const [input, setInput] = useState(() => (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('ask')) || '')
   const [isLoading, setIsLoading] = useState(false)
   const [copiedMsgId, setCopiedMsgId] = useState(null)
   const [sketchOpen, setSketchOpen] = useState(false)
