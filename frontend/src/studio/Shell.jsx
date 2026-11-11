@@ -156,7 +156,7 @@ export function Options({ options, value, onChange, disabled, label }) {
   return (
     <div className="st-options" role="radiogroup" aria-label={label}>
       {options.map(o => (
-        <button key={o.id} role="radio" aria-checked={value === o.id} className={value === o.id ? 'is-on' : ''} disabled={disabled} onClick={() => onChange(o.id)}>
+        <button key={o.id} role="radio" aria-checked={value === o.id} className={value === o.id ? 'is-on' : ''} disabled={disabled || o.disabled} onClick={() => onChange(o.id)}>
           {o.label}{o.sub && <span className="st-num">{o.sub}</span>}
         </button>
       ))}

@@ -421,3 +421,12 @@ body.is-resizing .st-stage { pointer-events: none; }
 .st-stage-arrow { display: block; margin-top: 8px; font-size: 26px; color: var(--accent); animation: st-bob 1.4s ease-in-out infinite; }
 @keyframes st-bob { 50% { transform: translateY(6px); } }
 @media (prefers-reduced-motion: reduce) { .st-stage-arrow { animation: none; } }
+
+/* ——— Light ——— */
+.st-light.has-strip { grid-template-rows: minmax(0, 1fr) clamp(150px, 26vh, 240px); }
+.st-light-strip { position: relative; border-top: 1px solid var(--line); background: #F3F1EB; }
+.st-light-strip > .st-label { position: absolute; z-index: 1; right: 12px; top: 8px; padding: 2px 8px; border-radius: 4px; background: rgba(255,255,255,.85); }
+.st-chipset { display: flex; flex-wrap: wrap; gap: 6px; }
+.st-chip { padding: 6px 10px; border: 1px solid var(--line-2); border-radius: 999px; background: #fff; font-size: 12.5px; font-weight: 600; color: var(--ink); cursor: pointer; }
+.st-chip:hover { border-color: var(--ink-3); }
+.st-chip.is-on { background: var(--ink); border-color: var(--ink); color: #fff; }

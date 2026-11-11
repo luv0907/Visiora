@@ -37,8 +37,8 @@ export const CHAPTERS = [
   {
     id: 'light-electricity', grade: 'Class 10', title: 'Light and electricity', note: 'Reflection, refraction, lenses and circuits',
     items: [
-      { id: 'light', name: 'Bending light', kind: '2D', art: 'ray', path: '/light',
-        about: 'Aim a laser between materials and find when light bends or gets trapped.' },
+      { id: 'light', name: 'Bending light', kind: '2D', art: 'ray', path: '/experiments/light', redesigned: true,
+        about: 'Trace rays through a glass slab and a prism with pins, then split white light and trap it inside glass.' },
       { id: 'optics', name: 'Lens and screen', kind: '3D', art: 'lens', path: '/physics-lab?station=optics',
         about: 'Move a lens and a screen until a sharp, upside-down image appears.' },
       { id: 'electricity', name: 'Circuits', kind: '2D', art: 'circuit', path: '/experiments/circuits', redesigned: true,
