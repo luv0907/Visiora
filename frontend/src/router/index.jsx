@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react'
-import { createBrowserRouter, RouterProvider, Navigate, Outlet, useLocation } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Navigate, Outlet, useLocation, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from '../store/useAuthStore'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 import BottomNav from '../components/nav/BottomNav'
@@ -21,6 +21,14 @@ const DynamicLabScreen = lazy(() => import('../screens/DynamicLabScreen'))
 const AITutorScreen = lazy(() => import('../screens/AITutorScreen'))
 const GraphBoardScreen = lazy(() => import('../screens/GraphBoardScreen'))
 const PhysicsLabScreen = lazy(() => import('../screens/PhysicsLabScreen'))
+
+// Old lab stations now covered by a redesigned experiment: send their links there.
+const RETIRED_STATIONS = { freefall: '/experiments/planets', ohm: '/experiments/circuits' }
+function PhysicsLabRoute() {
+  const [params] = useSearchParams()
+  const to = RETIRED_STATIONS[params.get('station')]
+  return to ? <Navigate to={to} replace /> : <PhysicsLabScreen />
+}
 const WalkLabScreen = lazy(() => import('../screens/WalkLabScreen'))
 const PreviewScreen = lazy(() => import('../screens/PreviewScreen'))
 const SignIn = lazy(() => import('../studio/SignIn'))
@@ -107,7 +115,7 @@ const router = createBrowserRouter(
             { path: '/lab',               element: <DynamicLabScreen /> },
             { path: '/lab/:labId',        element: <DynamicLabScreen /> },
             { path: '/board',             element: <GraphBoardScreen /> },
-            { path: '/physics-lab',       element: <PhysicsLabScreen /> },
+            { path: '/physics-lab',       element: <PhysicsLabRoute /> },
             { path: '/physics-lab/walk',  element: <WalkLabScreen /> },
             { path: '/motion',            element: <Navigate to="/experiments/motion" replace /> },
             { path: '/gravity',           element: <Navigate to="/experiments/planets" replace /> },
