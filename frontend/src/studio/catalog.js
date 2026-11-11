@@ -24,8 +24,8 @@ export const CHAPTERS = [
   {
     id: 'force', grade: 'Class 9', title: 'Force and laws of motion', note: 'Newton’s laws, friction and momentum',
     items: [
-      { id: 'force', name: 'Push a box', kind: '2D', art: 'box', path: '/force',
-        about: 'Push a box across different floors and see how friction fights back.' },
+      { id: 'force', name: 'Push a box', kind: '2D', art: 'box', path: '/experiments/force', redesigned: true,
+        about: 'Push boxes on ice, wood and carpet to see Newton’s laws, then measure friction with a spring balance.' },
       { id: 'ramp', name: 'Friction ramp', kind: '3D', art: 'ramp', path: '/physics-lab?station=friction',
         about: 'Find out which surfaces hold a block still on a ramp, and which let it slide.' },
       { id: 'airtrack', name: 'Air track collisions', kind: '2D', art: 'carts', path: '/experiments/collisions', redesigned: true,

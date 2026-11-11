@@ -20,7 +20,6 @@ const ProfileScreen = lazy(() => import('../screens/ProfileScreen'))
 const DynamicLabScreen = lazy(() => import('../screens/DynamicLabScreen'))
 const AITutorScreen = lazy(() => import('../screens/AITutorScreen'))
 const GraphBoardScreen = lazy(() => import('../screens/GraphBoardScreen'))
-const ForceLabScreen = lazy(() => import('../screens/ForceLabScreen'))
 const PhysicsLabScreen = lazy(() => import('../screens/PhysicsLabScreen'))
 const WalkLabScreen = lazy(() => import('../screens/WalkLabScreen'))
 const PreviewScreen = lazy(() => import('../screens/PreviewScreen'))
@@ -33,6 +32,7 @@ const PlanetsExperiment = lazy(() => import('../studio/PlanetsExperiment'))
 const ProjectileExperiment = lazy(() => import('../studio/ProjectileExperiment'))
 const BuoyancyExperiment = lazy(() => import('../studio/BuoyancyExperiment'))
 const CollisionsExperiment = lazy(() => import('../studio/CollisionsExperiment'))
+const ForceExperiment = lazy(() => import('../studio/ForceExperiment'))
 
 /** Shown for the moment a screen's code is downloading: a quiet bar, not a flash of text. */
 function Loading() {
@@ -100,6 +100,7 @@ const router = createBrowserRouter(
             { path: '/experiments/projectile', element: <ProjectileExperiment /> },
             { path: '/experiments/buoyancy', element: <BuoyancyExperiment /> },
             { path: '/experiments/collisions', element: <CollisionsExperiment /> },
+            { path: '/experiments/force', element: <ForceExperiment /> },
             { path: '/sim',               element: <SimulatorScreen /> },
             { path: '/sim-2d',            element: <Simulator2DScreen /> },
             { path: '/sim-2d/:labId',     element: <DynamicLabScreen /> },
@@ -112,7 +113,7 @@ const router = createBrowserRouter(
             { path: '/gravity',           element: <Navigate to="/experiments/planets" replace /> },
             { path: '/light',             element: <Navigate to="/experiments/light" replace /> },
             { path: '/electricity',       element: <Navigate to="/experiments/circuits" replace /> },
-            { path: '/force',             element: <ForceLabScreen /> },
+            { path: '/force',             element: <Navigate to="/experiments/force" replace /> },
             { path: '/ai-tutor',          element: <AITutorScreen /> },
             { path: '/progress',          element: <ProgressScreen /> },
             { path: '/quiz/:conceptId',   element: <QuizScreen /> },
