@@ -11,8 +11,6 @@ export const CHAPTERS = [
         about: 'Find out what changes how long a swing takes: the string, the mass, or gravity.' },
       { id: 'motion', name: 'Speed & acceleration', kind: '2D', art: 'car', path: '/experiments/motion', redesigned: true,
         about: 'Drive a car and watch its distance–time and speed–time graphs draw live.' },
-      { id: 'freefall', name: 'Free Fall Tower', kind: '3D', art: 'fall', path: '/physics-lab?station=freefall',
-        about: 'Drop a steel ball and a feather, then pump the air out and drop them again.' },
       { id: 'gravity', name: 'Falling on other planets', kind: '2D', art: 'planets', path: '/experiments/planets', redesigned: true,
         about: 'Drop a hammer and a feather on the Moon, Earth, Mars, Venus and Jupiter, then measure g on a mystery planet.' },
       { id: 'projectile', name: 'Projectile motion', kind: '2D', art: 'arc', path: '/experiments/projectile', redesigned: true,
@@ -43,8 +41,6 @@ export const CHAPTERS = [
         about: 'Move a lens and a screen until a sharp, upside-down image appears.' },
       { id: 'electricity', name: 'Circuits', kind: '2D', art: 'circuit', path: '/experiments/circuits', redesigned: true,
         about: 'Find Ohm’s law with real meter readings, then solve circuit puzzles on a breadboard.' },
-      { id: 'ohm', name: 'Ohm’s law bench', kind: '3D', art: 'meters', path: '/physics-lab?station=ohm',
-        about: 'Change the voltage and resistance and watch the meters and bulbs respond.' },
     ],
   },
 ]
