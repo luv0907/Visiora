@@ -23,7 +23,7 @@ const GraphBoardScreen = lazy(() => import('../screens/GraphBoardScreen'))
 const PhysicsLabScreen = lazy(() => import('../screens/PhysicsLabScreen'))
 
 // Old lab stations now covered by a redesigned experiment: send their links there.
-const RETIRED_STATIONS = { freefall: '/experiments/planets', ohm: '/experiments/circuits' }
+const RETIRED_STATIONS = { freefall: '/experiments/planets', ohm: '/experiments/circuits', friction: '/experiments/ramp' }
 function PhysicsLabRoute() {
   const [params] = useSearchParams()
   const to = RETIRED_STATIONS[params.get('station')]
@@ -41,6 +41,7 @@ const ProjectileExperiment = lazy(() => import('../studio/ProjectileExperiment')
 const BuoyancyExperiment = lazy(() => import('../studio/BuoyancyExperiment'))
 const CollisionsExperiment = lazy(() => import('../studio/CollisionsExperiment'))
 const ForceExperiment = lazy(() => import('../studio/ForceExperiment'))
+const RampExperiment = lazy(() => import('../studio/RampExperiment'))
 
 /** Shown for the moment a screen's code is downloading: a quiet bar, not a flash of text. */
 function Loading() {
@@ -109,6 +110,7 @@ const router = createBrowserRouter(
             { path: '/experiments/buoyancy', element: <BuoyancyExperiment /> },
             { path: '/experiments/collisions', element: <CollisionsExperiment /> },
             { path: '/experiments/force', element: <ForceExperiment /> },
+            { path: '/experiments/ramp', element: <RampExperiment /> },
             { path: '/sim',               element: <SimulatorScreen /> },
             { path: '/sim-2d',            element: <Simulator2DScreen /> },
             { path: '/sim-2d/:labId',     element: <DynamicLabScreen /> },

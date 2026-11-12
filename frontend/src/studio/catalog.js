@@ -24,8 +24,8 @@ export const CHAPTERS = [
     items: [
       { id: 'force', name: 'Push a box', kind: '2D', art: 'box', path: '/experiments/force', redesigned: true,
         about: 'Push boxes on ice, wood and carpet to see Newton’s laws, then measure friction with a spring balance.' },
-      { id: 'ramp', name: 'Friction ramp', kind: '3D', art: 'ramp', path: '/physics-lab?station=friction',
-        about: 'Find out which surfaces hold a block still on a ramp, and which let it slide.' },
+      { id: 'ramp', name: 'Friction ramp', kind: '2D', art: 'ramp', path: '/experiments/ramp', redesigned: true,
+        about: 'Tilt a ramp until a block slips, see why mass makes no difference, then measure μs and μk.' },
       { id: 'airtrack', name: 'Air track collisions', kind: '2D', art: 'carts', path: '/experiments/collisions', redesigned: true,
         about: 'Crash gliders together, springy or sticky, and prove momentum is conserved with light gates.' },
       { id: 'buoyancy', name: 'Floating and sinking', kind: '2D', art: 'float', path: '/experiments/buoyancy', redesigned: true,
